@@ -1,14 +1,6 @@
 ﻿version: '3.8'
 
 services:
-  dotnet8webapi:
-    image: ${DOCKER_REGISTRY-}dotnet8webapi
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    depends_on:
-      - postgres
-
   postgres:
     image: postgres:latest
     container_name: my_postgres_db

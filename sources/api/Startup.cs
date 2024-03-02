@@ -29,8 +29,6 @@ public class Startup
 
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<AuthenticationService>();
-        services.AddScoped<IProductService, ProductService>();
-        services.AddScoped<ICartService, CartService>();
 
         services.AddControllers();
 
@@ -97,7 +95,7 @@ public class Startup
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "3SECU - iStore");
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "3PROJ");
             c.DocExpansion(DocExpansion.None);
         });
     }
