@@ -2,7 +2,7 @@
 
 services:
   api:
-    container_name: my_api
+    container_name: my_api_app
     build:
       context: ./sources/api
       dockerfile: Dockerfile
@@ -25,6 +25,21 @@ services:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    container_name: my_web_app
+    build: 
+      context: ./sources/web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 5
