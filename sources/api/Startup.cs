@@ -30,6 +30,7 @@ public class Startup
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<AuthenticationService>();
+        services.AddScoped<IUserInGroupService, UserInGroupService>();
 
         services.AddControllers();
 

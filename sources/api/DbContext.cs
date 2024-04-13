@@ -85,7 +85,19 @@ namespace DotNetAPI
             });
 
             modelBuilder.Entity<UserInGroup>()
-                .HasNoKey();
+                .HasKey(uig => new { uig.UserId, uig.GroupId });
+
+            modelBuilder.Entity<UserInGroup>()
+                .HasOne(uig => uig.User)
+                .WithMany()
+                .HasForeignKey(uig => uig.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserInGroup>()
+                .HasOne(uig => uig.Group)
+                .WithMany()
+                .HasForeignKey(uig => uig.GroupId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.DebtInGroup)
