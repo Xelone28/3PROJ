@@ -259,8 +259,8 @@ namespace workaround_ef.Migrations
 
             modelBuilder.Entity("DotNetAPI.Model.UserInGroup", b =>
                 {
-                    b.Property<float>("Balance")
-                        .HasColumnType("real");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("GroupId")
                         .HasColumnType("integer");
@@ -268,12 +268,9 @@ namespace workaround_ef.Migrations
                     b.Property<bool>("IsGroupAdmin")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.HasKey("UserId", "GroupId");
 
                     b.HasIndex("GroupId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("UserInGroup");
                 });

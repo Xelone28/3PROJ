@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace workaround_ef.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20240313102413_db")]
-    partial class db
+    [Migration("20240413231142_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,31 +38,28 @@ namespace workaround_ef.Migrations
                     b.Property<int>("Name")
                         .HasColumnType("integer");
 
-                    b.Property<int>("UserGroupId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserGroupId");
+                    b.HasIndex("GroupId");
 
                     b.ToTable("Category");
                 });
 
             modelBuilder.Entity("DotNetAPI.Model.DebtInGroup", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
                     b.Property<float>("Amount")
                         .HasColumnType("real");
 
                     b.Property<int>("BillId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ExpenseId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("GroupId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Id")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsCanceled")
@@ -71,28 +68,21 @@ namespace workaround_ef.Migrations
                     b.Property<bool>("IsPaid")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("UserGroupId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("UserIdInCredit")
                         .HasColumnType("integer");
 
                     b.Property<int>("UserIdInDebt")
                         .HasColumnType("integer");
 
-                    b.Property<int>("UserInCreditId")
-                        .HasColumnType("integer");
+                    b.HasKey("Id");
 
-                    b.Property<int>("UserInDebtId")
-                        .HasColumnType("integer");
+                    b.HasIndex("BillId");
 
-                    b.HasIndex("ExpenseId");
+                    b.HasIndex("GroupId");
 
-                    b.HasIndex("UserGroupId");
+                    b.HasIndex("UserIdInCredit");
 
-                    b.HasIndex("UserInCreditId");
-
-                    b.HasIndex("UserInDebtId");
+                    b.HasIndex("UserIdInDebt");
 
                     b.ToTable("DebtInGroup");
                 });
@@ -143,16 +133,22 @@ namespace workaround_ef.Migrations
 
             modelBuilder.Entity("DotNetAPI.Model.Payment", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
                     b.Property<int>("Amount")
                         .HasColumnType("integer");
 
                     b.Property<int>("Date")
                         .HasColumnType("integer");
 
-                    b.Property<int>("GroupId")
+                    b.Property<int>("DebtId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Id")
+                    b.Property<int>("GroupId")
                         .HasColumnType("integer");
 
                     b.Property<int>("TaxeId")
@@ -165,17 +161,23 @@ namespace workaround_ef.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("UserGroupId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("UserId1")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DebtId");
+
+                    b.HasIndex("GroupId");
+
                     b.HasIndex("TaxeId");
 
-                    b.HasIndex("UserGroupId");
-
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
 
                     b.ToTable("Payment");
                 });
@@ -211,7 +213,8 @@ namespace workaround_ef.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -230,6 +233,9 @@ namespace workaround_ef.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("User");
                 });
@@ -256,8 +262,8 @@ namespace workaround_ef.Migrations
 
             modelBuilder.Entity("DotNetAPI.Model.UserInGroup", b =>
                 {
-                    b.Property<float>("Balance")
-                        .HasColumnType("real");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("GroupId")
                         .HasColumnType("integer");
@@ -265,12 +271,9 @@ namespace workaround_ef.Migrations
                     b.Property<bool>("IsGroupAdmin")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.HasKey("UserId", "GroupId");
 
                     b.HasIndex("GroupId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("UserInGroup");
                 });
@@ -279,7 +282,7 @@ namespace workaround_ef.Migrations
                 {
                     b.HasOne("DotNetAPI.Model.UserGroup", "UserGroup")
                         .WithMany()
-                        .HasForeignKey("UserGroupId")
+                        .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -290,26 +293,26 @@ namespace workaround_ef.Migrations
                 {
                     b.HasOne("DotNetAPI.Model.Expense", "Expense")
                         .WithMany()
-                        .HasForeignKey("ExpenseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("BillId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Model.UserGroup", "UserGroup")
                         .WithMany()
-                        .HasForeignKey("UserGroupId")
+                        .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Model.User", "UserInCredit")
                         .WithMany()
-                        .HasForeignKey("UserInCreditId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("UserIdInCredit")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Model.User", "UserInDebt")
                         .WithMany()
-                        .HasForeignKey("UserInDebtId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("UserIdInDebt")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Expense");
@@ -350,23 +353,37 @@ namespace workaround_ef.Migrations
 
             modelBuilder.Entity("DotNetAPI.Model.Payment", b =>
                 {
-                    b.HasOne("DotNetAPI.Model.Taxe", "Taxe")
+                    b.HasOne("DotNetAPI.Model.DebtInGroup", "DebtInGroup")
                         .WithMany()
-                        .HasForeignKey("TaxeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("DebtId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Model.UserGroup", "UserGroup")
                         .WithMany()
-                        .HasForeignKey("UserGroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DotNetAPI.Model.Taxe", "Taxe")
+                        .WithMany()
+                        .HasForeignKey("TaxeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DotNetAPI.Model.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Model.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("UserId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("DebtInGroup");
 
                     b.Navigation("Taxe");
 
