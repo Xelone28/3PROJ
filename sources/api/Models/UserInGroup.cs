@@ -2,13 +2,12 @@
 {
     public class UserInGroup
     {
-        public required int UserId { get; set; }
-        public required User User { get; set; }
+        public int UserId { get; set; }
+        public User User { get; set; }
 
-        public required int GroupId { get; set; }
-        public required UserGroup Group { get; set; }
+        public int GroupId { get; set; }
+        public UserGroup Group { get; set; }
 
-        public required bool IsGroupAdmin { get; set; }
-        public required float Balance{ get; set; } // revoir
+        public bool IsGroupAdmin { get; set; }
     }
 }
