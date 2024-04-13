@@ -19,7 +19,7 @@
 
         public required int TaxeId { get; set; }
         public required Taxe Taxe { get; set; }
-
+        
         public required int TaxeValue { get; set; }
     }
 }

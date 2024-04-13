@@ -9,6 +9,6 @@
         public required UserGroup Group { get; set; }
 
         public required bool IsGroupAdmin { get; set; }
-        public required float Balance{ get; set; }
+        public required float Balance{ get; set; } // revoir
     }
 }

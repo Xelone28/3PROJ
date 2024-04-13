@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 using DotNetAPI.Model;
+using DotNetAPI.Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -25,22 +22,26 @@ namespace DotNetAPI.Services
 
         }
 
-        public async Task<IEnumerable<User>> GetAllUsers()
+        public async Task<IEnumerable<UserDTO>> GetAllUsers()
         {
-            return await _dbContext.User.ToListAsync();
+            var users = await _dbContext.User.ToListAsync();
+            return users.Select(u => new UserDTO
+            {
+                Id = u.Id,
+                Username = u.Username,
+                Email = u.Email,
+                Rib = u.Rib,
+                PaypalUsername = u.PaypalUsername
+            }).ToList();
         }
 
         public async Task<User> GetUserById(int id)
         {
+            // This method should return a User entity, not a DTO.
             var user = await _dbContext.User.FindAsync(id);
-
-            if (user == null)
-            {
-                throw new NotFoundException($"User with ID {id} not found.");
-            }
-
-            return user;
+            return user; // Ensure this returns User entity.
         }
+
 
         public async Task<User> GetUserByEmailAndPassword(string email, string password)
         {
@@ -82,17 +83,25 @@ namespace DotNetAPI.Services
             }
         }
 
-        public async Task DeleteUser(User user)
+        public async Task DeleteUser(int id)
         {
-            try
+            var user = await _dbContext.User.FindAsync(id);
+            if (user != null)
             {
-                _dbContext.User.Remove(user);
-                await _dbContext.SaveChangesAsync();
-            }
-            catch (Exception ex)
+                try
+                {
+                    _dbContext.User.Remove(user);
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    throw new ApplicationException("Error deleting user.", ex);
+                }
+            } else
             {
-                throw new ApplicationException("Error deleting user.", ex);
+                throw new ApplicationException("The user does not exists");
             }
+
         }
         public async Task<AuthenticateResponse?> Authenticate(AuthenticateRequest model)
         {

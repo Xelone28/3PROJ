@@ -33,11 +33,13 @@
     <None Remove="Controllers\" />
     <None Remove="Models\" />
     <None Remove="Services\" />
+    <None Remove="Models\DTO\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controllers\" />
     <Folder Include="Models\" />
     <Folder Include="Services\" />
+    <Folder Include="Models\DTO\" />
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

@@ -3,6 +3,7 @@ using DotNetAPI.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using DotNetAPI.Model.DTO;
 
 namespace DotNetAPI.Controllers
 {
@@ -21,7 +22,7 @@ namespace DotNetAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
             try
             {
@@ -35,24 +36,25 @@ namespace DotNetAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
-            try
+            var user = await _userService.GetUserById(id);
+            if (user == null)
             {
-                var user = await _userService.GetUserById(id);
-
-                if (user == null)
-                {
-                    return NotFound($"User with ID {id} not found.");
-                }
-
-                return Ok(user);
+                return NotFound();
             }
-            catch (Exception ex)
+
+            var userDto = new UserDTO
             {
-                return StatusCode(500, ex.Message);
-            }
+                // Map properties from User to UserDTO
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                Rib = user.Rib,
+                PaypalUsername = user.PaypalUsername
+            };
+
+            return Ok(userDto);
         }
 
         [HttpPost]
@@ -69,38 +71,48 @@ namespace DotNetAPI.Controllers
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPatch("{id}")]
         [Authorize]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<IActionResult> UpdateUserPartial(int id, [FromBody] UserUpdateDTO user)
         {
-            try
+            if (user == null)
             {
-                var currentUser = (User)HttpContext.Items["User"];
-
-                if (id != user.Id)
-                {
-                    return BadRequest("Invalid request. The ID in the URL does not match the ID in the request body.");
-                }
-
-                if (currentUser.Id != user.Id)
-                {
-                    return Unauthorized("Invalid request. You do not have any right on this user.");
-                }
-
-                var updatedUser = await _userService.UpdateUser(user);
-
-                if (updatedUser == null)
-                {
-                    return NotFound($"User with ID {id} not found.");
-                }
-
-                return NoContent();
+                return BadRequest("Invalid user data");
             }
-            catch (Exception ex)
+
+            var userFromDb = await _userService.GetUserById(id);
+            if (userFromDb == null)
             {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                return NotFound($"User with ID {id} not found.");
             }
+
+            var currentUser = (User)HttpContext.Items["User"];
+
+            if (currentUser.Id != userFromDb.Id)
+            {
+                return Unauthorized("You do not have permission to modify this user.");
+            }
+
+            if (!string.IsNullOrEmpty(user.Username))
+            {
+                userFromDb.Username = user.Username;
+            }
+
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                userFromDb.Email = user.Email;
+            }
+
+            if (!string.IsNullOrEmpty(user.Password))
+            {
+                // Make sure to hash the password before saving it
+                userFromDb.Password = user.Password;
+            }
+
+            await _userService.UpdateUser(userFromDb);
+            return NoContent();
         }
+
 
         [HttpDelete("{id}")]
         [Authorize]
@@ -114,14 +126,8 @@ namespace DotNetAPI.Controllers
                 {
                     return Unauthorized("Invalid request. You do not have any right on this user.");
                 }
-                var userToDelete = await _userService.GetUserById(id);
 
-                if (userToDelete == null)
-                {
-                    return NotFound($"User with ID {id} not found.");
-                }
-
-                await _userService.DeleteUser(userToDelete);
+                await _userService.DeleteUser(id);
                 return NoContent();
             }
             catch (Exception ex)
@@ -129,6 +135,7 @@ namespace DotNetAPI.Controllers
                 return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
+
         [HttpPost("login")]
         public async Task<IActionResult> login(AuthenticateRequest model)
         {

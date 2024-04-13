@@ -52,7 +52,7 @@ public class Startup
 
         services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo { Title = "3SECU - iStore", Version = "v1" });
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "3PROJ - RatCord", Version = "v1" });
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 In = ParameterLocation.Header,
@@ -80,8 +80,12 @@ public class Startup
    
     }
 
-    public void Configure(IApplicationBuilder app)
+    public void Configure(IApplicationBuilder app, UserDbContext dbContext)
     {
+        // Migration done here
+        app.UseDeveloperExceptionPage();
+        dbContext.Database.Migrate();
+
         app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();
