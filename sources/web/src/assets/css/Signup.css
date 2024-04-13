@@ -1,0 +1,17 @@
+/* Signup.css */
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.signup-form .form-row label {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
