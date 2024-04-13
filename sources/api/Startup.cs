@@ -28,6 +28,7 @@ public class Startup
             options.UseNpgsql(Configuration.GetConnectionString("PgsqlConnectionString")));
 
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<AuthenticationService>();
 
         services.AddControllers();
@@ -83,8 +84,8 @@ public class Startup
     public void Configure(IApplicationBuilder app, UserDbContext dbContext)
     {
         // Migration done here
-        app.UseDeveloperExceptionPage();
-        dbContext.Database.Migrate();
+        //app.UseDeveloperExceptionPage();
+        //dbContext.Database.Migrate();
 
         app.UseRouting();
         app.UseAuthentication();
