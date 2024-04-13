@@ -85,15 +85,13 @@ services.AddCors(options =>
                 }
             });
         });
-
-   
     }
 
     public void Configure(IApplicationBuilder app, UserDbContext dbContext)
     {
         // Migration done here
         //app.UseDeveloperExceptionPage();
-        //dbContext.Database.Migrate();
+        dbContext.Database.Migrate();
 
         app.UseRouting();
         app.UseAuthentication();
