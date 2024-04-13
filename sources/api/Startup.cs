@@ -24,6 +24,13 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+services.AddCors(options =>
+{
+    options.AddPolicy("AllowMyOrigin",
+    builder => builder.WithOrigins("http://localhost:3000")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod());
+});
         services.AddDbContext<UserDbContext>(options =>
             options.UseNpgsql(Configuration.GetConnectionString("PgsqlConnectionString")));
 
@@ -90,7 +97,7 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseMiddleware<JwtMiddleware>();
-
+        app.UseCors("AllowMyOrigin");
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
