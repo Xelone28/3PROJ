@@ -2,3 +2,6 @@
 bin/
 .vs
 obj/
+sources/mobile/app/proguard-rules.pro
+
+sources/mobile/app/src/androidTest/java/com/console/ratcord/ExampleInstrumentedTest.kt
