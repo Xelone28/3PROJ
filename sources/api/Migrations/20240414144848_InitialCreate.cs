@@ -189,7 +189,6 @@ namespace workaround_ef.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<int>(type: "integer", nullable: false),
-                    UserId1 = table.Column<int>(type: "integer", nullable: false),
                     GroupId = table.Column<int>(type: "integer", nullable: false),
                     DebtId = table.Column<int>(type: "integer", nullable: false),
                     Date = table.Column<int>(type: "integer", nullable: false),
@@ -225,12 +224,6 @@ namespace workaround_ef.Migrations
                         principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Payment_User_UserId1",
-                        column: x => x.UserId1,
-                        principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -292,11 +285,6 @@ namespace workaround_ef.Migrations
                 name: "IX_Payment_UserId",
                 table: "Payment",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Payment_UserId1",
-                table: "Payment",
-                column: "UserId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_Email",
