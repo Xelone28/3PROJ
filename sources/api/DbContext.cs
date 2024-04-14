@@ -116,7 +116,7 @@ namespace DotNetAPI
 
                 entity.Property(e => e.Name);
 
-                entity.HasOne(e => e.UserGroup)
+                entity.HasOne<UserGroup>()
                       .WithMany()
                       .HasForeignKey(e => e.GroupId)
                       .OnDelete(DeleteBehavior.Cascade);
