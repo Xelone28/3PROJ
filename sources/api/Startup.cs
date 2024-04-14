@@ -38,6 +38,7 @@ services.AddCors(options =>
         services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<AuthenticationService>();
         services.AddScoped<IUserInGroupService, UserInGroupService>();
+        services.AddScoped<ITaxeService, TaxeService>();
 
         services.AddControllers();
 
