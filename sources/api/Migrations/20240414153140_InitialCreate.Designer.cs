@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace workaround_ef.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20240414144848_InitialCreate")]
+    [Migration("20240414153140_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -35,8 +35,9 @@ namespace workaround_ef.Migrations
                     b.Property<int>("GroupId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Name")
-                        .HasColumnType("integer");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -275,13 +276,11 @@ namespace workaround_ef.Migrations
 
             modelBuilder.Entity("DotNetAPI.Model.Category", b =>
                 {
-                    b.HasOne("DotNetAPI.Model.UserGroup", "UserGroup")
+                    b.HasOne("DotNetAPI.Model.UserGroup", null)
                         .WithMany()
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("UserGroup");
                 });
 
             modelBuilder.Entity("DotNetAPI.Model.DebtInGroup", b =>

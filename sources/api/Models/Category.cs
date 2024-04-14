@@ -4,7 +4,6 @@
     {
         public required int Id{ get; set; }
         public required int GroupId { get; set; }
-        public required UserGroup UserGroup { get; set; }
-        public required int Name { get; set; }
+        public required string Name { get; set; }
     }
 }
