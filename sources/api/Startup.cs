@@ -40,6 +40,7 @@ services.AddCors(options =>
         services.AddScoped<IUserInGroupService, UserInGroupService>();
         services.AddScoped<ITaxeService, TaxeService>();
         services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IExpenseService, ExpenseService>();
 
         services.AddControllers();
 
