@@ -73,7 +73,7 @@ namespace workaround_ef.Migrations
                         column: x => x.GroupId,
                         principalTable: "Group",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -107,13 +107,12 @@ namespace workaround_ef.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    GroupId = table.Column<int>(type: "integer", nullable: false),
-                    UserGroupId = table.Column<int>(type: "integer", nullable: false),
                     UserId = table.Column<int>(type: "integer", nullable: false),
-                    Date = table.Column<int>(type: "integer", nullable: false),
-                    Amount = table.Column<int>(type: "integer", nullable: false),
-                    Place = table.Column<string>(type: "text", nullable: false),
+                    GroupId = table.Column<int>(type: "integer", nullable: false),
                     CategoryId = table.Column<int>(type: "integer", nullable: false),
+                    Amount = table.Column<float>(type: "real", nullable: false),
+                    Date = table.Column<int>(type: "integer", nullable: false),
+                    Place = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -124,19 +123,19 @@ namespace workaround_ef.Migrations
                         column: x => x.CategoryId,
                         principalTable: "Category",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Expense_Group_UserGroupId",
-                        column: x => x.UserGroupId,
+                        name: "FK_Expense_Group_GroupId",
+                        column: x => x.GroupId,
                         principalTable: "Group",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Expense_User_UserId",
                         column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -257,9 +256,9 @@ namespace workaround_ef.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Expense_UserGroupId",
+                name: "IX_Expense_GroupId",
                 table: "Expense",
-                column: "UserGroupId");
+                column: "GroupId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Expense_UserId",

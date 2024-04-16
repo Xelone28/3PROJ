@@ -3,6 +3,7 @@ using DotNetAPI.Services;
 using DotNetAPI.Model;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using DotNetAPI.Model.DTO;
 
 [ApiController]
 [Route("[controller]")]
@@ -48,7 +49,7 @@ public class ExpenseController : ControllerBase
 
     [HttpPatch("{id}")]
     [Authorize]
-    public async Task<IActionResult> Patch(int id, [FromBody] Expense expense)
+    public async Task<IActionResult> Patch(int id, [FromBody] ExpenseUpdateDTO expense)
     {
         if (expense == null)
         {
@@ -61,7 +62,13 @@ public class ExpenseController : ControllerBase
             return NotFound();
         }
 
-        await _expenseService.UpdateExpense(expense);
+        expenseToUpdate.CategoryId = expense.CategoryId ?? expenseToUpdate.CategoryId;
+        expenseToUpdate.UserId = expense.UserId ?? expenseToUpdate.UserId;
+        expenseToUpdate.Date = expense.Date ?? expenseToUpdate.Date;
+        expenseToUpdate.Amount = expense.Amount ?? expenseToUpdate.Amount;
+        expenseToUpdate.Description = expense.Description ?? expenseToUpdate.Description;
+
+        await _expenseService.UpdateExpense(expenseToUpdate);
         return NoContent();
     }
 

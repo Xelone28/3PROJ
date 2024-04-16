@@ -34,9 +34,9 @@ services.AddCors(options =>
         services.AddDbContext<UserDbContext>(options =>
             options.UseNpgsql(Configuration.GetConnectionString("PgsqlConnectionString")));
 
+        services.AddScoped<AuthenticationService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGroupService, GroupService>();
-        services.AddScoped<AuthenticationService>();
         services.AddScoped<IUserInGroupService, UserInGroupService>();
         services.AddScoped<ITaxeService, TaxeService>();
         services.AddScoped<ICategoryService, CategoryService>();
@@ -93,7 +93,7 @@ services.AddCors(options =>
     public void Configure(IApplicationBuilder app, UserDbContext dbContext)
     {
         // Migration done here
-        //app.UseDeveloperExceptionPage();
+        app.UseDeveloperExceptionPage();
         dbContext.Database.Migrate();
 
         app.UseRouting();

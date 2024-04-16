@@ -31,10 +31,17 @@ namespace DotNetAPI.Services
 
         public async Task UpdateExpense(Expense expense)
         {
-            _dbContext.Entry(expense).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
+            try 
+            {
+                _dbContext.Entry(expense).State = EntityState.Modified;
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("Error updating expense.", ex);
+            }
+            
         }
-
         public async Task DeleteExpense(int id)
         {
             var expense = await _dbContext.Set<Expense>().FindAsync(id);

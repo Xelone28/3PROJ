@@ -1,10 +1,10 @@
 ﻿namespace DotNetAPI.Model
 {
-    public class DebtInGroup
+    public class Debt
     {
         public int Id { get; set; }
         public required int GroupId { get; set; }
-        public required UserGroup UserGroup { get; set; }
+        public required Group Group { get; set; }
         public required int BillId { get; set; }
         public required Expense Expense{ get; set; }
         public required int UserIdInCredit { get; set; }

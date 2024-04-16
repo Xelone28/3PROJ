@@ -5,21 +5,18 @@ namespace DotNetAPI
 {
     public class UserDbContext : DbContext
     {
-        public UserDbContext(DbContextOptions<UserDbContext> options) : base(options)
-        {
-        }
-        public DbSet<Category> Category { get; set; }
-        public DbSet<DebtInGroup> DebtInGroup { get; set; }
-        public DbSet<Expense> Expense{ get; set; }
-        public DbSet<UserGroup> Group { get; set; }
-        public DbSet<Payment> Payment { get; set; }
-        public DbSet<Taxe> Taxe { get; set; }
-        public DbSet<UserInGroup> UserInGroup { get; set; }
+        public UserDbContext(DbContextOptions<UserDbContext> options) : base(options) { }
         public DbSet<User> User { get; set; }
+        public DbSet<Group> Group { get; set; }
+        public DbSet<UserInGroup> UserInGroup { get; set; }
+        public DbSet<Expense> Expense{ get; set; }
+        public DbSet<Category> Category { get; set; }
+        public DbSet<Payment> Payment { get; set; }
+        public DbSet<Debt> Debt { get; set; }
+        public DbSet<Taxe> Taxe { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(u => u.Id);
@@ -32,11 +29,58 @@ namespace DotNetAPI
                     .IsUnique();
             });
 
-            modelBuilder.Entity<DebtInGroup>(entity =>
+            modelBuilder.Entity<UserInGroup>(entity =>
+            {
+                entity.HasKey(uig => new { uig.UserId, uig.GroupId});
+
+                entity.HasOne(uig => uig.User)
+                      .WithMany()
+                      .HasForeignKey(uig => uig.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(uig => uig.Group)
+                      .WithMany()
+                      .HasForeignKey(uig => uig.GroupId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Category>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Name);
+
+                entity.HasOne<Group>()
+                      .WithMany()
+                      .HasForeignKey(p => p.GroupId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Expense>(entity =>
+            {
+                entity.HasKey(a => a.Id);
+
+                entity.HasOne<User>()
+                      .WithMany()
+                      .HasForeignKey(p => p.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne<Group>()
+                      .WithMany()
+                      .HasForeignKey(p => p.GroupId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne<Category>()
+                      .WithMany()
+                      .HasForeignKey(p => p.CategoryId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Debt>(entity =>
             {
                 entity.HasKey(d => d.Id);
 
-                entity.HasOne(d => d.UserGroup)
+                entity.HasOne(d => d.Group)
                       .WithMany()
                       .HasForeignKey(d => d.GroupId)
                       .OnDelete(DeleteBehavior.Cascade);
@@ -61,7 +105,6 @@ namespace DotNetAPI
             {
                 entity.HasKey(p => p.Id);
 
-                
                 entity.HasOne(p => p.User)
                       .WithMany()
                       .HasForeignKey(p => p.UserId)
@@ -72,54 +115,15 @@ namespace DotNetAPI
                       .HasForeignKey(p => p.GroupId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(p => p.DebtInGroup)
+                entity.HasOne(p => p.Debt)
                       .WithMany()
                       .HasForeignKey(p => p.DebtId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                
                 entity.HasOne(p => p.Taxe)
                       .WithMany()
                       .HasForeignKey(p => p.TaxeId)
                       .OnDelete(DeleteBehavior.Restrict);
-            });
-
-            modelBuilder.Entity<UserInGroup>()
-                .HasKey(uig => new { uig.UserId, uig.GroupId });
-
-            modelBuilder.Entity<UserInGroup>()
-                .HasOne(uig => uig.User)
-                .WithMany()
-                .HasForeignKey(uig => uig.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<UserInGroup>()
-                .HasOne(uig => uig.Group)
-                .WithMany()
-                .HasForeignKey(uig => uig.GroupId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.DebtInGroup)
-                .WithMany()
-                .HasForeignKey(p => p.DebtId);
-
-            modelBuilder.Entity<Category>()
-                .HasOne<UserGroup>()
-                .WithMany()
-                .HasForeignKey(p => p.GroupId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Category>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-
-                entity.Property(e => e.Name);
-
-                entity.HasOne<UserGroup>()
-                      .WithMany()
-                      .HasForeignKey(e => e.GroupId)
-                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             base.OnModelCreating(modelBuilder);

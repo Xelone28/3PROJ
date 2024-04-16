@@ -20,7 +20,7 @@ public class GroupController : ControllerBase
 
     [HttpGet]
     [Authorize]
-    public async Task<ActionResult<IEnumerable<UserGroup>>> Get()
+    public async Task<ActionResult<IEnumerable<Group>>> Get()
     {
         var groups = await _groupService.GetAllGroups();
         return Ok(groups);
@@ -28,7 +28,7 @@ public class GroupController : ControllerBase
 
     [HttpGet("{id}")]
     [Authorize]
-    public async Task<ActionResult<UserGroup>> Get(int id)
+    public async Task<ActionResult<Group>> Get(int id)
     {
         var group = await _groupService.GetUserGroupById(id);
         if (group == null)
@@ -39,7 +39,7 @@ public class GroupController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<UserGroup>> Post([FromBody] UserGroup userGroup)
+    public async Task<ActionResult<Group>> Post([FromBody] Group userGroup)
     {
         var newGroup = await _groupService.CreateGroup(userGroup);
         return CreatedAtAction(nameof(Get), new { id = newGroup.Id }, newGroup);
