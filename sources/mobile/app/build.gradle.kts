@@ -68,10 +68,12 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:2.3.0")
     implementation("io.ktor:ktor-client-content-negotiation:2.3.0")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.0")
-    implementation("io.ktor:ktor-client-serialization:2.3.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+
+    // JWT security
+    implementation ("androidx.security:security-crypto:1.1.0-alpha06")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+    implementation("com.google.firebase:firebase-crashlytics-buildtools:2.9.9")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -89,10 +91,13 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.0.0-rc01")
     implementation("androidx.compose.material3:material3:1.2.1")
 
-    // Searchbar
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("io.ktor:ktor-client-core:2.3.0")
+    implementation ("io.ktor:ktor-client-android:2.3.0")
+    implementation ("io.ktor:ktor-client-json:2.3.0")
+    implementation ("io.ktor:ktor-client-serialization:2.3.0")
+
+    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // nav
-    implementation("androidx.navigation:navigation-compose:2.5.3")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
 }
