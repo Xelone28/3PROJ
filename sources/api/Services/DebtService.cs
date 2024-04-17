@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using DotNetAPI.Model;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace DotNetAPI.Services
 {
@@ -46,6 +47,38 @@ namespace DotNetAPI.Services
         {
             var debt = await _context.Debt.FindAsync(id);
             _context.Debt.Remove(debt);
+            await _context.SaveChangesAsync();
+        }
+
+        /*Debt creation logic here \/ */
+        public async Task CreateDebtsFromExpense(Expense expense)
+        {
+            // Get the group of the expense
+            var group = await _context.Group.FindAsync(expense.GroupId);
+            // Get all users in the group
+            var users = await _context.UserInGroup.Where(u => u.GroupId == group.Id).ToListAsync();
+            // Calculate the amount each user owes
+            var amountPerUser = expense.Amount / users.Count;
+            // Create a debt for each user in the group
+            foreach (var user in users)
+            {
+                // Skip the user who paid the expense
+                if (user.UserId == expense.UserId)
+                {
+                    continue;
+                }
+                var debt = new Debt
+                {
+                    BillId = expense.Id,
+                    UserIdInCredit = expense.UserId,
+                    UserIdInDebt = user.UserId,
+                    GroupId = group.Id,
+                    Amount = amountPerUser,
+                    IsPaid = false,
+                    IsCanceled = false
+                };
+                _context.Debt.Add(debt);
+            }
             await _context.SaveChangesAsync();
         }
     }

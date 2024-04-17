@@ -47,7 +47,7 @@ public class GroupController : ControllerBase
 
     [HttpPatch("{id}")]
     [Authorize]
-    public async Task<IActionResult> Patch(int id, [FromBody] UserGroupUpdateDTO groupUpdateDto)
+    public async Task<IActionResult> Patch(int id, [FromBody] GroupUpdateDTO groupUpdateDto)
     {
         if (groupUpdateDto == null)
         {

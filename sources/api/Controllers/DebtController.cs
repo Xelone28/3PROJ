@@ -75,7 +75,7 @@ private readonly IDebtService _debtService;
             return NotFound();
         }
 
-        await _debtService.DeleteDebt(debt);
+        await _debtService.DeleteDebt(id);
         return NoContent();
     }
 }

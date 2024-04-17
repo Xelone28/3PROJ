@@ -36,12 +36,12 @@ namespace DotNetAPI
                 entity.HasOne(uig => uig.User)
                       .WithMany()
                       .HasForeignKey(uig => uig.UserId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(uig => uig.Group)
                       .WithMany()
                       .HasForeignKey(uig => uig.GroupId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Category>(entity =>
@@ -80,22 +80,22 @@ namespace DotNetAPI
             {
                 entity.HasKey(d => d.Id);
 
-                entity.HasOne(d => d.Group)
+                entity.HasOne<Group>()
                       .WithMany()
                       .HasForeignKey(d => d.GroupId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(d => d.Expense)
+                entity.HasOne<Expense>()
                       .WithMany()
                       .HasForeignKey(d => d.BillId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(d => d.UserInCredit)
+                entity.HasOne<User>()
                       .WithMany()
                       .HasForeignKey(d => d.UserIdInCredit)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(d => d.UserInDebt)
+                entity.HasOne<User>()
                       .WithMany()
                       .HasForeignKey(d => d.UserIdInDebt)
                       .OnDelete(DeleteBehavior.Restrict);

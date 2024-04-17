@@ -35,12 +35,15 @@ services.AddCors(options =>
             options.UseNpgsql(Configuration.GetConnectionString("PgsqlConnectionString")));
 
         services.AddScoped<AuthenticationService>();
+        services.AddScoped<DebtService>();
+        
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<IUserInGroupService, UserInGroupService>();
         services.AddScoped<ITaxeService, TaxeService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IExpenseService, ExpenseService>();
+        services.AddScoped<IDebtService,DebtService >();
 
         services.AddControllers();
 

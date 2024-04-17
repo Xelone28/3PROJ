@@ -10,11 +10,13 @@ using DotNetAPI.Model.DTO;
 
 public class ExpenseController : ControllerBase
 {
+    private readonly DebtService _debtService;
     private readonly IExpenseService _expenseService;
     private readonly AuthenticationService _authenticationService;
 
-    public ExpenseController(IExpenseService expenseService, AuthenticationService authenticationService)
+    public ExpenseController(DebtService debtService, IExpenseService expenseService, AuthenticationService authenticationService)
     {
+        _debtService = debtService;
         _expenseService = expenseService;
         _authenticationService = authenticationService;
     }
@@ -44,6 +46,7 @@ public class ExpenseController : ControllerBase
     public async Task<ActionResult<Expense>> Post([FromBody] Expense expense)
     {
         var newExpense = await _expenseService.CreateExpense(expense);
+        await _debtService.CreateDebtsFromExpense(expense);
         return CreatedAtAction(nameof(Get), new { id = newExpense.Id }, newExpense);
     }
 

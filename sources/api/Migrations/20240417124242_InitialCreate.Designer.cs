@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace workaround_ef.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20240417081238_InitialCreate")]
+    [Migration("20240417124242_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -46,7 +46,7 @@ namespace workaround_ef.Migrations
                     b.ToTable("Category");
                 });
 
-            modelBuilder.Entity("DotNetAPI.Model.DebtInGroup", b =>
+            modelBuilder.Entity("DotNetAPI.Model.Debt", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -85,7 +85,7 @@ namespace workaround_ef.Migrations
 
                     b.HasIndex("UserIdInDebt");
 
-                    b.ToTable("DebtInGroup");
+                    b.ToTable("Debt");
                 });
 
             modelBuilder.Entity("DotNetAPI.Model.Expense", b =>
@@ -280,39 +280,31 @@ namespace workaround_ef.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DotNetAPI.Model.DebtInGroup", b =>
+            modelBuilder.Entity("DotNetAPI.Model.Debt", b =>
                 {
-                    b.HasOne("DotNetAPI.Model.Expense", "Expense")
+                    b.HasOne("DotNetAPI.Model.Expense", null)
                         .WithMany()
                         .HasForeignKey("BillId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("DotNetAPI.Model.Group", "Group")
+                    b.HasOne("DotNetAPI.Model.Group", null)
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("DotNetAPI.Model.User", "UserInCredit")
+                    b.HasOne("DotNetAPI.Model.User", null)
                         .WithMany()
                         .HasForeignKey("UserIdInCredit")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("DotNetAPI.Model.User", "UserInDebt")
+                    b.HasOne("DotNetAPI.Model.User", null)
                         .WithMany()
                         .HasForeignKey("UserIdInDebt")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Expense");
-
-                    b.Navigation("Group");
-
-                    b.Navigation("UserInCredit");
-
-                    b.Navigation("UserInDebt");
                 });
 
             modelBuilder.Entity("DotNetAPI.Model.Expense", b =>
@@ -338,7 +330,7 @@ namespace workaround_ef.Migrations
 
             modelBuilder.Entity("DotNetAPI.Model.Payment", b =>
                 {
-                    b.HasOne("DotNetAPI.Model.DebtInGroup", "DebtInGroup")
+                    b.HasOne("DotNetAPI.Model.Debt", "Debt")
                         .WithMany()
                         .HasForeignKey("DebtId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -362,7 +354,7 @@ namespace workaround_ef.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("DebtInGroup");
+                    b.Navigation("Debt");
 
                     b.Navigation("Taxe");
 
@@ -376,13 +368,13 @@ namespace workaround_ef.Migrations
                     b.HasOne("DotNetAPI.Model.Group", "Group")
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Model.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Group");
