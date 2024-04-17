@@ -3,17 +3,20 @@ using DotNetAPI.Services;
 using DotNetAPI.Model;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using DotNetAPI.Model.DTO;
 
 [ApiController]
 [Route("[controller]")]
 
 public class ExpenseController : ControllerBase
 {
+    private readonly DebtService _debtService;
     private readonly IExpenseService _expenseService;
     private readonly AuthenticationService _authenticationService;
 
-    public ExpenseController(IExpenseService expenseService, AuthenticationService authenticationService)
+    public ExpenseController(DebtService debtService, IExpenseService expenseService, AuthenticationService authenticationService)
     {
+        _debtService = debtService;
         _expenseService = expenseService;
         _authenticationService = authenticationService;
     }
@@ -43,12 +46,13 @@ public class ExpenseController : ControllerBase
     public async Task<ActionResult<Expense>> Post([FromBody] Expense expense)
     {
         var newExpense = await _expenseService.CreateExpense(expense);
+        await _debtService.CreateDebtsFromExpense(expense);
         return CreatedAtAction(nameof(Get), new { id = newExpense.Id }, newExpense);
     }
 
     [HttpPatch("{id}")]
     [Authorize]
-    public async Task<IActionResult> Patch(int id, [FromBody] Expense expense)
+    public async Task<IActionResult> Patch(int id, [FromBody] ExpenseUpdateDTO expense)
     {
         if (expense == null)
         {
@@ -61,7 +65,13 @@ public class ExpenseController : ControllerBase
             return NotFound();
         }
 
-        await _expenseService.UpdateExpense(expense);
+        expenseToUpdate.CategoryId = expense.CategoryId ?? expenseToUpdate.CategoryId;
+        expenseToUpdate.UserId = expense.UserId ?? expenseToUpdate.UserId;
+        expenseToUpdate.Date = expense.Date ?? expenseToUpdate.Date;
+        expenseToUpdate.Amount = expense.Amount ?? expenseToUpdate.Amount;
+        expenseToUpdate.Description = expense.Description ?? expenseToUpdate.Description;
+
+        await _expenseService.UpdateExpense(expenseToUpdate);
         return NoContent();
     }
 

@@ -73,7 +73,7 @@ namespace workaround_ef.Migrations
                         column: x => x.GroupId,
                         principalTable: "Group",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -92,13 +92,13 @@ namespace workaround_ef.Migrations
                         column: x => x.GroupId,
                         principalTable: "Group",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_UserInGroup_User_UserId",
                         column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -107,13 +107,12 @@ namespace workaround_ef.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    GroupId = table.Column<int>(type: "integer", nullable: false),
-                    UserGroupId = table.Column<int>(type: "integer", nullable: false),
                     UserId = table.Column<int>(type: "integer", nullable: false),
-                    Date = table.Column<int>(type: "integer", nullable: false),
-                    Amount = table.Column<int>(type: "integer", nullable: false),
-                    Place = table.Column<string>(type: "text", nullable: false),
+                    GroupId = table.Column<int>(type: "integer", nullable: false),
                     CategoryId = table.Column<int>(type: "integer", nullable: false),
+                    Amount = table.Column<float>(type: "real", nullable: false),
+                    Date = table.Column<int>(type: "integer", nullable: false),
+                    Place = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -124,29 +123,29 @@ namespace workaround_ef.Migrations
                         column: x => x.CategoryId,
                         principalTable: "Category",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Expense_Group_UserGroupId",
-                        column: x => x.UserGroupId,
+                        name: "FK_Expense_Group_GroupId",
+                        column: x => x.GroupId,
                         principalTable: "Group",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Expense_User_UserId",
                         column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "DebtInGroup",
+                name: "Debt",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     GroupId = table.Column<int>(type: "integer", nullable: false),
-                    BillId = table.Column<int>(type: "integer", nullable: false),
+                    ExpenseId = table.Column<int>(type: "integer", nullable: false),
                     UserIdInCredit = table.Column<int>(type: "integer", nullable: false),
                     UserIdInDebt = table.Column<int>(type: "integer", nullable: false),
                     Amount = table.Column<float>(type: "real", nullable: false),
@@ -155,27 +154,27 @@ namespace workaround_ef.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DebtInGroup", x => x.Id);
+                    table.PrimaryKey("PK_Debt", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DebtInGroup_Expense_BillId",
-                        column: x => x.BillId,
+                        name: "FK_Debt_Expense_ExpenseId",
+                        column: x => x.ExpenseId,
                         principalTable: "Expense",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_DebtInGroup_Group_GroupId",
+                        name: "FK_Debt_Group_GroupId",
                         column: x => x.GroupId,
                         principalTable: "Group",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_DebtInGroup_User_UserIdInCredit",
+                        name: "FK_Debt_User_UserIdInCredit",
                         column: x => x.UserIdInCredit,
                         principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_DebtInGroup_User_UserIdInDebt",
+                        name: "FK_Debt_User_UserIdInDebt",
                         column: x => x.UserIdInDebt,
                         principalTable: "User",
                         principalColumn: "Id",
@@ -201,9 +200,9 @@ namespace workaround_ef.Migrations
                 {
                     table.PrimaryKey("PK_Payment", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Payment_DebtInGroup_DebtId",
+                        name: "FK_Payment_Debt_DebtId",
                         column: x => x.DebtId,
-                        principalTable: "DebtInGroup",
+                        principalTable: "Debt",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -232,23 +231,23 @@ namespace workaround_ef.Migrations
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DebtInGroup_BillId",
-                table: "DebtInGroup",
-                column: "BillId");
+                name: "IX_Debt_ExpenseId",
+                table: "Debt",
+                column: "ExpenseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DebtInGroup_GroupId",
-                table: "DebtInGroup",
+                name: "IX_Debt_GroupId",
+                table: "Debt",
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DebtInGroup_UserIdInCredit",
-                table: "DebtInGroup",
+                name: "IX_Debt_UserIdInCredit",
+                table: "Debt",
                 column: "UserIdInCredit");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DebtInGroup_UserIdInDebt",
-                table: "DebtInGroup",
+                name: "IX_Debt_UserIdInDebt",
+                table: "Debt",
                 column: "UserIdInDebt");
 
             migrationBuilder.CreateIndex(
@@ -257,9 +256,9 @@ namespace workaround_ef.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Expense_UserGroupId",
+                name: "IX_Expense_GroupId",
                 table: "Expense",
-                column: "UserGroupId");
+                column: "GroupId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Expense_UserId",
@@ -308,7 +307,7 @@ namespace workaround_ef.Migrations
                 name: "UserInGroup");
 
             migrationBuilder.DropTable(
-                name: "DebtInGroup");
+                name: "Debt");
 
             migrationBuilder.DropTable(
                 name: "Taxe");

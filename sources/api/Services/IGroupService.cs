@@ -5,10 +5,10 @@ namespace DotNetAPI.Services
 {
     public interface IGroupService
     {
-        Task<IEnumerable<UserGroup>> GetAllGroups();
-        Task<UserGroup> GetUserGroupById(int id);
-        Task<UserGroup> CreateGroup(UserGroup userGroup);
-        Task UpdateGroup(UserGroup userGroup);
+        Task<IEnumerable<Group>> GetAllGroups();
+        Task<Group> GetUserGroupById(int id);
+        Task<Group> CreateGroup(Group userGroup);
+        Task UpdateGroup(Group userGroup);
         Task DeleteGroup(int id);
     }
 }

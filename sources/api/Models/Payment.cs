@@ -8,10 +8,10 @@
         public required User User { get; set; }
 
         public required int GroupId { get; set; }
-        public required UserGroup UserGroup { get; set; }
+        public required Group UserGroup { get; set; }
 
         public required int DebtId { get; set; }
-        public required DebtInGroup DebtInGroup { get; set; }
+        public required Debt Debt { get; set; }
 
         public required int Date { get; set; }
         public required int Amount { get; set; }

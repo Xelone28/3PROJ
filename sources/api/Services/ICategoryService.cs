@@ -1,6 +1,4 @@
 ﻿using DotNetAPI.Model;
-using DotNetAPI.Model.DTO;
-
 
 namespace DotNetAPI.Services
 {
