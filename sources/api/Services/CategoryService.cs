@@ -19,7 +19,14 @@ namespace DotNetAPI.Services
 
         public async Task<Category> GetCategoryById(int id)
         {
-            return await _dbContext.Set<Category>().FindAsync(id);
+            try
+            {
+                return await _dbContext.Set<Category>().FindAsync(id);
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("Error getting category.", ex);
+            }
         }
 
         public async Task<Category> CreateCategory(Category category)

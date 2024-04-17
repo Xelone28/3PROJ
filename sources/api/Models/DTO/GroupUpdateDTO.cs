@@ -1,6 +1,6 @@
 ﻿namespace DotNetAPI.Model
 {
-    public class UserGroupUpdateDTO
+    public class GroupUpdateDTO
     {
         public int Id { get; set; }
         public string? GroupName { get; set; }
