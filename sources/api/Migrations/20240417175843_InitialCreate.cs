@@ -145,7 +145,7 @@ namespace workaround_ef.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     GroupId = table.Column<int>(type: "integer", nullable: false),
-                    BillId = table.Column<int>(type: "integer", nullable: false),
+                    ExpenseId = table.Column<int>(type: "integer", nullable: false),
                     UserIdInCredit = table.Column<int>(type: "integer", nullable: false),
                     UserIdInDebt = table.Column<int>(type: "integer", nullable: false),
                     Amount = table.Column<float>(type: "real", nullable: false),
@@ -156,8 +156,8 @@ namespace workaround_ef.Migrations
                 {
                     table.PrimaryKey("PK_Debt", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Debt_Expense_BillId",
-                        column: x => x.BillId,
+                        name: "FK_Debt_Expense_ExpenseId",
+                        column: x => x.ExpenseId,
                         principalTable: "Expense",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -231,9 +231,9 @@ namespace workaround_ef.Migrations
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Debt_BillId",
+                name: "IX_Debt_ExpenseId",
                 table: "Debt",
-                column: "BillId");
+                column: "ExpenseId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Debt_GroupId",

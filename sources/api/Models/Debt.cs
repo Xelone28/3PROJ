@@ -5,7 +5,7 @@
         public int Id { get; set; }
         public required int GroupId { get; set; }
         //public required Group Group { get; set; }
-        public required int BillId { get; set; }
+        public required int ExpenseId { get; set; }
         //public required Expense Expense{ get; set; }
         public required int UserIdInCredit { get; set; }
         //public required User UserInCredit { get; set; }

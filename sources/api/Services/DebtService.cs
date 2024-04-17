@@ -62,6 +62,10 @@ namespace DotNetAPI.Services
             // Create a debt for each user in the group
             foreach (var user in users)
             {
+
+                //Print the user.UserId
+                Console.WriteLine("user.UserId: " + user.UserId);
+
                 // Skip the user who paid the expense
                 if (user.UserId == expense.UserId)
                 {
@@ -69,7 +73,7 @@ namespace DotNetAPI.Services
                 }
                 var debt = new Debt
                 {
-                    BillId = expense.Id,
+                    ExpenseId = expense.Id,
                     UserIdInCredit = expense.UserId,
                     UserIdInDebt = user.UserId,
                     GroupId = group.Id,

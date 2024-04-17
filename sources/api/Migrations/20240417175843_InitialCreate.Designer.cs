@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace workaround_ef.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20240417124242_InitialCreate")]
+    [Migration("20240417175843_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -57,7 +57,7 @@ namespace workaround_ef.Migrations
                     b.Property<float>("Amount")
                         .HasColumnType("real");
 
-                    b.Property<int>("BillId")
+                    b.Property<int>("ExpenseId")
                         .HasColumnType("integer");
 
                     b.Property<int>("GroupId")
@@ -77,7 +77,7 @@ namespace workaround_ef.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BillId");
+                    b.HasIndex("ExpenseId");
 
                     b.HasIndex("GroupId");
 
@@ -284,7 +284,7 @@ namespace workaround_ef.Migrations
                 {
                     b.HasOne("DotNetAPI.Model.Expense", null)
                         .WithMany()
-                        .HasForeignKey("BillId")
+                        .HasForeignKey("ExpenseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

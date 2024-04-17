@@ -87,7 +87,7 @@ namespace DotNetAPI
 
                 entity.HasOne<Expense>()
                       .WithMany()
-                      .HasForeignKey(d => d.BillId)
+                      .HasForeignKey(d => d.ExpenseId)
                       .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne<User>()
