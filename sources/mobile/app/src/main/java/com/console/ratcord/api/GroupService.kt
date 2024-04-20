@@ -28,7 +28,7 @@ class GroupService() {
         val response: HttpResponse = try {
             client.get("http://10.0.2.2:5000/group") {
                 headers {
-                    append("Authorization", "Bearer ${Utils.getToken(context)}")
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                 }
             }
         } catch (e: Exception) {
@@ -57,7 +57,7 @@ class GroupService() {
         val response: HttpResponse = try {
             client.get("http://10.0.2.2:5000/group/$id") {
                 headers {
-                    append("Authorization", "Bearer ${Utils.getToken(context)}")
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                 }
             }
         } catch (e: Exception) {

@@ -17,9 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.Group
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -28,7 +26,14 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.console.ratcord.Screen
 import com.console.ratcord.api.GroupService
+import com.console.ratcord.api.LocalStorage
 import com.console.ratcord.api.UserService
+import com.console.ratcord.api.Utils
+import com.console.ratcord.domain.entity.user.UserMinimal
+import com.console.ratcord.domain.entity.user.UserMinimalWithId
+import io.ktor.util.reflect.typeInfo
+import kotlinx.serialization.json.Json
+import kotlin.reflect.typeOf
 
 data class BottomNavigationItem(
     val label : String = "",
@@ -36,33 +41,18 @@ data class BottomNavigationItem(
     val route : String = ""
 ) {
 
-    fun bottomNavigationItems() : List<BottomNavigationItem> {
+    fun bottomNavigationItems(applicationContext: Context) : List<BottomNavigationItem> {
         return listOf(
-            BottomNavigationItem(
-                label = "Register",
-                icon = Icons.Filled.Home,
-                route = Screen.Register.route
-            ),
-            BottomNavigationItem(
-                label = "Login",
-                icon = Icons.Filled.Info,
-                route = Screen.Login.route
-            ),
-            BottomNavigationItem(
-                label = "User",
-                icon = Icons.Filled.AccountCircle,
-                route = Screen.User.route
-            ),
-            BottomNavigationItem(
-                label = "RegisterGroup",
-                icon = Icons.Filled.Add,
-                route = Screen.RegisterGroup.route
-            ),
             BottomNavigationItem(
                 label = "Groups",
                 icon = Icons.Filled.Info,
                 route = Screen.Groups.route
             ),
+            BottomNavigationItem(
+                label = "Profile",
+                icon = Icons.Filled.AccountCircle,
+                route = Screen.Profile.route
+            )
         )
     }
 }
@@ -73,15 +63,15 @@ fun BottomNavigationBar(applicationContext: Context) {
         mutableStateOf(0)
     }
     val navController = rememberNavController()
-    val userService: UserService = UserService()
-    val groupService: GroupService = GroupService()
+    val userService = UserService()
+    val groupService = GroupService()
 
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             NavigationBar {
-                BottomNavigationItem().bottomNavigationItems().forEachIndexed {index,navigationItem ->
+                BottomNavigationItem().bottomNavigationItems(applicationContext).forEachIndexed {index,navigationItem ->
                     NavigationBarItem(
                         selected = index == navigationSelectedItem,
                         label = {
@@ -110,17 +100,25 @@ fun BottomNavigationBar(applicationContext: Context) {
     ) {paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Login.route,
+            startDestination = Screen.Profile.route,
             modifier = Modifier.padding(paddingValues = paddingValues)) {
             composable(Screen.Login.route) {
-                LoginForm(userService = userService, applicationContext = applicationContext )
+                LoginForm(userService = userService, applicationContext = applicationContext, navController = navController)
             }
             composable(Screen.Register.route) {
-                RegisterForm(userService = userService, applicationContext = applicationContext)
+                RegisterForm(userService = userService, navController = navController)
             }
-            composable(Screen.User.route) {
-                ProfileDetail(userService = userService, applicationContext = applicationContext)
+            composable(Screen.Profile.route) {
+                Profile(applicationContext = applicationContext, navController = navController)
             }
+            composable(
+                "${Screen.UserDetails.route}/{userId}",
+                arguments = listOf(navArgument("userId") { type = NavType.IntType })
+            ) { navBackStackEntry ->
+                val userId = navBackStackEntry.arguments?.getInt("userId")
+                ProfileDetail(userService = userService, applicationContext = applicationContext, navController = navController, userId = userId)
+            }
+
             composable(Screen.RegisterGroup.route) {
                 GroupForm(groupService = groupService, applicationContext = applicationContext)
             }
@@ -131,7 +129,22 @@ fun BottomNavigationBar(applicationContext: Context) {
                 "${Screen.GroupDetails}/{groupId}",
                 arguments = listOf(navArgument("groupId") { type = NavType.IntType })
             ) { navBackStackEntry ->
-                GroupDetails(groupService, applicationContext, navBackStackEntry, navController)
+                val groupId = navBackStackEntry.arguments?.getInt("groupId")
+                GroupDetails(groupService, applicationContext, navController, groupId)
+            }
+            composable(
+                "${Screen.EditUser}/{userId}",
+                arguments = listOf(navArgument("userId") { type = NavType.IntType })
+            ) { navBackStackEntry ->
+                val userId = navBackStackEntry.arguments?.getInt("userId")
+                EditUserForm(userService = userService, applicationContext = applicationContext, navController = navController, userId = userId)
+            }
+            composable(
+                "${Screen.EnsureConnexion}/{userId}",
+                arguments = listOf(navArgument("userId") { type = NavType.IntType })
+            ) { navBackStackEntry ->
+                val userId = navBackStackEntry.arguments?.getInt("userId")
+                EnsureConnexion(userService = userService, applicationContext = applicationContext, navController = navController, screenRedirection = "${Screen.EditUser}/$userId")
             }
         }
     }
