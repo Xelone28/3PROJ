@@ -13,39 +13,34 @@ import org.json.JSONObject
 class Utils {
     private var httpClient: HttpClient? = null
     companion object {
-        private const val PREFERENCES_FILE_KEY = "SecretSharedPrefs"
-        private const val TOKEN_KEY = "jwt_token"
-
-        fun storeToken(context: Context, token: String) {
+        fun storeItem(context: Context, value: String?, fileKey: LocalStorage, key: LocalStorage) {
             val masterKey = MasterKey.Builder(context)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                 .build()
 
             val sharedPreferences = EncryptedSharedPreferences.create(
                 context,
-                PREFERENCES_FILE_KEY,
+                fileKey.value,
                 masterKey,
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
-
-            sharedPreferences.edit().putString(TOKEN_KEY, token).apply()
+            sharedPreferences.edit().putString(key.value, value).apply()
         }
 
-        fun getToken(context: Context): String? {
+        fun getItem(context: Context, fileKey: LocalStorage, key: LocalStorage): String? {
             val masterKey = MasterKey.Builder(context)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                 .build()
 
             val sharedPreferences = EncryptedSharedPreferences.create(
                 context,
-                PREFERENCES_FILE_KEY,
+                fileKey.value,
                 masterKey,
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
-
-            return sharedPreferences.getString(TOKEN_KEY, null)
+            return sharedPreferences.getString(key.value, null)
         }
 
         private fun decodeJwt(jwtToken: String): String? {
@@ -55,9 +50,9 @@ class Utils {
             } else null
         }
 
-        fun getUserIdFromJwt(jwtToken: String): String? {
+        fun getUserIdFromJwt(jwtToken: String): Int? {
             return decodeJwt(jwtToken)?.let {
-                JSONObject(it).getString("id")
+                JSONObject(it).getString("id").toInt()
             }
         }
     }
@@ -72,5 +67,4 @@ class Utils {
         }
         return httpClient!!
     }
-
 }

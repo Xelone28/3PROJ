@@ -21,17 +21,14 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
 import com.console.ratcord.Screen
-import com.console.ratcord.domain.entity.user.UserMinimal
-import kotlin.reflect.KSuspendFunction1
+import com.console.ratcord.api.LocalStorage
+import com.console.ratcord.api.Utils
+import com.console.ratcord.domain.entity.user.UserMinimalWithId
+import kotlinx.serialization.json.Json
 
 @Composable
-fun RegisterForm(userService: UserService, navController: NavController) {
-    var username by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
+fun EnsureConnexion(userService: UserService, applicationContext: Context, navController: NavController, screenRedirection: String) {
     var password by remember { mutableStateOf("") }
-    var rib by remember { mutableStateOf("") }
-    var paypalUsername by remember { mutableStateOf("") }
-
     val coroutineScope = rememberCoroutineScope()
 
     Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
@@ -41,53 +38,40 @@ fun RegisterForm(userService: UserService, navController: NavController) {
                 contentDescription = "Go back",
             )
         }
-
-        OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text("Username") }
-        )
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.padding(top = 8.dp)
-        )
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
-            modifier = Modifier.padding(top = 8.dp)
-        )
-        OutlinedTextField(
-            value = rib,
-            onValueChange = { rib = it },
-            label = { Text("RIB") },
-            modifier = Modifier.padding(top = 8.dp)
-        )
-        OutlinedTextField(
-            value = paypalUsername,
-            onValueChange = { paypalUsername = it },
-            label = { Text("PayPal Username") },
-            modifier = Modifier.padding(top = 8.dp)
+            label = { Text("Password") }
         )
         Button(
             onClick = {
                 coroutineScope.launch {
-                    val user = UserMinimal(
-                        username = username,
-                        email = email,
-                        password = password,
-                        rib = rib.takeIf { it.isNotBlank() },
-                        paypalUsername = paypalUsername.takeIf { it.isNotBlank() }
+                    val loggedInUser: String? = Utils.getItem(
+                        context = applicationContext,
+                        fileKey = LocalStorage.PREFERENCES_FILE_KEY,
+                        key = LocalStorage.USER
                     )
-                    val result = userService.createUser(user)
-                    navController.navigate(Screen.Profile.route)
+                    if (loggedInUser != null) {
+                        val loggedInUserSerialized: UserMinimalWithId =
+                            Json.decodeFromString<UserMinimalWithId>(loggedInUser)
+                        if (userService.login(
+                            context = applicationContext,
+                            username = loggedInUserSerialized.username,
+                            password = password
+                        )) {
+                            navController.navigate(screenRedirection)
+                        } else {
+                            println("wrong password")
+                        }
+                    } else {
+                        println("not logged in")
+                    }
                 }
             },
             modifier = Modifier.padding(top = 16.dp)
         ) {
-            Text("Register")
+            Text("Ensure connexion")
         }
     }
 }
+

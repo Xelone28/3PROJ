@@ -10,6 +10,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -19,21 +20,19 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.util.InternalAPI
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
 class UserService() {
-//    private val viewModelJob = SupervisorJob()
-//    private val viewModelScope = CoroutineScope(Dispatchers.Main + viewModelJob)
-
     private val utils: Utils = Utils()
     private val client: HttpClient = utils.getHttpClient()
     suspend fun getUsers(context: Context): List<UserMinimalWithId>? {
         val response: HttpResponse = try {
             client.get("http://10.0.2.2:5000/api/users") {
                 headers {
-                    append("Authorization", "Bearer ${Utils.getToken(context)}")
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                 }
             }
         } catch (e: Exception) {
@@ -57,11 +56,11 @@ class UserService() {
         }
     }
 
-    suspend fun getUser(context: Context, userId: Int): UserMinimalWithId? {
+    suspend fun getUserById(context: Context, userId: Int): UserMinimalWithId? {
         val response: HttpResponse = try {
             client.get("http://10.0.2.2:5000/api/users/$userId") {
                 headers {
-                    append("Authorization", "Bearer ${Utils.getToken(context)}")
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                 }
             }
         } catch (e: Exception) {
@@ -120,11 +119,43 @@ class UserService() {
 
         if (response.status.isSuccess()) {
             val loginResponse = response.body<LoginResponse>()
-            Utils.storeToken(context, loginResponse.token)
-            println(Utils.getToken(context)) // get token here -- to delete after dev --
+            Utils.storeItem(context = context, value = loginResponse.token, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
+            val user: UserMinimalWithId? = getUserById(context = context, userId = loginResponse.id)
+            // ask baba if login should return the entire user ? -- HELP HERE --
+            if (user != null){
+                Utils.storeItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.USER, value = Json.encodeToString(user))
+            }
             return true
         } else {
             return false
+        }
+    }
+
+    suspend fun updateUser(context: Context, user: UserMinimal, userId: Int): Boolean {
+        val response: HttpResponse = try {
+            client.patch("http://10.0.2.2:5000/api/users/$userId") {
+                headers {
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                    contentType(ContentType.Application.Json)
+                    setBody(user)
+                }
+            }
+        } catch (e: Exception) {
+            println("Network error occurred: ${e.localizedMessage}")
+            return false
+        }
+
+        when (response.status) {
+            HttpStatusCode.Unauthorized -> {
+                throw AuthorizationException("Unauthorized access to user data.")
+            }
+            HttpStatusCode.NoContent -> {
+                return true
+            }
+            else -> {
+                println("Received unexpected status: ${response.status}")
+                return false
+            }
         }
     }
 }

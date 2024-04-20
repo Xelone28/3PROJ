@@ -8,10 +8,13 @@ import androidx.activity.compose.setContent
 sealed class Screen(val route: String) {
     object Register : Screen("Register")
     object Login : Screen("Login")
-    object User : Screen("User")
+    object Profile : Screen("Profile")
+    object UserDetails : Screen("UserDetails")
     object RegisterGroup : Screen("RegisterGroup")
     object GroupDetails : Screen("group_details/{groupId}")
     object Groups : Screen("Groups")
+    object EditUser : Screen("EditUser")
+    object EnsureConnexion : Screen("EnsureConnexion")
 }
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

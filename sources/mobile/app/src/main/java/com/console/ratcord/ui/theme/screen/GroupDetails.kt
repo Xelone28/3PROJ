@@ -19,18 +19,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import com.console.ratcord.api.GroupService
-import com.console.ratcord.api.UserService
-import com.console.ratcord.api.Utils
-import com.console.ratcord.domain.entity.group.Group
 import com.console.ratcord.domain.entity.group.GroupMinimalWithId
-import com.console.ratcord.domain.entity.user.UserMinimalWithId
 import kotlinx.coroutines.launch
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun GroupDetails(groupService: GroupService, applicationContext: Context, navBackStackEntry: NavBackStackEntry, navController: NavController) {
-    val groupId = navBackStackEntry.arguments?.getInt("groupId")
-
+fun GroupDetails(groupService: GroupService, applicationContext: Context, navController: NavController, groupId: Int?) {
     val coroutineScope = rememberCoroutineScope()
     var groupDetails by remember { mutableStateOf<GroupMinimalWithId?>(null) }
     var isLoading by remember { mutableStateOf(false) }
@@ -45,8 +39,6 @@ fun GroupDetails(groupService: GroupService, applicationContext: Context, navBac
             coroutineScope.launch {
                 try {
                     groupDetails = groupService.getGroupById(applicationContext, groupId)
-                    println("look here")
-                    println(groupDetails)
                 } catch (e: Exception) {
                     println("Failed to retrieve group: ${e.message}")
                 } finally {
