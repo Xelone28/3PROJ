@@ -3,8 +3,12 @@ import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,10 +32,7 @@ fun GroupDetails(groupService: GroupService, applicationContext: Context, navCon
     val coroutineScope = rememberCoroutineScope()
     var groupDetails by remember { mutableStateOf<GroupMinimalWithId?>(null) }
     var isLoading by remember { mutableStateOf(false) }
-
-    Button(onClick = { navController.popBackStack() }) {
-        Text(text = "Go Back")
-    }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     if (groupId != null) {
         LaunchedEffect(key1 = groupId) {
@@ -40,7 +41,7 @@ fun GroupDetails(groupService: GroupService, applicationContext: Context, navCon
                 try {
                     groupDetails = groupService.getGroupById(applicationContext, groupId)
                 } catch (e: Exception) {
-                    println("Failed to retrieve group: ${e.message}")
+                    errorMessage = "Failed to retrieve group"
                 } finally {
                     isLoading = false
                 }
@@ -51,6 +52,15 @@ fun GroupDetails(groupService: GroupService, applicationContext: Context, navCon
     }
 
     Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+        errorMessage?.let { message ->
+            AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
+        }
+        IconButton(onClick = { navController.popBackStack() }) {
+            Icon(
+                imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Go back",
+            )
+        }
         if (isLoading) {
             CircularProgressIndicator()
         } else if (groupDetails != null) {

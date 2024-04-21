@@ -120,7 +120,7 @@ fun BottomNavigationBar(applicationContext: Context) {
             }
 
             composable(Screen.RegisterGroup.route) {
-                GroupForm(groupService = groupService, applicationContext = applicationContext)
+                GroupForm(groupService = groupService, navController = navController)
             }
             composable(Screen.Groups.route) {
                 Groups(groupService = groupService, applicationContext = applicationContext, navController = navController)

@@ -31,10 +31,14 @@ fun RegisterForm(userService: UserService, navController: NavController) {
     var password by remember { mutableStateOf("") }
     var rib by remember { mutableStateOf("") }
     var paypalUsername by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
 
     Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+        errorMessage?.let { message ->
+            AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
+        }
         IconButton(onClick = { navController.popBackStack() }) {
             Icon(
                 imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
@@ -81,8 +85,11 @@ fun RegisterForm(userService: UserService, navController: NavController) {
                         rib = rib.takeIf { it.isNotBlank() },
                         paypalUsername = paypalUsername.takeIf { it.isNotBlank() }
                     )
-                    val result = userService.createUser(user)
-                    navController.navigate(Screen.Profile.route)
+                    if (userService.createUser(user)) {
+                        navController.navigate(Screen.Profile.route)
+                    } else {
+                        errorMessage = "Register failed. Please your inputs."
+                    }
                 }
             },
             modifier = Modifier.padding(top = 16.dp)
