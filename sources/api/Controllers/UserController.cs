@@ -142,9 +142,36 @@ namespace DotNetAPI.Controllers
             var response = await _userService.Authenticate(model);
 
             if (response == null)
-                return BadRequest(new { message = "Username or password is incorrect" });
+                return BadRequest(new { message = "Email or password is incorrect" });
 
             return Ok(response);
+        }
+
+        [HttpGet("email/{email}")]
+        [Authorize]
+        public async Task<ActionResult<UserDTO>> GetUserByEmail(String email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return BadRequest("Email is required in the request body.");
+            }
+
+            var user = await _userService.GetUserByEmail(email);
+            if (user == null)
+            {
+                return NotFound($"User with email {email} not found.");
+            }
+
+            var userDto = new UserDTO
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                Rib = user.Rib,
+                PaypalUsername = user.PaypalUsername
+            };
+
+            return Ok(userDto);
         }
     }
 }
