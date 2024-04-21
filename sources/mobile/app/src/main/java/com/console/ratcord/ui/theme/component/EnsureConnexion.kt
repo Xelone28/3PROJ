@@ -29,9 +29,13 @@ import kotlinx.serialization.json.Json
 @Composable
 fun EnsureConnexion(userService: UserService, applicationContext: Context, navController: NavController, screenRedirection: String) {
     var password by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
 
     Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+        errorMessage?.let { message ->
+            AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
+        }
         IconButton(onClick = { navController.popBackStack() }) {
             Icon(
                 imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
@@ -61,7 +65,7 @@ fun EnsureConnexion(userService: UserService, applicationContext: Context, navCo
                         )) {
                             navController.navigate(screenRedirection)
                         } else {
-                            println("wrong password")
+                            errorMessage = "Wrong password"
                         }
                     } else {
                         println("not logged in")

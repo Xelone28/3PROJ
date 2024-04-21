@@ -10,6 +10,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,8 +30,12 @@ fun LoginForm(userService: UserService, applicationContext: Context, navControll
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+        errorMessage?.let { message ->
+            AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
+        }
         IconButton(onClick = { navController.popBackStack() }) {
             Icon(
                 imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
@@ -51,8 +56,11 @@ fun LoginForm(userService: UserService, applicationContext: Context, navControll
         Button(
             onClick = {
                 coroutineScope.launch {
-                    userService.login(username, password, applicationContext);
-                    navController.navigate(Screen.Profile.route)
+                    if (userService.login(username, password, applicationContext)) {
+                        navController.navigate(Screen.Profile.route)
+                    } else {
+                        errorMessage = "Login failed. Please check your credentials."
+                    }
                 }
             },
             modifier = Modifier.padding(top = 16.dp)

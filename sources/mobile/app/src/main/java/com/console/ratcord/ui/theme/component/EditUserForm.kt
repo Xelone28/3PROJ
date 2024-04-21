@@ -29,7 +29,9 @@ import kotlinx.serialization.json.Json
 
 @Composable
 fun EditUserForm(userService: UserService, applicationContext: Context, navController: NavController, userId: Int?) {
-    if(userId != null) {
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    if (userId != null) {
         var username by remember { mutableStateOf("") }
         var email by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
@@ -39,6 +41,9 @@ fun EditUserForm(userService: UserService, applicationContext: Context, navContr
         val coroutineScope = rememberCoroutineScope()
 
         Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+            errorMessage?.let { message ->
+                AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
+            }
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
@@ -92,7 +97,7 @@ fun EditUserForm(userService: UserService, applicationContext: Context, navContr
                             navController.navigate(Screen.Profile.route)
 
                         } else {
-                            println("something went wrong")
+                            errorMessage = "Something went wrong, please try again"
                         }
 
                     }
