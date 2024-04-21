@@ -42,6 +42,11 @@ namespace DotNetAPI.Services
             return user; // Ensure this returns User entity.
         }
 
+        public async Task<User?> GetUserByEmail(string email)
+        {
+            var user = await _dbContext.User.FirstOrDefaultAsync(u => u.Email == email);
+            return user;
+        }
 
         public async Task<User> GetUserByEmailAndPassword(string email, string password)
         {
@@ -105,7 +110,7 @@ namespace DotNetAPI.Services
         }
         public async Task<AuthenticateResponse?> Authenticate(AuthenticateRequest model)
         {
-            var user = await _dbContext.User.SingleOrDefaultAsync(x => x.Username == model.Username && x.Password == model.Password);
+            var user = await _dbContext.User.SingleOrDefaultAsync(x => x.Email == model.Email && x.Password == model.Password);
 
             if (user == null) return null;
 
