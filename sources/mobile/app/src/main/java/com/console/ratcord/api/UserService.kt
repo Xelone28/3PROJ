@@ -102,9 +102,9 @@ class UserService() {
     }
 
     @OptIn(InternalAPI::class)
-    suspend fun login(username: String, password: String, context: Context): Boolean{
+    suspend fun login(email: String, password: String, context: Context): Boolean{
         val jsonBody = buildJsonObject {
-            put("username", username)
+            put("email", email)
             put("password", password)
         }.toString()
 
@@ -158,4 +158,6 @@ class UserService() {
             }
         }
     }
+
+
 }
