@@ -2,6 +2,8 @@
 using DotNetAPI.Services;
 using DotNetAPI.Model;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 
 [ApiController]
 [Route("[controller]")]
@@ -14,30 +16,37 @@ public class UserInGroupController : ControllerBase
         _userInGroupService = userInGroupService;
     }
 
-    [HttpGet]
+    [HttpGet("{userId}")]
     [Authorize]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetMemberShipsByUserId(int userId)
     {
         try
         {
-            var memberships = await _userInGroupService.GetAllMemberships();
-            return Ok(memberships);
+            var membership = await _userInGroupService.GetMembershipsByUserId(userId, true);
+            if (membership == null)
+            {
+                return NotFound("Membership not found.");
+            }
+            return Ok(membership);
         }
         catch (Exception ex)
         {
             // Log the exception details here for debugging purposes.
-            return StatusCode(500, "An error occurred while retrieving memberships.");
+            return StatusCode(500, "An error occurred while retrieving the membership.");
         }
     }
 
-    [HttpGet("{userId}/{groupId}")]
+    [HttpGet("invitation/{userId}")]
     [Authorize]
-    public async Task<IActionResult> Get(int userId, int groupId)
+    public async Task<IActionResult> GetInvitationByUserId(int userId)
     {
         try
         {
-            var membership = await _userInGroupService.GetMembershipById(userId, groupId);
-            if (membership == null) return NotFound("Membership not found.");
+            var membership = await _userInGroupService.GetMembershipsByUserId(userId, false);
+            if (membership == null)
+            {
+                return NotFound("Membership not found.");
+            }
             return Ok(membership);
         }
         catch (Exception ex)
@@ -63,7 +72,6 @@ public class UserInGroupController : ControllerBase
             {
                 return BadRequest("Unable to create user in group");
             }
-            CreatedAtAction(nameof(Get), new { userId = result.UserId, groupId = result.GroupId }, result);
             return NoContent();
         }
         catch (Exception ex)
@@ -79,14 +87,21 @@ public class UserInGroupController : ControllerBase
     {
         try
         {
-            var userInGroup = await _userInGroupService.GetMembershipById(userId, groupId);
+            var userInGroup = await _userInGroupService.GetMembership(userId, groupId);
             if (userInGroup == null)
             {
                 return NotFound("Membership not found.");
             }
 
-            userInGroup.IsGroupAdmin = dto.IsGroupAdmin;
+            if (dto.IsGroupAdmin.HasValue)
+            {
+                userInGroup.IsGroupAdmin = dto.IsGroupAdmin.Value;
+            }
 
+            if (dto.IsActive.HasValue)
+            {
+                userInGroup.IsActive = dto.IsActive.Value;
+            }
             await _userInGroupService.UpdateMembership(userInGroup);
             return NoContent();
         }

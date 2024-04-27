@@ -12,31 +12,38 @@ namespace DotNetAPI.Services
             _dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<UserInGroup>> GetAllMemberships()
-        {
-            return await _dbContext.Set<UserInGroup>().Include(u => u.User).Include(g => g.Group).ToListAsync();
-        }
-
-        public async Task<UserInGroup> GetMembershipById(int userId, int groupId)
+        public async Task<List<UserInGroup>>? GetMembershipsByUserId(int userId, bool isActive)
         {
             return await _dbContext.Set<UserInGroup>()
-                .Include(u => u.User)
-                .Include(g => g.Group)
-                .FirstOrDefaultAsync(m => m.UserId == userId && m.GroupId == groupId);
+                .Where(u => u.UserId == userId && u.IsActive == isActive)
+                .ToListAsync();
+        }
+
+        public async Task<UserInGroup?> GetMembership(int userId, int groupId)
+        {
+            return await _dbContext.Set<UserInGroup>()
+                .FirstOrDefaultAsync(u => u.UserId == userId && u.GroupId == groupId);
         }
 
         public async Task<UserInGroup> CreateMembership(UserInGroupCreateDTO userInGroupDto)
         {
-            var userInGroup = new UserInGroup
-            {
-                UserId = userInGroupDto.UserId,
-                GroupId = userInGroupDto.GroupId,
-                IsGroupAdmin = userInGroupDto.IsGroupAdmin
-            };
+            try {
+                var userInGroup = new UserInGroup
+                {
+                    UserId = userInGroupDto.UserId,
+                    GroupId = userInGroupDto.GroupId,
+                    IsGroupAdmin = userInGroupDto.IsGroupAdmin,
+                    IsActive = false
+                };
 
-            _dbContext.UserInGroup.Add(userInGroup);
-            await _dbContext.SaveChangesAsync();
-            return userInGroup;
+                _dbContext.UserInGroup.Add(userInGroup);
+                await _dbContext.SaveChangesAsync();
+                return userInGroup;
+            } catch (Exception ex)
+            {
+                throw new ApplicationException("Error adding user.", ex);
+            }
+
         }
 
         public async Task UpdateMembership(UserInGroup userInGroup)
