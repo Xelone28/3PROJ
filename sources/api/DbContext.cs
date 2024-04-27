@@ -33,14 +33,14 @@ namespace DotNetAPI
             {
                 entity.HasKey(uig => new { uig.UserId, uig.GroupId});
 
-                entity.HasOne(uig => uig.User)
+                entity.HasOne<User>()
                       .WithMany()
-                      .HasForeignKey(uig => uig.UserId)
+                      .HasForeignKey(p => p.UserId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(uig => uig.Group)
+                entity.HasOne<Group>()
                       .WithMany()
-                      .HasForeignKey(uig => uig.GroupId)
+                      .HasForeignKey(p => p.GroupId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
 

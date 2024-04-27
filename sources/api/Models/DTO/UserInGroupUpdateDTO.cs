@@ -2,6 +2,7 @@
 {
     public class UserInGroupUpdateDTO
     {
-        public required bool IsGroupAdmin { get; set; }
+        public bool? IsGroupAdmin { get; set; }
+        public bool? IsActive { get; set; }
     }
 }

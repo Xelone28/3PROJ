@@ -258,6 +258,9 @@ namespace workaround_ef.Migrations
                     b.Property<int>("GroupId")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsGroupAdmin")
                         .HasColumnType("boolean");
 
@@ -362,21 +365,17 @@ namespace workaround_ef.Migrations
 
             modelBuilder.Entity("DotNetAPI.Model.UserInGroup", b =>
                 {
-                    b.HasOne("DotNetAPI.Model.Group", "Group")
+                    b.HasOne("DotNetAPI.Model.Group", null)
                         .WithMany()
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("DotNetAPI.Model.User", "User")
+                    b.HasOne("DotNetAPI.Model.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Group");
-
-                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }
