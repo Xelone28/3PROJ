@@ -18,7 +18,7 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 
-class GroupService() {
+class UserInGroupService() {
     private val utils: Utils = Utils()
     private val client: HttpClient = utils.getHttpClient()
     suspend fun getGroups(context: Context): List<GroupMinimalWithId>? {
@@ -47,53 +47,6 @@ class GroupService() {
                 println("Received unexpected status: ${response.status}")
                 return null
             }
-        }
-    }
-
-    suspend fun getGroupById(context: Context, id: Int): GroupMinimalWithId? {
-        val response: HttpResponse = try {
-            client.get("http://10.0.2.2:5000/group/$id") {
-                headers {
-                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
-                }
-            }
-        } catch (e: Exception) {
-            println("Network error occurred: ${e.localizedMessage}")
-            return null
-        }
-
-        when (response.status) {
-            HttpStatusCode.Unauthorized -> {
-                throw AuthorizationException("Unauthorized access to user data.")
-            }
-
-            HttpStatusCode.OK -> {
-                val body: String = response.bodyAsText()
-                return Json.decodeFromString<GroupMinimalWithId>(body)
-            }
-
-            else -> {
-                println("Received unexpected status: ${response.status}")
-                return null
-            }
-        }
-    }
-
-    suspend fun createGroup(group: GroupMinimal): Boolean{
-        val response: HttpResponse = try {
-            client.post("http://10.0.2.2:5000/group") {
-                contentType(ContentType.Application.Json)
-                setBody(group)
-            }
-        } catch (e: Exception) {
-            println(e)
-            return false
-        }
-
-        if (response.status.isSuccess()) {
-            return true
-        } else {
-            return false
         }
     }
 }

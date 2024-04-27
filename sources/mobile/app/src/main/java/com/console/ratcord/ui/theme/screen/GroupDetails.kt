@@ -48,7 +48,7 @@ fun GroupDetails(groupService: GroupService, applicationContext: Context, navCon
             }
         }
     } else {
-        println("groupdId is null")
+        errorMessage = "Failed to retrieve group"
     }
 
     Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
@@ -67,7 +67,7 @@ fun GroupDetails(groupService: GroupService, applicationContext: Context, navCon
             Text("Name: ${groupDetails!!.groupName}", style = MaterialTheme.typography.bodyLarge)
             Text("Description: ${groupDetails!!.groupDesc}", style = MaterialTheme.typography.bodyLarge)
         } else {
-            Text("No details available or not logged in.", style = MaterialTheme.typography.bodyLarge)
+            errorMessage = "No details available or not logged in."
         }
     }
 }
