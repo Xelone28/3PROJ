@@ -20,7 +20,7 @@ function Login({ onLogin }) {
     const data = await response.json();
     if (data.token) {
       alert('Logged in successfully!');
-      localStorage.setItem('token', data.token);
+      document.cookie = `token=${data.token}; path=/`;
       const newUser = { username: data.username, id: data.id };
       onLogin(newUser);
       navigate('/');

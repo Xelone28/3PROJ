@@ -12,6 +12,7 @@ function Header({ user }) {
         <Link to="/">Home</Link><br></br>
         {user ? (
           <>
+            <Link to="/Groups">View Groups</Link><br></br>
             <Link to="/profile">Profile</Link><br></br>
             <Link to="/logout">Logout</Link><br></br>
           </>

@@ -6,7 +6,7 @@ function Logout({ onLogout }) {
 
   useEffect(() => {
     localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    document.cookie = "token=; Max-Age=0";
     navigate('/login');
     if (onLogout) {
       onLogout();

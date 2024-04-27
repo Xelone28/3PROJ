@@ -10,6 +10,10 @@ import Profile from './Components/Profile';
 import Creategroup from './Components/Creategroup';
 import Header from './Components/Header';
 import Logout from './Components/Logout';
+import Groups from './Components/Groups';
+import Groupepage from './Components/Groupepage'
+
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -28,7 +32,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    document.cookie = "token=; Max-Age=0";
     setUser(null);
   };
 
@@ -43,7 +47,9 @@ function App() {
           <Route path="/logout" element={<Logout onLogout={handleLogout} />} />
           <Route path="/*" element={<Notfound/>} />
           <Route path="/profile" element={<Profile/>} />
+          <Route path="/Groups" element={<Groups/>} />
           <Route path="/Creategroup" element={<Creategroup/>} />
+          <Route path="/group/:Id" element={<Groupepage/>} />
         </Routes>
       </div>
     </Router>

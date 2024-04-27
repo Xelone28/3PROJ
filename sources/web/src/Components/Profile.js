@@ -8,12 +8,16 @@ function Profile() {
 
 
   const deleteUser = async () => {
+    const token = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('token='))
+    .split('=')[1];
     const storedUser = JSON.parse(localStorage.getItem('user'));
     const response = await fetch(`http://localhost:5000/api/users/${storedUser.id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${token}`
       },
     });
   
@@ -25,20 +29,24 @@ function Profile() {
   
     // If the delete was successful, remove the user and token from localStorage
     localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    navigate('/');
+    document.cookie = "token=; Max-Age=0";
+        navigate('/');
     window.location.reload();
 
   };
 
   useEffect(() => {
+    const token = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('token='))
+    .split('=')[1];
     const fetchUser = async () => {
       const storedUser = JSON.parse(localStorage.getItem('user'));
       const response = await fetch(`http://localhost:5000/api/users/${storedUser.id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
       });
 
@@ -50,6 +58,10 @@ function Profile() {
   }, []);
 
   const handleUpdate = async (event) => {
+    const token = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('token='))
+    .split('=')[1];
     event.preventDefault();
 
     const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -57,7 +69,7 @@ function Profile() {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ Username: username }),
     });
@@ -71,7 +83,7 @@ function Profile() {
     
     else {
       localStorage.removeItem('user');
-      localStorage.removeItem('token');
+      document.cookie = "token=; Max-Age=0";
       navigate('/login');
       window.location.reload();
     }
@@ -82,7 +94,7 @@ function Profile() {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${token}`
       },
     });
 
