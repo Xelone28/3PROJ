@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using DotNetAPI.Model;
 using Microsoft.AspNetCore.Http.HttpResults;
 

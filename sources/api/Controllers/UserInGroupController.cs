@@ -1,19 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using DotNetAPI.Services;
 using DotNetAPI.Model;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
+using DotNetAPI.Helpers;
 
 [ApiController]
 [Route("[controller]")]
 public class UserInGroupController : ControllerBase
 {
     private readonly IUserInGroupService _userInGroupService;
+    private readonly IUserService _userService;
 
-    public UserInGroupController(IUserInGroupService userInGroupService)
+    public UserInGroupController(IUserInGroupService userInGroupService, IUserService userService)
     {
         _userInGroupService = userInGroupService;
+        _userService = userService;
     }
 
     [HttpGet("{userId}")]
@@ -22,17 +22,36 @@ public class UserInGroupController : ControllerBase
     {
         try
         {
-            var membership = await _userInGroupService.GetMembershipsByUserId(userId, true);
-            if (membership == null)
+            var memberships = await _userInGroupService.GetMembershipsByUserId(userId, true);
+            if (memberships == null)
             {
                 return NotFound("Membership not found.");
             }
-            return Ok(membership);
+            else
+            {
+                var membershipsDtos = new List<UserInGroupMinimalDTO>();
+                foreach (UserInGroup membership in memberships)
+                {
+                    membershipsDtos.Add(
+                        new UserInGroupMinimalDTO
+                        {
+                            UserId = membership.User.Id,
+                            Username = membership.User.Username,
+                            Email = membership.User.Email,
+                            IsActive = membership.IsActive,
+                            IsGroupAdmin = membership.IsGroupAdmin
+                            
+                        }
+                    );
+                }
+                return Ok(membershipsDtos);
+            }
+            
         }
         catch (Exception ex)
         {
             // Log the exception details here for debugging purposes.
-            return StatusCode(500, "An error occurred while retrieving the membership.");
+            return StatusCode(500, "An error occurred while retrieving the membership: "+ex);
         }
     }
 
@@ -42,17 +61,71 @@ public class UserInGroupController : ControllerBase
     {
         try
         {
-            var membership = await _userInGroupService.GetMembershipsByUserId(userId, false);
-            if (membership == null)
+            var memberships = await _userInGroupService.GetMembershipsByUserId(userId, false);
+            if (memberships == null)
             {
                 return NotFound("Membership not found.");
+            } else
+            {
+                var membershipsDtos = new List<UserInGroupCreateDTO>();
+                foreach (UserInGroup membership in memberships)
+                {
+                    membershipsDtos.Add(
+                        new UserInGroupCreateDTO
+                        {
+                            UserId = membership.User.Id,
+                            GroupId = membership.Group.Id,
+                            IsGroupAdmin = membership.IsGroupAdmin
+                        }
+                    );
+                }
+                return Ok(membershipsDtos);
             }
-            return Ok(membership);
+            
         }
         catch (Exception ex)
         {
             // Log the exception details here for debugging purposes.
-            return StatusCode(500, "An error occurred while retrieving the membership.");
+            return StatusCode(500, "An error occurred while retrieving the membership: "+ex);
+        }
+    }
+
+    [HttpGet("users/{groupId}")]
+    [Authorize]
+    public async Task<IActionResult> GetUsersFromGroup(int groupId)
+    {
+        try
+        {
+            List<UserInGroup>? usersFromGroup = await _userInGroupService.GetUsersFromGroup(groupId);
+            
+            if (usersFromGroup == null)
+            {
+                return NotFound("Membership not found.");
+            } else
+            {
+                var usersFromGroupDtos = new List<UserInGroupMinimalDTO>();
+                foreach (UserInGroup membership in usersFromGroup)
+                {
+                    usersFromGroupDtos.Add(
+                        new UserInGroupMinimalDTO
+                        {
+                            UserId = membership.User.Id,
+                            Username = membership.User.Username,
+                            Email = membership.User.Email,
+                            IsActive = membership.IsActive,
+                            IsGroupAdmin = membership.IsGroupAdmin
+
+                        }
+                    );
+                }
+                return Ok(usersFromGroupDtos);
+            }
+            
+        }
+        catch (Exception ex)
+        {
+            // Log the exception details here for debugging purposes.
+            return StatusCode(500, "An error occurred while retrieving the membership: "+ex);
         }
     }
 
@@ -67,17 +140,21 @@ public class UserInGroupController : ControllerBase
 
         try
         {
-            var result = await _userInGroupService.CreateMembership(userInGroupDto);
-            if (result == null)
-            {
-                return BadRequest("Unable to create user in group");
+            var user = await _userService.GetUserById(userInGroupDto.UserId);
+            if (user == null) {
+                return BadRequest("The user does not exist");
+            } else {
+                await _userInGroupService.CreateMembership(userInGroupDto, user);
+                return NoContent();
             }
-            return NoContent();
+        }
+        catch (HttpException httpEx)
+        {
+            return StatusCode(httpEx.StatusCode, httpEx.Message);
         }
         catch (Exception ex)
         {
-            // Log the exception details here for debugging purposes.
-            return StatusCode(500, "An error occurred while creating the membership.");
+            return StatusCode(500, "An error occurred while creating the membership.: " + ex.Message);
         }
     }
 
@@ -108,7 +185,7 @@ public class UserInGroupController : ControllerBase
         catch (Exception ex)
         {
             // Log the exception details here for debugging purposes.
-            return StatusCode(500, "An error occurred while updating the membership.");
+            return StatusCode(500, "An error occurred while updating the membership: "+ex);
         }
     }
 
@@ -124,7 +201,7 @@ public class UserInGroupController : ControllerBase
         catch (Exception ex)
         {
             // Log the exception details here for debugging purposes.
-            return StatusCode(500, "An error occurred while deleting the membership.");
+            return StatusCode(500, "An error occurred while deleting the membership: "+ex);
         }
     }
 }

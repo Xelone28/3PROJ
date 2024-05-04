@@ -369,17 +369,21 @@ namespace workaround_ef.Migrations
 
             modelBuilder.Entity("DotNetAPI.Model.UserInGroup", b =>
                 {
-                    b.HasOne("DotNetAPI.Model.Group", null)
+                    b.HasOne("DotNetAPI.Model.Group", "Group")
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DotNetAPI.Model.User", null)
+                    b.HasOne("DotNetAPI.Model.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Group");
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

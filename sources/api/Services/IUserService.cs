@@ -6,7 +6,7 @@ namespace DotNetAPI.Services
     public interface IUserService
     {
         Task<IEnumerable<UserDTO>> GetAllUsers();
-        Task<User> GetUserById(int id);
+        Task<User?> GetUserById(int id);
         Task<User> AddUser(User user);
         Task<User> UpdateUser(User user);
         Task DeleteUser(int id);
