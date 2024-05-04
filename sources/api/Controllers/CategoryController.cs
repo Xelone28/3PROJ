@@ -79,4 +79,12 @@ public class CategoryController : ControllerBase
         await _categoryService.DeleteCategory(id);
         return NoContent();
     }
+    //category by group id
+    [HttpGet("group/{groupId}")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<Category>>> GetCategoriesByGroupId(int groupId)
+    {
+        var categories = await _categoryService.GetCategoriesByGroupId(groupId);
+        return Ok(categories);
+    }
 }

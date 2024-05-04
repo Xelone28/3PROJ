@@ -9,5 +9,6 @@ namespace DotNetAPI.Services.Interface
         Task<Category> CreateCategory(Category category);
         Task UpdateCategory(Category category);
         Task DeleteCategory(int id);
+        Task<IEnumerable<Category>> GetCategoriesByGroupId(int groupId);
     }
 }

@@ -52,5 +52,10 @@ namespace DotNetAPI.Services.Service
                 await _dbContext.SaveChangesAsync();
             }
         }
+        //Categoryt by group id
+        public async Task<IEnumerable<Category>> GetCategoriesByGroupId(int groupId)
+        {
+            return await _dbContext.Set<Category>().Where(c => c.GroupId == groupId).ToListAsync();
+        }
     }
 }
