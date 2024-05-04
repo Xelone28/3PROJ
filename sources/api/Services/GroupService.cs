@@ -17,7 +17,7 @@ namespace DotNetAPI.Services
             return await _dbContext.Set<Group>().ToListAsync();
         }
 
-        public async Task<Group> GetUserGroupById(int id)
+        public async Task<Group?> GetGroupById(int id)
         {
             return await _dbContext.Set<Group>().FindAsync(id);
         }

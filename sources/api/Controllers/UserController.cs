@@ -2,7 +2,7 @@
 using DotNetAPI.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
+using DotNetAPI.Helpers;
 using DotNetAPI.Model.DTO;
 
 namespace DotNetAPI.Controllers

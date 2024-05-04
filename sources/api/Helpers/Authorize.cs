@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace DotNet8WebAPI.Helpers
+namespace DotNetAPI.Helpers
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 
-    public class AuthorizeAttribute : Attribute, IAuthorizationFilter
+    public class Authorize : Attribute, IAuthorizationFilter
     {
         public void OnAuthorization(AuthorizationFilterContext context)
         {

@@ -2,7 +2,8 @@
 using DotNetAPI.Services;
 using DotNetAPI.Model;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
+using DotNetAPI.Helpers;
+
 
 [ApiController]
 [Route("[controller]")]
@@ -30,7 +31,7 @@ public class GroupController : ControllerBase
     [Authorize]
     public async Task<ActionResult<Group>> Get(int id)
     {
-        var group = await _groupService.GetUserGroupById(id);
+        var group = await _groupService.GetGroupById(id);
         if (group == null)
         {
             return NotFound();
@@ -54,7 +55,7 @@ public class GroupController : ControllerBase
             return BadRequest("Invalid patch data");
         }
 
-        var userGroup = await _groupService.GetUserGroupById(id);
+        var userGroup = await _groupService.GetGroupById(id);
         if (userGroup == null)
         {
             return NotFound();

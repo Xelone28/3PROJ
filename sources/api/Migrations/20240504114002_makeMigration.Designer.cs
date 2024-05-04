@@ -11,13 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace workaround_ef.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-<<<<<<<< HEAD:sources/api/Migrations/20240427124042_addIsActive.Designer.cs
-    [Migration("20240427124042_addIsActive")]
-    partial class addIsActive
-========
-    [Migration("20240504090009_InitialCreate")]
-    partial class InitialCreate
->>>>>>>> 4ef0c00 (Add Collection of users in expense (#34)):sources/api/Migrations/20240504090009_InitialCreate.Designer.cs
+    [Migration("20240504114002_makeMigration")]
+    partial class makeMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -377,17 +372,21 @@ namespace workaround_ef.Migrations
 
             modelBuilder.Entity("DotNetAPI.Model.UserInGroup", b =>
                 {
-                    b.HasOne("DotNetAPI.Model.Group", null)
+                    b.HasOne("DotNetAPI.Model.Group", "Group")
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DotNetAPI.Model.User", null)
+                    b.HasOne("DotNetAPI.Model.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Group");
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

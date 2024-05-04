@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
-namespace DotNet8WebAPI.Helpers
+namespace DotNetAPI.Helpers
 {
     public class JwtMiddleware
     {

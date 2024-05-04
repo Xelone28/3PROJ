@@ -2,7 +2,7 @@
 using DotNetAPI.Services;
 using DotNetAPI.Model;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
+using DotNetAPI.Helpers;
 
 [ApiController]
 [Route("[controller]")]

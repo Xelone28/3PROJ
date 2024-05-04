@@ -35,11 +35,9 @@ namespace DotNetAPI.Services
             }).ToList();
         }
 
-        public async Task<User> GetUserById(int id)
+        public async Task<User?> GetUserById(int id)
         {
-            // This method should return a User entity, not a DTO.
-            var user = await _dbContext.User.FindAsync(id);
-            return user; // Ensure this returns User entity.
+            return await _dbContext.User.FindAsync(id);
         }
 
         public async Task<User?> GetUserByEmail(string email)

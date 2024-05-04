@@ -32,16 +32,6 @@ namespace DotNetAPI
             modelBuilder.Entity<UserInGroup>(entity =>
             {
                 entity.HasKey(uig => new { uig.UserId, uig.GroupId});
-
-                entity.HasOne<User>()
-                      .WithMany()
-                      .HasForeignKey(p => p.UserId)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne<Group>()
-                      .WithMany()
-                      .HasForeignKey(p => p.GroupId)
-                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Category>(entity =>
