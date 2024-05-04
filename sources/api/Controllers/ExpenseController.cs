@@ -88,4 +88,28 @@ public class ExpenseController : ControllerBase
         await _expenseService.DeleteExpense(id);
         return NoContent();
     }
+    //GetExpensesByGroupId
+    [HttpGet("group/{groupId}")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<Expense>>> GetExpensesByGroupId(int groupId)
+    {
+        var expenses = await _expenseService.GetExpensesByGroupId(groupId);
+        return Ok(expenses);
+    }
+    //GetExpensesByUserId
+    [HttpGet("user/{userId}")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<Expense>>> GetExpensesByUserId(int userId)
+    {
+        var expenses = await _expenseService.GetExpensesByUserId(userId);
+        return Ok(expenses);
+    }
+    //GetExpensesByUserIdAndGroupId
+    [HttpGet("user/{userId}/group/{groupId}")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<Expense>>> GetExpensesByUserIdAndGroupId(int userId, int groupId)
+    {
+        var expenses = await _expenseService.GetExpensesByUserIdAndGroupId(userId, groupId);
+        return Ok(expenses);
+    }
 }
