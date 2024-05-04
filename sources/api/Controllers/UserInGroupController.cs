@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using DotNetAPI.Services;
-using DotNetAPI.Model;
 using DotNetAPI.Helpers;
+using DotNetAPI.Models.UserInGroup;
+using DotNetAPI.Services.Interface;
 
 [ApiController]
 [Route("[controller]")]

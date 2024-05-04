@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using DotNetAPI.Services;
-using DotNetAPI.Model;
 using Microsoft.AspNetCore.Authentication;
 using DotNetAPI.Helpers;
-using DotNetAPI.Model.DTO;
+using DotNetAPI.Models.Expense;
+using DotNetAPI.Services.Service;
+using DotNetAPI.Services.Interface;
 
 [ApiController]
 [Route("[controller]")]

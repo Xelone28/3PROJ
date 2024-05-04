@@ -1,9 +1,4 @@
-﻿using DotNetAPI.Model;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-
-namespace DotNetAPI.Helpers;
+﻿namespace DotNetAPI.Helpers;
 
 public class HttpException : Exception
 {
