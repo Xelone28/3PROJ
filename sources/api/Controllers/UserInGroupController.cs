@@ -2,6 +2,7 @@
 using DotNetAPI.Helpers;
 using DotNetAPI.Models.UserInGroup;
 using DotNetAPI.Services.Interface;
+using DotNetAPI.Models.Group;
 
 [ApiController]
 [Route("[controller]")]
@@ -16,7 +17,7 @@ public class UserInGroupController : ControllerBase
         _userService = userService;
     }
 
-    [HttpGet("{userId}")]
+    [HttpGet("user/{userId}")]
     [Authorize]
     public async Task<IActionResult> GetMemberShipsByUserId(int userId)
     {
@@ -29,20 +30,10 @@ public class UserInGroupController : ControllerBase
             }
             else
             {
-                var membershipsDtos = new List<UserInGroupMinimalDTO>();
+                var membershipsDtos = new List<Group>();
                 foreach (UserInGroup membership in memberships)
                 {
-                    membershipsDtos.Add(
-                        new UserInGroupMinimalDTO
-                        {
-                            UserId = membership.User.Id,
-                            Username = membership.User.Username,
-                            Email = membership.User.Email,
-                            IsActive = membership.IsActive,
-                            IsGroupAdmin = membership.IsGroupAdmin
-                            
-                        }
-                    );
+                    membershipsDtos.Add(membership.Group);
                 }
                 return Ok(membershipsDtos);
             }
@@ -50,7 +41,6 @@ public class UserInGroupController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Log the exception details here for debugging purposes.
             return StatusCode(500, "An error occurred while retrieving the membership: "+ex);
         }
     }
@@ -85,7 +75,6 @@ public class UserInGroupController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Log the exception details here for debugging purposes.
             return StatusCode(500, "An error occurred while retrieving the membership: "+ex);
         }
     }
@@ -124,7 +113,6 @@ public class UserInGroupController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Log the exception details here for debugging purposes.
             return StatusCode(500, "An error occurred while retrieving the membership: "+ex);
         }
     }
@@ -184,7 +172,6 @@ public class UserInGroupController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Log the exception details here for debugging purposes.
             return StatusCode(500, "An error occurred while updating the membership: "+ex);
         }
     }
@@ -200,7 +187,6 @@ public class UserInGroupController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Log the exception details here for debugging purposes.
             return StatusCode(500, "An error occurred while deleting the membership: "+ex);
         }
     }

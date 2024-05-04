@@ -21,8 +21,9 @@ namespace DotNetAPI.Services.Service
         public async Task<List<UserInGroup>?> GetMembershipsByUserId(int userId, bool isActive)
         {
             return await _dbContext.Set<UserInGroup>()
+                .Include(u => u.Group)
                 .Where(u => u.User.Id == userId && u.IsActive == isActive)
-            .ToListAsync();
+                .ToListAsync();
         }
 
         public async Task<List<UserInGroup>?> GetUsersFromGroup(int groupId)
