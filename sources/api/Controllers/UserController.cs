@@ -1,9 +1,9 @@
-﻿using DotNetAPI.Services;
-using DotNetAPI.Model;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using DotNetAPI.Helpers;
-using DotNetAPI.Model.DTO;
+using DotNetAPI.Models.User;
+using DotNetAPI.Models.Authenticate;
+using DotNetAPI.Services.Interface;
 
 namespace DotNetAPI.Controllers
 {

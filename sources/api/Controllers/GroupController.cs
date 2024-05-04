@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using DotNetAPI.Services;
-using DotNetAPI.Model;
 using Microsoft.AspNetCore.Authentication;
 using DotNetAPI.Helpers;
+using DotNetAPI.Models.Group;
+using DotNetAPI.Services.Interface;
 
 
 [ApiController]

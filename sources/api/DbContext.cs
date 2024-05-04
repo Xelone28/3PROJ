@@ -1,5 +1,12 @@
-﻿using DotNetAPI.Model;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using DotNetAPI.Models.Category;
+using DotNetAPI.Models.Debt;
+using DotNetAPI.Models.Expense;
+using DotNetAPI.Models.Group;
+using DotNetAPI.Models.Payement;
+using DotNetAPI.Models.Taxe;
+using DotNetAPI.Models.User;
+using DotNetAPI.Models.UserInGroup;
 
 namespace DotNetAPI
 {
