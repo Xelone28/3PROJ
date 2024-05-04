@@ -49,41 +49,38 @@ namespace DotNetAPI.Services
             _context.Debt.Remove(debt);
             await _context.SaveChangesAsync();
         }
-
-        /*Debt creation logic here \/ */
         public async Task CreateDebtsFromExpense(Expense expense)
         {
-            // Get the group of the expense
-            var group = await _context.Group.FindAsync(expense.GroupId);
-            // Get all users in the group
-            var users = await _context.UserInGroup.Where(u => u.GroupId == group.Id).ToListAsync();
-            // Calculate the amount each user owes
-            var amountPerUser = expense.Amount / users.Count;
-            // Create a debt for each user in the group
-            foreach (var user in users)
+            foreach (int userId in expense.UserIdInvolved)
             {
-
-                //Print the user.UserId
-                Console.WriteLine("user.UserId: " + user.UserId);
-
-                // Skip the user who paid the expense
-                if (user.UserId == expense.UserId)
+                if (userId != expense.UserId)
                 {
-                    continue;
+                    Debt debt = new Debt
+                    {
+                        GroupId = expense.GroupId,
+                        ExpenseId = expense.Id,
+                        UserIdInCredit = expense.UserId,
+                        UserIdInDebt = userId,
+                        Amount = (float)Math.Round(expense.Amount / expense.UserIdInvolved.Count, 2),
+                        IsPaid = false,
+                        IsCanceled = false
+                    };
+                    _context.Debt.Add(debt);
                 }
-                var debt = new Debt
-                {
-                    ExpenseId = expense.Id,
-                    UserIdInCredit = expense.UserId,
-                    UserIdInDebt = user.UserId,
-                    GroupId = group.Id,
-                    Amount = amountPerUser,
-                    IsPaid = false,
-                    IsCanceled = false
-                };
-                _context.Debt.Add(debt);
             }
             await _context.SaveChangesAsync();
+        }
+        public async Task<IEnumerable<Debt>> GetDebtsByUserId(int userId)
+        {
+            return await _context.Debt.Where(debt => debt.UserIdInDebt == userId).ToListAsync();
+        }
+        public async Task<IEnumerable<Debt>> GetDebtsByGroupId(int groupId)
+        {
+            return await _context.Debt.Where(debt => debt.GroupId == groupId).ToListAsync();
+        }
+        public async Task<IEnumerable<Debt>> GetDebtsByExpenseId(int expenseId)
+        {
+            return await _context.Debt.Where(debt => debt.ExpenseId == expenseId).ToListAsync();
         }
     }
 }

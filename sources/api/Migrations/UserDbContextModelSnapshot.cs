@@ -115,6 +115,10 @@ namespace workaround_ef.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
+                    b.Property<int[]>("UserIdInvolved")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
