@@ -41,7 +41,7 @@ namespace DotNetAPI.Services.Service
                 .FirstOrDefaultAsync();
         }
 
-        public async Task CreateMembership(UserInGroupCreateDTO userInGroupDto, User user)
+        public async Task<UserInGroup> CreateMembership(UserInGroupCreateDTO userInGroupDto, User user)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace DotNetAPI.Services.Service
 
                     _dbContext.UserInGroup.Add(userInGroup);
                     await _dbContext.SaveChangesAsync();
-                    return;
+                    return userInGroup;
                 }
 
             }
