@@ -27,6 +27,7 @@ import androidx.navigation.navArgument
 import com.console.ratcord.Screen
 import com.console.ratcord.api.GroupService
 import com.console.ratcord.api.LocalStorage
+import com.console.ratcord.api.UserInGroupService
 import com.console.ratcord.api.UserService
 import com.console.ratcord.api.Utils
 import com.console.ratcord.domain.entity.user.UserMinimal
@@ -65,6 +66,7 @@ fun BottomNavigationBar(applicationContext: Context) {
     val navController = rememberNavController()
     val userService = UserService()
     val groupService = GroupService()
+    val userIngGroupService = UserInGroupService()
 
 
     Scaffold(
@@ -120,17 +122,17 @@ fun BottomNavigationBar(applicationContext: Context) {
             }
 
             composable(Screen.RegisterGroup.route) {
-                GroupForm(groupService = groupService, navController = navController)
+                GroupForm(groupService = groupService, applicationContext = applicationContext, navController = navController)
             }
             composable(Screen.Groups.route) {
-                Groups(groupService = groupService, applicationContext = applicationContext, navController = navController)
+                Groups(userInGroupService = userIngGroupService, applicationContext = applicationContext, navController = navController)
             }
             composable(
                 "${Screen.GroupDetails}/{groupId}",
                 arguments = listOf(navArgument("groupId") { type = NavType.IntType })
             ) { navBackStackEntry ->
                 val groupId = navBackStackEntry.arguments?.getInt("groupId")
-                GroupDetails(groupService, applicationContext, navController, groupId)
+                GroupDetails(groupService = groupService, userInGroupService = userIngGroupService, applicationContext = applicationContext, navController = navController, groupId = groupId)
             }
             composable(
                 "${Screen.EditUser}/{userId}",

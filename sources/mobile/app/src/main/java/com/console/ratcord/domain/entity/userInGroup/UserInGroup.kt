@@ -1,4 +1,4 @@
-package com.console.ratcord.domain.entity
+package com.console.ratcord.domain.entity.userInGroup
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -28,5 +28,5 @@ data class UserInGroup(
     val userId: Int,
     val groupId: Int,
     val isGroupAdmin: Boolean,
-    val balance: Int
+    val isActive: Boolean
 )

@@ -22,15 +22,17 @@ import androidx.navigation.NavController
 import com.console.ratcord.Screen
 import com.console.ratcord.api.GroupService
 import com.console.ratcord.api.LocalStorage
+import com.console.ratcord.api.UserInGroupService
 import com.console.ratcord.api.Utils
+import com.console.ratcord.domain.entity.group.Group
 import com.console.ratcord.domain.entity.group.GroupMinimalWithId
 import kotlinx.coroutines.launch
 
 @Composable
-fun Groups(groupService: GroupService, applicationContext: Context, navController: NavController) {
+fun Groups(userInGroupService: UserInGroupService, applicationContext: Context, navController: NavController) {
     val token: String? = Utils.getItem(context = applicationContext, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
     val coroutineScope = rememberCoroutineScope()
-    var groups by remember { mutableStateOf<List<GroupMinimalWithId>?>(null) }
+    var groups by remember { mutableStateOf<List<Group>?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
 
@@ -41,7 +43,9 @@ fun Groups(groupService: GroupService, applicationContext: Context, navControlle
             isLoading = true
             coroutineScope.launch {
                 try {
-                    groups = groupService.getGroups(applicationContext) // change this for get group by user id --> userId
+                    if (userId is Int) {
+                        groups = userInGroupService.getGroupsFromUserId(applicationContext, userId)
+                    }
                 } catch (e: Exception) {
                     println("Failed to retrieve group: ${e.message}")
                 } finally {
