@@ -99,12 +99,12 @@ services.AddCors(options =>
         // Migration done here
         app.UseDeveloperExceptionPage();
         dbContext.Database.Migrate();
-
+        
+        app.UseCors("AllowMyOrigin");
         app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseMiddleware<JwtMiddleware>();
-        app.UseCors("AllowMyOrigin");
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();

@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
 import '../assets/css/Signup.css';
-
+import { useNavigate } from 'react-router-dom';
 const Signup = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
+  
+  const navigate = useNavigate();
   const handleSubmit = (event) => {
     event.preventDefault();
     if (password !== confirmPassword) {
@@ -43,7 +44,7 @@ const Signup = () => {
         // Handle response data
         if (data.id) {
           alert('User created successfully!');
-          // You can redirect the user to another page here
+          navigate('/login');
         } else {
           console.error('Server response:', data);
           alert('An error occurred while creating the user.');

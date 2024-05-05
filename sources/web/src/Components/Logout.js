@@ -8,6 +8,7 @@ function Logout({ onLogout }) {
     localStorage.removeItem('user');
     document.cookie = "token=; Max-Age=0";
     navigate('/login');
+    window.location.reload()
     if (onLogout) {
       onLogout();
     }
