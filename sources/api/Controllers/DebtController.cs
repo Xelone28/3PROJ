@@ -13,10 +13,10 @@ private readonly IDebtService _debtService;
     private readonly AuthenticationService _authenticationService;
 
     public DebtController(IDebtService debtService, AuthenticationService authenticationService)
-           {
-           _debtService = debtService;
-           _authenticationService = authenticationService;
-       }
+    {
+        _debtService = debtService;
+        _authenticationService = authenticationService;
+    }
 
     [HttpGet]
     [Authorize]
@@ -74,7 +74,6 @@ private readonly IDebtService _debtService;
         {
             return NotFound();
         }
-
         await _debtService.DeleteDebt(id);
         return NoContent();
     }

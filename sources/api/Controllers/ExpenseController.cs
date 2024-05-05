@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authentication;
 using DotNetAPI.Helpers;
 using DotNetAPI.Models.Expense;
-using DotNetAPI.Services.Service;
 using DotNetAPI.Services.Interface;
 
 [ApiController]
@@ -10,11 +9,11 @@ using DotNetAPI.Services.Interface;
 
 public class ExpenseController : ControllerBase
 {
-    private readonly DebtService _debtService;
+    private readonly IDebtService _debtService;
     private readonly IExpenseService _expenseService;
     private readonly AuthenticationService _authenticationService;
 
-    public ExpenseController(DebtService debtService, IExpenseService expenseService, AuthenticationService authenticationService)
+    public ExpenseController(IDebtService debtService, IExpenseService expenseService, AuthenticationService authenticationService)
     {
         _debtService = debtService;
         _expenseService = expenseService;
@@ -90,6 +89,7 @@ public class ExpenseController : ControllerBase
             return NotFound();
         }
 
+        await _debtService.DeleteDebtsByExpenseId(id);
         await _expenseService.DeleteExpense(id);
         return NoContent();
     }
