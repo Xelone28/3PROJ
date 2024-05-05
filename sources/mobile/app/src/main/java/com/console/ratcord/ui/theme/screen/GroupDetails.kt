@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,17 +19,21 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import com.console.ratcord.Screen
 import com.console.ratcord.api.GroupService
+import com.console.ratcord.api.UserInGroupService
 import com.console.ratcord.domain.entity.group.GroupMinimalWithId
+import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
 import kotlinx.coroutines.launch
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun GroupDetails(groupService: GroupService, applicationContext: Context, navController: NavController, groupId: Int?) {
+fun GroupDetails(groupService: GroupService, userInGroupService: UserInGroupService, applicationContext: Context, navController: NavController, groupId: Int?) {
     val coroutineScope = rememberCoroutineScope()
     var groupDetails by remember { mutableStateOf<GroupMinimalWithId?>(null) }
+    var usersInGroup by remember { mutableStateOf<List<UserMinimalWithUserId>?>(emptyList()) }
+
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -40,7 +43,9 @@ fun GroupDetails(groupService: GroupService, applicationContext: Context, navCon
             coroutineScope.launch {
                 try {
                     groupDetails = groupService.getGroupById(applicationContext, groupId)
+                    usersInGroup = userInGroupService.getUsersInGroup(applicationContext, groupId)
                 } catch (e: Exception) {
+                    println(e)
                     errorMessage = "Failed to retrieve group"
                 } finally {
                     isLoading = false
@@ -63,11 +68,20 @@ fun GroupDetails(groupService: GroupService, applicationContext: Context, navCon
         }
         if (isLoading) {
             CircularProgressIndicator()
-        } else if (groupDetails != null) {
+        } else if ( groupDetails != null && usersInGroup != null) {
             Text("Name: ${groupDetails!!.groupName}", style = MaterialTheme.typography.bodyLarge)
             Text("Description: ${groupDetails!!.groupDesc}", style = MaterialTheme.typography.bodyLarge)
-        } else {
-            errorMessage = "No details available or not logged in."
-        }
+            usersInGroup?.let { userList ->
+                userList.forEach { user ->
+                    UserCard(
+                        userMinimalWithId = user,
+                        onClick = {
+                            navController.navigate("${Screen.UserDetails.route}/${user.userId}")
+                        }
+                    )
+                }
+            }
+
+            }
     }
 }
