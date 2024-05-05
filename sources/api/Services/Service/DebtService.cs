@@ -71,6 +71,10 @@ namespace DotNetAPI.Services.Service
             }
             await _context.SaveChangesAsync();
         }
+        public async Task<IEnumerable<Debt>> GetDebtsByUserIdInCredit(int userId)
+        {
+            return await _context.Debt.Where(debt => debt.UserIdInCredit == userId).ToListAsync();
+        }
         public async Task<IEnumerable<Debt>> GetDebtsByUserId(int userId)
         {
             return await _context.Debt.Where(debt => debt.UserIdInDebt == userId).ToListAsync();
