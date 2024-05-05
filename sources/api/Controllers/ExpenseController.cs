@@ -72,8 +72,10 @@ public class ExpenseController : ControllerBase
         expenseToUpdate.Description = expense.Description ?? expenseToUpdate.Description;
         expenseToUpdate.UserIdInvolved = expense.UserIdInvolved ?? expenseToUpdate.UserIdInvolved;
         expenseToUpdate.GroupId = expense.GroupId ?? expenseToUpdate.GroupId;
+        expenseToUpdate.Place = expense.Place ?? expenseToUpdate.Place;
 
         await _expenseService.UpdateExpense(expenseToUpdate);
+        await _debtService.UpdateDebtsFromExpense(expenseToUpdate);
 
         return NoContent();
     }
