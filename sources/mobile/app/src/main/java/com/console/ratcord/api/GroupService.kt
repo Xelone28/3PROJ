@@ -5,6 +5,8 @@ import com.console.ratcord.domain.entity.group.Group
 import com.console.ratcord.domain.entity.exception.AuthorizationException
 import com.console.ratcord.domain.entity.group.GroupMinimal
 import com.console.ratcord.domain.entity.group.GroupMinimalWithId
+import com.console.ratcord.domain.entity.user.UserMinimalWithId
+import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
@@ -19,9 +21,6 @@ import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 
 class GroupService() {
-//    private val viewModelJob = SupervisorJob()
-//    private val viewModelScope = CoroutineScope(Dispatchers.Main + viewModelJob)
-
     private val utils: Utils = Utils()
     private val client: HttpClient = utils.getHttpClient()
     suspend fun getGroups(context: Context): List<GroupMinimalWithId>? {
@@ -82,9 +81,12 @@ class GroupService() {
         }
     }
 
-    suspend fun createGroup(group: GroupMinimal): Boolean{
+    suspend fun createGroup(context: Context, group: GroupMinimal): Boolean {
         val response: HttpResponse = try {
             client.post("http://10.0.2.2:5000/group") {
+                headers {
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                }
                 contentType(ContentType.Application.Json)
                 setBody(group)
             }
@@ -99,5 +101,4 @@ class GroupService() {
             return false
         }
     }
-
 }

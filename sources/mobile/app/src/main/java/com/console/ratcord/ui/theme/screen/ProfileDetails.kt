@@ -27,6 +27,7 @@ import com.console.ratcord.Screen
 import com.console.ratcord.api.LocalStorage
 import com.console.ratcord.api.UserService
 import com.console.ratcord.api.Utils
+import com.console.ratcord.domain.entity.user.User
 import com.console.ratcord.domain.entity.user.UserMinimalWithId
 import kotlinx.coroutines.launch
 
@@ -76,15 +77,15 @@ fun ProfileDetail(userService: UserService, applicationContext: Context, navCont
             userDetails!!.rib?.let {
                 Text("RIB: $it", style = MaterialTheme.typography.bodyLarge)
             }
-            IconButton(onClick = {
-                navController.navigate("${Screen.EnsureConnexion}/${userDetails!!.id}")
-            }) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    contentDescription = "Edit User",
-                )
-            }
             if (token?.let { Utils.getUserIdFromJwt(it) } == userId) {
+                IconButton(onClick = {
+                    navController.navigate("${Screen.EnsureConnexion}/${userDetails!!.id}")
+                }) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = "Edit User",
+                    )
+                }
                 Button(onClick = {
                     Utils.storeItem(context = applicationContext, value = null, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
                     Utils.storeItem(context = applicationContext, value = null, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.USER)

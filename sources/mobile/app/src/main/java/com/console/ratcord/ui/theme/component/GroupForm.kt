@@ -24,7 +24,7 @@ import com.console.ratcord.api.GroupService
 import com.console.ratcord.domain.entity.group.GroupMinimal
 
 @Composable
-fun GroupForm(groupService: GroupService, navController: NavController) {
+fun GroupForm(groupService: GroupService, applicationContext : Context, navController: NavController) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -59,7 +59,7 @@ fun GroupForm(groupService: GroupService, navController: NavController) {
                         groupName = name,
                         groupDesc = description.takeIf { it.isNotBlank() }
                     )
-                    if (groupService.createGroup(group)) {
+                    if (groupService.createGroup(applicationContext, group)) {
                         navController.navigate(Screen.Groups.route)
                     } else {
                         errorMessage = "Something went wrong, please check inputs"

@@ -60,7 +60,7 @@ fun EnsureConnexion(userService: UserService, applicationContext: Context, navCo
                             Json.decodeFromString<UserMinimalWithId>(loggedInUser)
                         if (userService.login(
                             context = applicationContext,
-                            username = loggedInUserSerialized.username,
+                            email = loggedInUserSerialized.email,
                             password = password
                         )) {
                             navController.navigate(screenRedirection)
