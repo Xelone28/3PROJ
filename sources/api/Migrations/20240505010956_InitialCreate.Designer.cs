@@ -11,11 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-<<<<<<<< HEAD:sources/api/Migrations/20240504203930_InitialCreate.Designer.cs
-    [Migration("20240504203930_InitialCreate")]
-========
-    [Migration("20240504180525_InitialCreate")]
->>>>>>>> d546505 (GetExpensesBy : GroupId / UserId / UserIdAndGroupId (#54)):sources/api/Migrations/20240504180525_InitialCreate.Designer.cs
+    [Migration("20240505010956_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
