@@ -48,7 +48,7 @@ public class GroupController : ControllerBase
         var userId = (HttpContext.Items["User"] as User)?.Id ?? null;
         
         if (userId is int) {
-            var loggedInUser = await _userService.GetUserById(1);
+            var loggedInUser = await _userService.GetUserById((int)userId);
             if (loggedInUser is User)
             {
                 var acceptedInvitation = new UserInGroupCreateDTO

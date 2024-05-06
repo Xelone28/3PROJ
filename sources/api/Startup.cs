@@ -1,5 +1,4 @@
-﻿// Startup.cs
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
@@ -97,8 +96,8 @@ services.AddCors(options =>
     public void Configure(IApplicationBuilder app, UserDbContext dbContext)
     {
         // Migration done here
-        app.UseDeveloperExceptionPage();
-        dbContext.Database.Migrate();
+        //app.UseDeveloperExceptionPage();
+        //dbContext.Database.Migrate();
 
         app.UseRouting();
         app.UseAuthentication();
