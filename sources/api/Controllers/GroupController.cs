@@ -1,22 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authentication;
 using DotNetAPI.Helpers;
 using DotNetAPI.Models.Group;
+using DotNetAPI.Models.User;
+using DotNetAPI.Models.UserInGroup;
 using DotNetAPI.Services.Interface;
-
 
 [ApiController]
 [Route("[controller]")]
 public class GroupController : ControllerBase
 {
     private readonly IGroupService _groupService;
-    private readonly AuthenticationService _authenticationService;
+    private readonly IUserInGroupService _userInGroupService;
+    private readonly IUserService _userService;
 
-    public GroupController(IGroupService groupService, AuthenticationService authenticationService)
+    public GroupController(IGroupService groupService, IUserInGroupService userInGroupService, IUserService userService)
     {
         _groupService = groupService;
-        _authenticationService = authenticationService;
-
+        _userInGroupService = userInGroupService;
+        _userService = userService;
     }
 
     [HttpGet]
@@ -40,10 +41,31 @@ public class GroupController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Group>> Post([FromBody] Group userGroup)
+    [Authorize]
+    public async Task<ActionResult> Post([FromBody] Group userGroup)
     {
         var newGroup = await _groupService.CreateGroup(userGroup);
-        return CreatedAtAction(nameof(Get), new { id = newGroup.Id }, newGroup);
+        var userId = (HttpContext.Items["User"] as User)?.Id ?? null;
+        
+        if (userId is int) {
+            var loggedInUser = await _userService.GetUserById((int)userId);
+            if (loggedInUser is User)
+            {
+                var acceptedInvitation = new UserInGroupCreateDTO
+                {
+                    UserId = (int)userId,
+                    GroupId = newGroup.Id,
+                    IsGroupAdmin = true
+                };
+
+                var invitation = await _userInGroupService.CreateMembership(acceptedInvitation, loggedInUser);
+                invitation.IsActive = true;
+                invitation.IsGroupAdmin = true;
+                await _userInGroupService.UpdateMembership(invitation);
+                return Created();
+            }
+        }
+        return Unauthorized("You are not logged in.");
     }
 
     [HttpPatch("{id}")]
