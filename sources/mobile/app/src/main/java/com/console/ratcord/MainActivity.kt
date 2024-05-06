@@ -1,9 +1,9 @@
 package com.console.ratcord
 
-import BottomNavigationBar
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import com.console.ratcord.api.Utils
 
 sealed class Screen(val route: String) {
     object Register : Screen("Register")
@@ -12,15 +12,23 @@ sealed class Screen(val route: String) {
     object UserDetails : Screen("UserDetails")
     object RegisterGroup : Screen("RegisterGroup")
     object GroupDetails : Screen("group_details/{groupId}")
+    object AddUserInGroup : Screen("addUserInGroup/{groupId}")
     object Groups : Screen("Groups")
     object EditUser : Screen("EditUser")
     object EnsureConnexion : Screen("EnsureConnexion")
+}
+
+sealed class ExpenseTab(val route: String) {
+    object Expenses : ExpenseTab("ExpensesFromGroup/{groupId}")
+    object UsersFromGroup : ExpenseTab("UsersFromGroup/{groupId}")
+    object ExpenseDetails : ExpenseTab("ExpenseDetails/{expenseId}")
+    object AddExpenseToGroup : ExpenseTab("addExpenseToGroup/{groupId}")
 }
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            BottomNavigationBar(applicationContext)
+            Utils.getNavigation().BottomNavigationBar(applicationContext)
         }
     }
 }

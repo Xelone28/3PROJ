@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.console.ratcord.api.UserService
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.navigation.NavController
 import com.console.ratcord.Screen
 import com.console.ratcord.api.LocalStorage
@@ -44,6 +45,7 @@ fun EnsureConnexion(userService: UserService, applicationContext: Context, navCo
         }
         OutlinedTextField(
             value = password,
+            visualTransformation = PasswordVisualTransformation(),
             onValueChange = { password = it },
             label = { Text("Password") }
         )

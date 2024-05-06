@@ -9,6 +9,7 @@ import com.console.ratcord.domain.entity.user.UserMinimal
 import com.console.ratcord.domain.entity.user.UserMinimalWithId
 import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
 import com.console.ratcord.domain.entity.userInGroup.UserInGroup
+import com.console.ratcord.domain.entity.userInGroup.UserInGroupMinimal
 import com.console.ratcord.domain.entity.userInGroup.UserInGroupPerms
 import io.ktor.client.HttpClient
 import io.ktor.client.request.delete
@@ -27,14 +28,8 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
 class UserInGroupService() {
-    private val utils: Utils = Utils()
-    private val client: HttpClient = utils.getHttpClient()
-    suspend fun addUserInGroup(context: Context, userId: Int, groupId: Int, isGroupAdmin: Boolean): Boolean {
-        val jsonBody = buildJsonObject {
-            put("userId", userId)
-            put("groupId", groupId)
-            put("isGroupAdmin", isGroupAdmin)
-        }.toString()
+    private val client: HttpClient = Utils.getHttpClient()
+    suspend fun addUserInGroup(context: Context, userInGroup: UserInGroupMinimal): Boolean {
         val response: HttpResponse = try {
             client.post("http://10.0.2.2:5000/useringroup") {
                 headers {
@@ -49,7 +44,7 @@ class UserInGroupService() {
                         }"
                     )
                     contentType(ContentType.Application.Json)
-                    setBody(jsonBody)
+                    setBody(userInGroup)
                 }
             }
         } catch (e: Exception) {

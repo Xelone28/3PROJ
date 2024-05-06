@@ -1,6 +1,8 @@
 package com.console.ratcord.api
 
 import android.content.Context
+import com.console.ratcord.domain.entity.category.Category
+import com.console.ratcord.domain.entity.category.CategoryMinimal
 import com.console.ratcord.domain.entity.group.Group
 import com.console.ratcord.domain.entity.exception.AuthorizationException
 import com.console.ratcord.domain.entity.group.GroupMinimal
@@ -20,11 +22,11 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 
-class GroupService() {
+class CategoryService() {
     private val client: HttpClient = Utils.getHttpClient()
-    suspend fun getGroups(context: Context): List<GroupMinimalWithId>? {
+    suspend fun getCategoryById(context: Context, categoryId: Int): Category? {
         val response: HttpResponse = try {
-            client.get("http://10.0.2.2:5000/group") {
+            client.get("http://10.0.2.2:5000/category/$categoryId") {
                 headers {
                     append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                 }
@@ -41,7 +43,7 @@ class GroupService() {
 
             HttpStatusCode.OK -> {
                 val body: String = response.bodyAsText()
-                return Json.decodeFromString<List<GroupMinimalWithId>>(body)
+                return Json.decodeFromString<Category>(body)
             }
 
             else -> {
@@ -51,9 +53,9 @@ class GroupService() {
         }
     }
 
-    suspend fun getGroupById(context: Context, id: Int): GroupMinimalWithId? {
+    suspend fun getCategoryByGroupId(context: Context, groupId: Int): List<Category>? {
         val response: HttpResponse = try {
-            client.get("http://10.0.2.2:5000/group/$id") {
+            client.get("http://10.0.2.2:5000/category/group/$groupId") {
                 headers {
                     append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                 }
@@ -70,7 +72,7 @@ class GroupService() {
 
             HttpStatusCode.OK -> {
                 val body: String = response.bodyAsText()
-                return Json.decodeFromString<GroupMinimalWithId>(body)
+                return Json.decodeFromString<List<Category>>(body)
             }
 
             else -> {
@@ -80,24 +82,31 @@ class GroupService() {
         }
     }
 
-    suspend fun createGroup(context: Context, group: GroupMinimal): Boolean {
+    suspend fun createCategory(context: Context, category: CategoryMinimal): Boolean {
         val response: HttpResponse = try {
-            client.post("http://10.0.2.2:5000/group") {
+            client.post("http://10.0.2.2:5000/category") {
                 headers {
                     append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                 }
                 contentType(ContentType.Application.Json)
-                setBody(group)
+                setBody(category)
             }
         } catch (e: Exception) {
             println(e)
             return false
         }
+        when (response.status) {
+            HttpStatusCode.Unauthorized -> {
+                throw AuthorizationException("Unauthorized access to user data.")
+            }
 
-        if (response.status.isSuccess()) {
-            return true
-        } else {
-            return false
+            HttpStatusCode.Created -> {
+                return true
+            }
+            else -> {
+                println("Received unexpected status: ${response.status}")
+                return false
+            }
         }
     }
 }

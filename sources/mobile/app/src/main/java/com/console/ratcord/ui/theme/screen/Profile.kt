@@ -37,7 +37,7 @@ fun Profile(applicationContext: Context, navController: NavController) {
     if (token != null) {
         val userId: Int? = Utils.getUserIdFromJwt(jwtToken = token)
         if (userId != null) {
-            navController.navigate("${Screen.UserDetails.route}/$userId")
+            navController.navigate("${Screen.UserDetails}/$userId")
         } else {
             println("issue here, please contact admin")
         }

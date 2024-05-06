@@ -35,11 +35,9 @@ fun Groups(userInGroupService: UserInGroupService, applicationContext: Context, 
     var groups by remember { mutableStateOf<List<Group>?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
-
     LaunchedEffect(key1 = token) {
         if (token != null) {
             val userId: Int? = Utils.getUserIdFromJwt(token)
-
             isLoading = true
             coroutineScope.launch {
                 try {
@@ -56,7 +54,6 @@ fun Groups(userInGroupService: UserInGroupService, applicationContext: Context, 
             println("You must be logged in")
         }
     }
-
     Column(
         modifier = Modifier.padding(16.dp)
     ) {
