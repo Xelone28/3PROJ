@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.console.ratcord.api.UserService
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.navigation.NavController
 import com.console.ratcord.Screen
 import com.console.ratcord.api.LocalStorage
@@ -63,6 +64,7 @@ fun EditUserForm(userService: UserService, applicationContext: Context, navContr
             )
             OutlinedTextField(
                 value = password,
+                visualTransformation = PasswordVisualTransformation(),
                 onValueChange = { password = it },
                 label = { Text("Password") },
                 modifier = Modifier.padding(top = 8.dp)

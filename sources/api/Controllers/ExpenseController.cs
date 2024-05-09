@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authentication;
 using DotNetAPI.Helpers;
 using DotNetAPI.Models.Expense;
-using DotNetAPI.Services.Service;
 using DotNetAPI.Services.Interface;
 
 [ApiController]
@@ -10,11 +9,11 @@ using DotNetAPI.Services.Interface;
 
 public class ExpenseController : ControllerBase
 {
-    private readonly DebtService _debtService;
+    private readonly IDebtService _debtService;
     private readonly IExpenseService _expenseService;
     private readonly AuthenticationService _authenticationService;
 
-    public ExpenseController(DebtService debtService, IExpenseService expenseService, AuthenticationService authenticationService)
+    public ExpenseController(IDebtService debtService, IExpenseService expenseService, AuthenticationService authenticationService)
     {
         _debtService = debtService;
         _expenseService = expenseService;
@@ -70,8 +69,13 @@ public class ExpenseController : ControllerBase
         expenseToUpdate.Date = expense.Date ?? expenseToUpdate.Date;
         expenseToUpdate.Amount = expense.Amount ?? expenseToUpdate.Amount;
         expenseToUpdate.Description = expense.Description ?? expenseToUpdate.Description;
+        expenseToUpdate.UserIdInvolved = expense.UserIdInvolved ?? expenseToUpdate.UserIdInvolved;
+        expenseToUpdate.GroupId = expense.GroupId ?? expenseToUpdate.GroupId;
+        expenseToUpdate.Place = expense.Place ?? expenseToUpdate.Place;
 
         await _expenseService.UpdateExpense(expenseToUpdate);
+        await _debtService.UpdateDebtsFromExpense(expenseToUpdate);
+
         return NoContent();
     }
 
@@ -85,7 +89,32 @@ public class ExpenseController : ControllerBase
             return NotFound();
         }
 
+        await _debtService.DeleteDebtsByExpenseId(id);
         await _expenseService.DeleteExpense(id);
         return NoContent();
+    }
+    //GetExpensesByGroupId
+    [HttpGet("group/{groupId}")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<Expense>>> GetExpensesByGroupId(int groupId)
+    {
+        var expenses = await _expenseService.GetExpensesByGroupId(groupId);
+        return Ok(expenses);
+    }
+    //GetExpensesByUserId
+    [HttpGet("user/{userId}")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<Expense>>> GetExpensesByUserId(int userId)
+    {
+        var expenses = await _expenseService.GetExpensesByUserId(userId);
+        return Ok(expenses);
+    }
+    //GetExpensesByUserIdAndGroupId
+    [HttpGet("user/{userId}/group/{groupId}")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<Expense>>> GetExpensesByUserIdAndGroupId(int userId, int groupId)
+    {
+        var expenses = await _expenseService.GetExpensesByUserIdAndGroupId(userId, groupId);
+        return Ok(expenses);
     }
 }

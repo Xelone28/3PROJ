@@ -1,10 +1,12 @@
 import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -19,18 +21,21 @@ import androidx.compose.ui.unit.dp
 import com.console.ratcord.api.UserService
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.Alignment
 import androidx.navigation.NavController
 import com.console.ratcord.Screen
-import com.console.ratcord.api.LocalStorage
-import com.console.ratcord.api.Utils
+import com.console.ratcord.api.UserInGroupService
+import com.console.ratcord.domain.entity.user.UserMinimal
 import com.console.ratcord.domain.entity.user.UserMinimalWithId
-import kotlinx.serialization.json.Json
+import com.console.ratcord.domain.entity.userInGroup.UserInGroupMinimal
+import kotlin.reflect.KSuspendFunction1
 
 @Composable
-fun EnsureConnexion(userService: UserService, applicationContext: Context, navController: NavController, screenRedirection: String) {
-    var password by remember { mutableStateOf("") }
+fun AddUserToGroup(context: Context, userInGroupService: UserInGroupService, userService : UserService, navController: NavController, groupId: Int) {
+    var email by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isGroupAdmin by remember { mutableStateOf<Boolean>(false) }
+
     val coroutineScope = rememberCoroutineScope()
 
     Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
@@ -44,40 +49,35 @@ fun EnsureConnexion(userService: UserService, applicationContext: Context, navCo
             )
         }
         OutlinedTextField(
-            value = password,
-            visualTransformation = PasswordVisualTransformation(),
-            onValueChange = { password = it },
-            label = { Text("Password") }
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email") },
+            modifier = Modifier.padding(top = 8.dp)
         )
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+            Checkbox(
+                checked = isGroupAdmin,
+                onCheckedChange = { isGroupAdmin = it },
+                enabled = true
+            )
+            Text("Group Admin")
+        }
         Button(
             onClick = {
                 coroutineScope.launch {
-                    val loggedInUser: String? = Utils.getItem(
-                        context = applicationContext,
-                        fileKey = LocalStorage.PREFERENCES_FILE_KEY,
-                        key = LocalStorage.USER
-                    )
-                    if (loggedInUser != null) {
-                        val loggedInUserSerialized: UserMinimalWithId =
-                            Json.decodeFromString<UserMinimalWithId>(loggedInUser)
-                        if (userService.login(
-                            context = applicationContext,
-                            email = loggedInUserSerialized.email,
-                            password = password
-                        )) {
-                            navController.navigate(screenRedirection)
-                        } else {
-                            errorMessage = "Wrong password"
-                        }
+                    val user = userService.getUserByEmail(context, email = email)
+                    if (user is UserMinimalWithId) {
+                        val userInGroup = UserInGroupMinimal(groupId = groupId, isGroupAdmin = isGroupAdmin, isActive = false, userId = user.id)
+                        userInGroupService.addUserInGroup(context, userInGroup)
+                        navController.navigate(Screen.Profile.route)
                     } else {
-                        println("not logged in")
+                        errorMessage = "Register failed. Please your inputs."
                     }
                 }
             },
             modifier = Modifier.padding(top = 16.dp)
         ) {
-            Text("Ensure connexion")
+            Text("Add")
         }
     }
 }
-

@@ -1,8 +1,12 @@
 package com.console.ratcord.api
 
 import android.content.Context
+import com.console.ratcord.domain.entity.category.Category
+import com.console.ratcord.domain.entity.category.CategoryMinimal
 import com.console.ratcord.domain.entity.group.Group
 import com.console.ratcord.domain.entity.exception.AuthorizationException
+import com.console.ratcord.domain.entity.expense.Expense
+import com.console.ratcord.domain.entity.expense.ExpenseMinimal
 import com.console.ratcord.domain.entity.group.GroupMinimal
 import com.console.ratcord.domain.entity.group.GroupMinimalWithId
 import com.console.ratcord.domain.entity.user.UserMinimalWithId
@@ -20,11 +24,40 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 
-class GroupService() {
+class ExpenseService() {
     private val client: HttpClient = Utils.getHttpClient()
-    suspend fun getGroups(context: Context): List<GroupMinimalWithId>? {
+    suspend fun getExpenseById(context: Context, expenseId: Int): Expense? {
         val response: HttpResponse = try {
-            client.get("http://10.0.2.2:5000/group") {
+            client.get("http://10.0.2.2:5000/expense/$expenseId") {
+                headers {
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                }
+            }
+        } catch (e: Exception) {
+            println("Network error occurred: ${e.localizedMessage}")
+            return null
+        }
+
+        when (response.status) {
+            HttpStatusCode.Unauthorized -> {
+                throw AuthorizationException("Unauthorized access to expense data.")
+            }
+
+            HttpStatusCode.OK -> {
+                val body: String = response.bodyAsText()
+                return Json.decodeFromString<Expense>(body)
+            }
+
+            else -> {
+                println("Received unexpected status: ${response.status}")
+                return null
+            }
+        }
+    }
+
+    suspend fun getExpenseByGroupId(context: Context, groupId: Int): List<Expense>? {
+        val response: HttpResponse = try {
+            client.get("http://10.0.2.2:5000/expense/group/$groupId") {
                 headers {
                     append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                 }
@@ -41,7 +74,7 @@ class GroupService() {
 
             HttpStatusCode.OK -> {
                 val body: String = response.bodyAsText()
-                return Json.decodeFromString<List<GroupMinimalWithId>>(body)
+                return Json.decodeFromString<List<Expense>>(body)
             }
 
             else -> {
@@ -51,53 +84,31 @@ class GroupService() {
         }
     }
 
-    suspend fun getGroupById(context: Context, id: Int): GroupMinimalWithId? {
+    suspend fun createExpense(context: Context, expense: ExpenseMinimal): Boolean {
         val response: HttpResponse = try {
-            client.get("http://10.0.2.2:5000/group/$id") {
-                headers {
-                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
-                }
-            }
-        } catch (e: Exception) {
-            println("Network error occurred: ${e.localizedMessage}")
-            return null
-        }
-
-        when (response.status) {
-            HttpStatusCode.Unauthorized -> {
-                throw AuthorizationException("Unauthorized access to user data.")
-            }
-
-            HttpStatusCode.OK -> {
-                val body: String = response.bodyAsText()
-                return Json.decodeFromString<GroupMinimalWithId>(body)
-            }
-
-            else -> {
-                println("Received unexpected status: ${response.status}")
-                return null
-            }
-        }
-    }
-
-    suspend fun createGroup(context: Context, group: GroupMinimal): Boolean {
-        val response: HttpResponse = try {
-            client.post("http://10.0.2.2:5000/group") {
+            client.post("http://10.0.2.2:5000/expense") {
                 headers {
                     append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                 }
                 contentType(ContentType.Application.Json)
-                setBody(group)
+                setBody(expense)
             }
         } catch (e: Exception) {
-            println(e)
+            println("an error here : "+e)
             return false
         }
+        when (response.status) {
+            HttpStatusCode.Unauthorized -> {
+                throw AuthorizationException("Unauthorized access to user data.")
+            }
 
-        if (response.status.isSuccess()) {
-            return true
-        } else {
-            return false
+            HttpStatusCode.Created -> {
+                return true
+            }
+            else -> {
+                println("Received unexpected status: ${response.status}")
+                return false
+            }
         }
     }
 }

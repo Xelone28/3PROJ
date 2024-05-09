@@ -1,32 +1,27 @@
-package com.console.ratcord.domain.entity
+package com.console.ratcord.domain.entity.category
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.PrimaryKey
 import com.console.ratcord.domain.entity.group.Group
 import com.console.ratcord.domain.entity.user.User
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 @Entity(
-    tableName = "UserInGroup",
+    tableName = "Category",
     foreignKeys = [
         ForeignKey(
-            entity = User::class,
-            parentColumns = ["userId"],
-            childColumns = ["userId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
             entity = Group::class,
-            parentColumns = ["groupId"],
+            parentColumns = ["id"],
             childColumns = ["groupId"],
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class UserInGroup(
-    val userId: Int,
+data class Category(
+    @PrimaryKey val id: Int,
     val groupId: Int,
-    val isGroupAdmin: Boolean,
-    val balance: Int
+    val name: String
 )

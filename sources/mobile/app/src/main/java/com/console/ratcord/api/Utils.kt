@@ -1,5 +1,6 @@
 package com.console.ratcord.api
 
+import Navigation
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
@@ -11,8 +12,12 @@ import android.util.Base64
 import org.json.JSONObject
 
 class Utils {
-    private var httpClient: HttpClient? = null
     companion object {
+        @Volatile
+        private var navigation: Navigation? = null
+        @Volatile
+        private var httpClient: HttpClient? = null
+
         fun storeItem(context: Context, value: String?, fileKey: LocalStorage, key: LocalStorage) {
             val masterKey = MasterKey.Builder(context)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -55,16 +60,22 @@ class Utils {
                 JSONObject(it).getString("id").toInt()
             }
         }
-    }
-
-    fun getHttpClient(): HttpClient {
-        if (httpClient == null) {
-            httpClient = HttpClient(CIO) {
-                install(ContentNegotiation) {
-                    json()
+        fun getNavigation(): Navigation {
+            if (navigation == null) {
+                println("test here is that instatiaate ?")
+                navigation = Navigation()
+            }
+            return navigation as Navigation
+        }
+        fun getHttpClient(): HttpClient {
+            if (httpClient == null) {
+                httpClient = HttpClient(CIO) {
+                    install(ContentNegotiation) {
+                        json()
+                    }
                 }
             }
+            return httpClient!!
         }
-        return httpClient!!
     }
 }

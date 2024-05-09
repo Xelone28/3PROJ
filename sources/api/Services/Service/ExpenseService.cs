@@ -52,5 +52,20 @@ namespace DotNetAPI.Services.Service
                 await _dbContext.SaveChangesAsync();
             }
         }
+        //GetExpensesByGroupId
+        public async Task<IEnumerable<Expense>> GetExpensesByGroupId(int groupId)
+        {
+            return await _dbContext.Set<Expense>().Where(e => e.GroupId == groupId).ToListAsync();
+        }
+        //GetExpensesByUserId
+        public async Task<IEnumerable<Expense>> GetExpensesByUserId(int userId)
+        {
+            return await _dbContext.Set<Expense>().Where(e => e.UserId == userId).ToListAsync();
+        }
+        //GetExpensesByUserIdAndGroupId
+        public async Task<IEnumerable<Expense>> GetExpensesByUserIdAndGroupId(int userId, int groupId)
+        {
+            return await _dbContext.Set<Expense>().Where(e => e.UserId == userId && e.GroupId == groupId).ToListAsync();
+        }
     }
 }

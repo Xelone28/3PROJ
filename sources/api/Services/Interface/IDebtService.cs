@@ -1,13 +1,21 @@
 ﻿using DotNetAPI.Models.Debt;
+using DotNetAPI.Models.Expense;
 
 namespace DotNetAPI.Services.Interface
 {
     public interface IDebtService
     {
+        Task<Debt> CreateDebt(Debt debt);
+        Task CreateDebtsFromExpense(Expense expense);
         Task<IEnumerable<Debt>> GetAllDebts();
         Task<Debt> GetDebtById(int id);
-        Task<Debt> CreateDebt(Debt debt);
+        Task<IEnumerable<Debt>> GetDebtsByUserIdInCredit(int userId);
+        Task<IEnumerable<Debt>> GetDebtsByUserId(int userId);
+        Task<IEnumerable<Debt>> GetDebtsByGroupId(int groupId);
+        Task<IEnumerable<Debt>> GetDebtsByExpenseId(int expenseId);
         Task UpdateDebt(Debt debt);
+        Task UpdateDebtsFromExpense(Expense expense);
         Task DeleteDebt(int id);
+        Task DeleteDebtsByExpenseId(int expenseId);
     }
 }

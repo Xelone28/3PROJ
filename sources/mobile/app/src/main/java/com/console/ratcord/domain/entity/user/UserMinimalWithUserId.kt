@@ -4,10 +4,8 @@ import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class UserMinimalWithId(
-    @PrimaryKey val id: Int,
+data class UserMinimalWithUserId(
+    @PrimaryKey val userId: Int,
     val username: String,
-    val email: String,
-    val rib: String?,
-    val paypalUsername: String?
+    val email: String
 )

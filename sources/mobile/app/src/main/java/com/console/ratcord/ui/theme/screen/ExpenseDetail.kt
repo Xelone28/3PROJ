@@ -24,30 +24,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.console.ratcord.Screen
+import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.LocalStorage
 import com.console.ratcord.api.UserService
 import com.console.ratcord.api.Utils
+import com.console.ratcord.domain.entity.expense.Expense
 import com.console.ratcord.domain.entity.user.User
 import com.console.ratcord.domain.entity.user.UserMinimalWithId
 import kotlinx.coroutines.launch
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun ProfileDetail(userService: UserService, applicationContext: Context, navController: NavController, userId: Int?) {
+fun ExpenseDetails(expenseService: ExpenseService, applicationContext: Context, navController: NavController, expenseId: Int?) {
     val token: String? = Utils.getItem(context = applicationContext, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
     val coroutineScope = rememberCoroutineScope()
-    var userDetails by remember { mutableStateOf<UserMinimalWithId?>(null) }
+    var expenseDetails by remember { mutableStateOf<Expense?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = token) {
         if (token != null) {
-            if (userId != null) {
+            if (expenseId != null) {
                 isLoading = true
                 coroutineScope.launch {
                     try {
-                        userDetails = userService.getUserById(applicationContext, userId)
+                        expenseDetails = expenseService.getExpenseById(context = applicationContext, expenseId = expenseId)
                     } catch (e: Exception) {
-                        println("Failed to retrieve user: ${e.message}")
+                        println("Failed to retrieve expense: ${e.message}")
                     } finally {
                         isLoading = false
                     }
@@ -61,42 +63,22 @@ fun ProfileDetail(userService: UserService, applicationContext: Context, navCont
     Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
         if (isLoading) {
             CircularProgressIndicator()
-        } else if (userDetails != null) {
+        } else if (expenseDetails != null) {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go back",
                 )
             }
-
-            Text("Username: ${userDetails!!.username}", style = MaterialTheme.typography.bodyLarge)
-            Text("Email: ${userDetails!!.email}", style = MaterialTheme.typography.bodyLarge)
-            userDetails!!.paypalUsername?.let {
-                Text("PayPal Username: $it", style = MaterialTheme.typography.bodyLarge)
-            }
-            userDetails!!.rib?.let {
-                Text("RIB: $it", style = MaterialTheme.typography.bodyLarge)
-            }
-            if (token?.let { Utils.getUserIdFromJwt(it) } == userId) {
-                IconButton(onClick = {
-                    navController.navigate("${Screen.EnsureConnexion}/${userDetails!!.id}")
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = "Edit User",
-                    )
-                }
-                Button(onClick = {
-                    Utils.storeItem(context = applicationContext, value = null, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
-                    Utils.storeItem(context = applicationContext, value = null, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.USER)
-                    navController.navigate(Screen.Groups.route)
-                })
-                {
-                    Text(text = "Logout")
+            Text("Amount: ${expenseDetails!!.amount}", style = MaterialTheme.typography.bodyLarge)
+            Text("Description: ${expenseDetails!!.description}", style = MaterialTheme.typography.bodyLarge)
+            Text("Place: ${expenseDetails!!.place}", style = MaterialTheme.typography.bodyLarge)
+            Text("Date: ${expenseDetails!!.date}", style = MaterialTheme.typography.bodyLarge)
+            expenseDetails!!.userIdInvolved.let { userList ->
+                userList.forEach { user ->
+                    Text("User: ${user}", style = MaterialTheme.typography.bodyLarge)
                 }
             }
         }
     }
 }
-
-

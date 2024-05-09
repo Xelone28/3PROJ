@@ -30,7 +30,7 @@ namespace DotNetAPI.Services.Service
         {
             return await _dbContext.Set<UserInGroup>()
                 .Include(u => u.User)
-                .Where(u => u.Group.Id == groupId)
+                .Where(u => u.Group.Id == groupId && u.IsActive == true)
                 .ToListAsync();
         }
 

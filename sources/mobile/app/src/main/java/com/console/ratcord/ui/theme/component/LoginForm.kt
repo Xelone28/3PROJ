@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.console.ratcord.Screen
@@ -27,7 +28,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun LoginForm(userService: UserService, applicationContext: Context, navController: NavController) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -43,12 +44,13 @@ fun LoginForm(userService: UserService, applicationContext: Context, navControll
             )
         }
         OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text("Username") }
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email") }
         )
         OutlinedTextField(
             value = password,
+            visualTransformation = PasswordVisualTransformation(),
             onValueChange = { password = it },
             label = { Text("Password") },
             modifier = Modifier.padding(top = 8.dp)
@@ -56,7 +58,7 @@ fun LoginForm(userService: UserService, applicationContext: Context, navControll
         Button(
             onClick = {
                 coroutineScope.launch {
-                    if (userService.login(username, password, applicationContext)) {
+                    if (userService.login(email, password, applicationContext)) {
                         navController.navigate(Screen.Profile.route)
                     } else {
                         errorMessage = "Login failed. Please check your credentials."

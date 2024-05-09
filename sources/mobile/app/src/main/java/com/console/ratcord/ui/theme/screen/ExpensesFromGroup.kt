@@ -1,4 +1,3 @@
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -6,13 +5,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,23 +18,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.console.ratcord.ExpenseTab
 import com.console.ratcord.Screen
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.GroupService
 import com.console.ratcord.api.UserInGroupService
-import com.console.ratcord.api.Utils
 import com.console.ratcord.domain.entity.expense.Expense
-import com.console.ratcord.domain.entity.group.GroupMinimalWithId
-import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
 import kotlinx.coroutines.launch
 
-@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun GroupDetails(groupService: GroupService, userInGroupService: UserInGroupService, expenseService: ExpenseService, applicationContext: Context, navController: NavController, groupId: Int?) {
+fun ExpensesFromGroup(expenseFromGroup: ExpenseService, applicationContext: Context, navController: NavController, groupId: Int?) {
     val coroutineScope = rememberCoroutineScope()
-    var groupDetails by remember { mutableStateOf<GroupMinimalWithId?>(null) }
-    var usersInGroup by remember { mutableStateOf<List<UserMinimalWithUserId>?>(emptyList()) }
-    var expenseFromGroup by remember { mutableStateOf<List<Expense>?>(emptyList()) }
+    var expenses by remember { mutableStateOf<List<Expense>?>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -48,9 +38,7 @@ fun GroupDetails(groupService: GroupService, userInGroupService: UserInGroupServ
             isLoading = true
             coroutineScope.launch {
                 try {
-                    groupDetails = groupService.getGroupById(applicationContext, groupId)
-                    usersInGroup = userInGroupService.getUsersInGroup(applicationContext, groupId)
-                    expenseFromGroup = expenseService.getExpenseByGroupId(applicationContext, groupId)
+                    expenses = expenseFromGroup.getExpenseByGroupId(context = applicationContext, groupId = groupId)
                 } catch (e: Exception) {
                     println(e)
                     errorMessage = "Failed to retrieve group"
@@ -70,20 +58,28 @@ fun GroupDetails(groupService: GroupService, userInGroupService: UserInGroupServ
         if (isLoading) {
             CircularProgressIndicator()
         } else {
-            if (groupId != null && groupDetails != null && usersInGroup != null) {
-                Utils.getNavigation().TopNavigationBar(navController, groupId)
-                IconButton(onClick = { navController.popBackStack() }) {
+            IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back")
-                }
-                Text(
-                    "Name: ${groupDetails!!.groupName}",
-                    style = MaterialTheme.typography.bodyLarge
+                    imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Go back",
                 )
-                Text(
-                    "Description: ${groupDetails!!.groupDesc}",
-                    style = MaterialTheme.typography.bodyLarge
+            }
+            if (expenses != null) {
+                expenses?.let { expenseList ->
+                    expenseList.forEach { expense ->
+                        ExpenseCard(
+                            expense = expense,
+                            onClick = {
+                                navController.navigate("${ExpenseTab.ExpenseDetails}/${expense.id}")
+                            }
+                        )
+                    }
+                }
+            }
+            IconButton(onClick = { navController.navigate("${ExpenseTab.AddExpenseToGroup}/${groupId}") }) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Add expense",
                 )
             }
         }

@@ -26,8 +26,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
 class UserService() {
-    private val utils: Utils = Utils()
-    private val client: HttpClient = utils.getHttpClient()
+    private val client: HttpClient = Utils.getHttpClient()
     suspend fun getUsers(context: Context): List<UserMinimalWithId>? {
         val response: HttpResponse = try {
             client.get("http://10.0.2.2:5000/api/users") {
@@ -83,6 +82,33 @@ class UserService() {
         }
     }
 
+    suspend fun getUserByEmail(context: Context, email: String): UserMinimalWithId? {
+        val response: HttpResponse = try {
+            client.get("http://10.0.2.2:5000/api/users/email/$email") {
+                headers {
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                }
+            }
+        } catch (e: Exception) {
+            println("Network error occurred: ${e.localizedMessage}")
+            return null
+        }
+
+        when (response.status) {
+            HttpStatusCode.Unauthorized -> {
+                throw AuthorizationException("Unauthorized access to user data.")
+            }
+            HttpStatusCode.OK -> {
+                val body: String = response.bodyAsText()
+                return Json.decodeFromString<UserMinimalWithId>(body)
+            }
+            else -> {
+                println("Received unexpected status: ${response.status}")
+                return null
+            }
+        }
+    }
+
     suspend fun createUser(user: UserMinimal): Boolean{
         val response: HttpResponse = try {
             client.post("http://10.0.2.2:5000/api/users") {
@@ -102,9 +128,9 @@ class UserService() {
     }
 
     @OptIn(InternalAPI::class)
-    suspend fun login(username: String, password: String, context: Context): Boolean{
+    suspend fun login(email: String, password: String, context: Context): Boolean{
         val jsonBody = buildJsonObject {
-            put("username", username)
+            put("email", email)
             put("password", password)
         }.toString()
 

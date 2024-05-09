@@ -96,8 +96,8 @@ services.AddCors(options =>
     public void Configure(IApplicationBuilder app, UserDbContext dbContext)
     {
         // Migration done here
-        //app.UseDeveloperExceptionPage();
-        //dbContext.Database.Migrate();
+        app.UseDeveloperExceptionPage();
+        dbContext.Database.Migrate();
 
         app.UseRouting();
         app.UseAuthentication();
