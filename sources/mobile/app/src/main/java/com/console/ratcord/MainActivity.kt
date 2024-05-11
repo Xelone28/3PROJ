@@ -14,7 +14,7 @@ sealed class Screen(val route: String) {
     object GroupDetails : Screen("group_details/{groupId}")
     object AddUserInGroup : Screen("addUserInGroup/{groupId}")
     object Groups : Screen("Groups")
-    object EditUser : Screen("EditUser")
+    object EditUser : Screen("EditUser/{userId}")
     object EnsureConnexion : Screen("EnsureConnexion")
 }
 
@@ -23,6 +23,7 @@ sealed class ExpenseTab(val route: String) {
     object UsersFromGroup : ExpenseTab("UsersFromGroup/{groupId}")
     object ExpenseDetails : ExpenseTab("ExpenseDetails/{expenseId}")
     object AddExpenseToGroup : ExpenseTab("addExpenseToGroup/{groupId}")
+    object EditExpense : ExpenseTab("EditExpense/{expenseId}")
 }
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

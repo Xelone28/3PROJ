@@ -1,22 +1,18 @@
-import android.app.DatePickerDialog
 import android.content.Context
 import android.icu.text.SimpleDateFormat
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -27,46 +23,51 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.console.ratcord.ExpenseTab
 import com.console.ratcord.api.CategoryService
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.UserInGroupService
 import com.console.ratcord.domain.entity.category.Category
+import com.console.ratcord.domain.entity.expense.Expense
 import com.console.ratcord.domain.entity.expense.ExpenseMinimal
 import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: CategoryService, expenseService: ExpenseService, applicationContext: Context, navController: NavController, groupId: Int?) {
+fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService: CategoryService, expenseService: ExpenseService, applicationContext: Context, navController: NavController, expenseId: Int) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
     var usersInGroup by remember { mutableStateOf<List<UserMinimalWithUserId>?>(emptyList()) }
     var categoriesFromGroup by remember { mutableStateOf<List<Category>?>(emptyList()) }
+    var expense by remember { mutableStateOf<Expense?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
 
-    if (groupId != null) {
-        LaunchedEffect(key1 = groupId) {
-            coroutineScope.launch {
-                try {
-                    usersInGroup = userInGroupService.getUsersInGroup(applicationContext, groupId)
-                    categoriesFromGroup = categoryService.getCategoryByGroupId(applicationContext, groupId)
-                } catch (e: Exception) {
-                    errorMessage = "Failed to retrieve users from group"
-                }
+    LaunchedEffect(key1 = expense) {
+        isLoading = true
+        coroutineScope.launch {
+            try {
+                expense = expenseService.getExpenseById(context = applicationContext, expenseId = expenseId)
+                usersInGroup = userInGroupService.getUsersInGroup(applicationContext, expense!!.groupId)
+                categoriesFromGroup = categoryService.getCategoryByGroupId(applicationContext, expense!!.groupId)
+            } catch (e: Exception) {
+                println("Failed to retrieve expense: ${e.message}")
+            } finally {
+                isLoading = false
             }
         }
-
+    }
+    if (isLoading) {
+        CircularProgressIndicator()
+    } else if (expense is Expense) {
         var userId by remember { mutableStateOf<Int?>(null) }
         var categoryId by remember { mutableStateOf<Int?>(null) }
-        var amount by remember { mutableStateOf<String>("") }
+        var amount by remember { mutableStateOf<String>(expense!!.amount.toString()) }
         var date by remember { mutableStateOf<String?>(null) }
         var dateLabel by remember { mutableStateOf("Date") }
-        var place by remember { mutableStateOf("") }
-        var description by remember { mutableStateOf("") }
-        var usersInvolved by remember { mutableStateOf<List<Int>?>(emptyList()) }
+        var place by remember { mutableStateOf(expense!!.place) }
+        var description by remember { mutableStateOf(expense!!.description) }
+        var usersInvolved by remember { mutableStateOf<List<Int>?>(null) }
 
         Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
             errorMessage?.let { message ->
@@ -74,7 +75,7 @@ fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: C
             }
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go back",
                 )
             }
@@ -141,7 +142,7 @@ fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: C
             DatePicker(
                 label = dateLabel,
                 value = "",
-                onValueChange = {value ->
+                onValueChange = { value: String ->
                     dateLabel = value
                     date = value
                 })
@@ -158,7 +159,7 @@ fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: C
                             if (newAmount is Float) {
                                 var expenseTimestamp = SimpleDateFormat("yyyy-MM-dd").parse(date)
                                 val newExpense = ExpenseMinimal(
-                                    groupId = groupId,
+                                    groupId = expense!!.groupId,
                                     userId = userId!!,
                                     amount = newAmount,
                                     categoryId = categoryId!!,
@@ -167,12 +168,13 @@ fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: C
                                     place = place,
                                     userIdInvolved = usersInvolved!!
                                 )
-                                if (expenseService.createExpense(
+                                if (expenseService.updateExpense(
                                         context = applicationContext,
-                                        expense = newExpense
+                                        expense = newExpense,
+                                        expenseId = expense!!.id
                                     )
                                 ) {
-                                    navController.navigate("${ExpenseTab.Expenses}/${groupId}")
+                                    navController.navigate("${ExpenseTab.Expenses}/${expense!!.groupId}")
                                 } else {
                                     errorMessage = "Something went wrong, please try again"
                                 }
@@ -182,8 +184,10 @@ fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: C
                 },
                 modifier = Modifier.padding(top = 16.dp)
             ) {
-                Text("Register")
+                Text("Edit Expense")
             }
         }
+    } else {
+        errorMessage = "Something went wrong"
     }
 }
