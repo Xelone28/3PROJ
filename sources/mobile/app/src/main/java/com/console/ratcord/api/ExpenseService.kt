@@ -1,19 +1,14 @@
 package com.console.ratcord.api
 
 import android.content.Context
-import com.console.ratcord.domain.entity.category.Category
-import com.console.ratcord.domain.entity.category.CategoryMinimal
-import com.console.ratcord.domain.entity.group.Group
 import com.console.ratcord.domain.entity.exception.AuthorizationException
 import com.console.ratcord.domain.entity.expense.Expense
 import com.console.ratcord.domain.entity.expense.ExpenseMinimal
-import com.console.ratcord.domain.entity.group.GroupMinimal
-import com.console.ratcord.domain.entity.group.GroupMinimalWithId
-import com.console.ratcord.domain.entity.user.UserMinimalWithId
-import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
 import io.ktor.client.HttpClient
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -21,7 +16,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 
 class ExpenseService() {
@@ -94,7 +88,7 @@ class ExpenseService() {
                 setBody(expense)
             }
         } catch (e: Exception) {
-            println("an error here : "+e)
+            println("Something went wrong: "+e)
             return false
         }
         when (response.status) {
@@ -103,6 +97,58 @@ class ExpenseService() {
             }
 
             HttpStatusCode.Created -> {
+                return true
+            }
+            else -> {
+                println("Received unexpected status: ${response.status}")
+                return false
+            }
+        }
+    }
+    suspend fun updateExpense(context: Context, expense: ExpenseMinimal, expenseId: Int): Boolean {
+        val response: HttpResponse = try {
+            client.patch("http://10.0.2.2:5000/expense/$expenseId") {
+                headers {
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                    contentType(ContentType.Application.Json)
+                    setBody(expense)
+                }
+            }
+        } catch (e: Exception) {
+            println("Network error occurred: ${e.localizedMessage}")
+            return false
+        }
+
+        when (response.status) {
+            HttpStatusCode.Unauthorized -> {
+                throw AuthorizationException("Unauthorized access to user data.")
+            }
+            HttpStatusCode.NoContent -> {
+                return true
+            }
+            else -> {
+                println("Received unexpected status: ${response.status}")
+                return false
+            }
+        }
+    }
+    suspend fun deleteExpense(context: Context, expenseId: Int): Boolean {
+        val response: HttpResponse = try {
+            client.delete("http://10.0.2.2:5000/expense/$expenseId") {
+                headers {
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                }
+            }
+        } catch (e: Exception) {
+            println("Network error occurred: ${e.localizedMessage}")
+            return false
+        }
+
+        when (response.status) {
+            HttpStatusCode.Unauthorized -> {
+                throw AuthorizationException("Unauthorized access to data.")
+            }
+            HttpStatusCode.NoContent -> {
                 return true
             }
             else -> {

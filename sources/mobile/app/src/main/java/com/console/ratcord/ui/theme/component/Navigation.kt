@@ -1,4 +1,6 @@
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -55,24 +57,10 @@ data class BottomNavigationItem(
             )
         )
     }
-
-    fun topNavigationItem() : List<BottomNavigationItem> {
-        return listOf(
-            BottomNavigationItem(
-                label = "Expenses",
-                icon = Icons.Filled.ShoppingCart,
-                route = ExpenseTab.Expenses.route
-            ),
-            BottomNavigationItem(
-                label = "Users",
-                icon = Icons.Filled.AccountBox,
-                route = ExpenseTab.UsersFromGroup.route
-            )
-        )
-    }
 }
 
 class Navigation() {
+    @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun BottomNavigationBar(applicationContext: Context) {
         var navigationSelectedItem by remember {
@@ -255,7 +243,8 @@ class Navigation() {
                             expenseService = expenseService,
                             expenseId = expenseId,
                             navController = navController,
-                            applicationContext = applicationContext
+                            applicationContext = applicationContext,
+                            categoryService = categoryService
                         )
                     }
                 }
@@ -272,6 +261,22 @@ class Navigation() {
                             userInGroupService = userInGroupService,
                             categoryService = categoryService,
                             expenseService = expenseService
+                        )
+                    }
+                }
+                composable(
+                    "${ExpenseTab.EditExpense}/{expenseId}",
+                    arguments = listOf(navArgument("expenseId") { type = NavType.IntType })
+                ) { navBackStackEntry ->
+                    val expenseId = navBackStackEntry.arguments?.getInt("expenseId")
+                    if (expenseId != null) {
+                        EditExpenseFromGroup(
+                            expenseService = expenseService,
+                            navController = navController,
+                            categoryService = categoryService,
+                            userInGroupService = userInGroupService,
+                            applicationContext = applicationContext,
+                            expenseId = expenseId
                         )
                     }
                 }
