@@ -147,7 +147,7 @@ public class ExpenseController : ControllerBase
             var s3Paths = _configuration.GetSection("S3Paths");
             string expensePath = s3Paths["Expense"];
 
-            string s3ImagePath = $"{expensePath}/{id}";
+            string s3ImagePath = $"{expensePath}{id}";
 
             var filesToDelete = await _utils.ListFiles(s3ImagePath);
             try

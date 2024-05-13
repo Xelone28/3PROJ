@@ -24,12 +24,13 @@ import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.GroupService
 import com.console.ratcord.api.UserInGroupService
 import com.console.ratcord.domain.entity.expense.Expense
+import com.console.ratcord.domain.entity.expense.ExpenseMinimal
 import kotlinx.coroutines.launch
 
 @Composable
 fun ExpensesFromGroup(expenseFromGroup: ExpenseService, applicationContext: Context, navController: NavController, groupId: Int?) {
     val coroutineScope = rememberCoroutineScope()
-    var expenses by remember { mutableStateOf<List<Expense>?>(emptyList()) }
+    var expenses by remember { mutableStateOf<List<ExpenseMinimal>?>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 

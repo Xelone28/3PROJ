@@ -48,5 +48,6 @@ data class Expense(
     val amount: Float,
     val date: Int,
     val place: String,
-    val description: String
+    val description: String,
+    val image: String?
 )

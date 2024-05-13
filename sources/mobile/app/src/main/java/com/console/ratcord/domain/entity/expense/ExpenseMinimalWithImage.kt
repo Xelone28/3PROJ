@@ -1,17 +1,18 @@
 package com.console.ratcord.domain.entity.expense
 
-import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
-data class ExpenseMinimal(
-    @PrimaryKey val id: Int,
+data class ExpenseMinimalWithImage(
     val userId: Int,
     val groupId: Int,
     val userIdInvolved: List<Int>,
     val categoryId: Int,
     val amount: Float,
-    val date: Int,
+    val date: Long,
     val place: String,
     val description: String,
+    @Transient
+    val imagePath: String? = null
 )
