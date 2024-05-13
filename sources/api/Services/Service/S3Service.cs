@@ -42,7 +42,8 @@ namespace DotNetAPI.Services
                     BucketName = _bucketName,
                     Key = key,
                     InputStream = fileStream,
-                    ContentType = contentType
+                    ContentType = contentType,
+                    CannedACL = S3CannedACL.PublicRead
                 };
 
                 await _s3Client.PutObjectAsync(putRequest);

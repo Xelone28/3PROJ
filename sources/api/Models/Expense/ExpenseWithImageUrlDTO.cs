@@ -2,7 +2,7 @@
 
 namespace DotNetAPI.Models.Expense
 {
-    public class ExpenseWithImageUrlDTO
+    public class ExpenseWithImageDTO
     {
         public int Id { get; set; }
         public required int UserId { get; set; }
@@ -13,7 +13,7 @@ namespace DotNetAPI.Models.Expense
         public required int Date { get; set; }
         public required string Place { get; set; }
         public string? Description { get; set; }
-        public string? Image { get; set; }
+        public IFormFile? Image { get; set; }
     }
 
 }
