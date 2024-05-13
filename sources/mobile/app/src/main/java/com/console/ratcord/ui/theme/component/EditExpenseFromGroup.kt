@@ -180,6 +180,8 @@ fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService
                                 }
                             }
                         }
+                    } else {
+                        errorMessage = "Value is missing"
                     }
                 },
                 modifier = Modifier.padding(top = 16.dp)
@@ -187,7 +189,5 @@ fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService
                 Text("Edit Expense")
             }
         }
-    } else {
-        errorMessage = "Something went wrong"
     }
 }

@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.console.ktor"
+    namespace = "com.console.ratcord"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.console.ktor"
+        applicationId = "com.console.ratcord"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -73,7 +73,6 @@ dependencies {
     implementation ("androidx.security:security-crypto:1.1.0-alpha06")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
-    implementation("com.google.firebase:firebase-crashlytics-buildtools:2.9.9")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
