@@ -48,7 +48,31 @@ public class ExpenseController : ControllerBase
         {
             return NotFound();
         }
-        return Ok(expense);
+        var s3Paths = _configuration.GetSection("S3Paths");
+        string expensePath = s3Paths["Expense"];
+        string cdnUrl = s3Paths["CDNURL"];
+        
+        string s3ImagePath = $"{expensePath}{id}";
+        var attachmentFromExpense = await _utils.ListFiles(s3ImagePath);
+        var imageUrl = "";
+        if (attachmentFromExpense.Count > 0) {
+            //Permits to make the use of attachment evolutive
+            imageUrl = attachmentFromExpense[0];
+        }
+        var expenseWithImageUrl = new ExpenseWithImageUrlDTO
+        {
+            Amount = expense.Amount,
+            CategoryId = expense.CategoryId,
+            Date = expense.Date,
+            GroupId = expense.GroupId,
+            Place = expense.Place,
+            UserId = expense.UserId,
+            UserIdInvolved = expense.UserIdInvolved,
+            Description = expense.Description,
+            Id = expense.Id,
+            Image = string.IsNullOrEmpty(imageUrl) ? null : cdnUrl+imageUrl
+        };
+        return Ok(expenseWithImageUrl);
     }
 
     [HttpPost]
