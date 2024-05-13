@@ -9,6 +9,7 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import android.util.Base64
+import androidx.compose.runtime.Composable
 import org.json.JSONObject
 
 class Utils {
@@ -60,9 +61,9 @@ class Utils {
                 JSONObject(it).getString("id").toInt()
             }
         }
+        @Composable
         fun getNavigation(): Navigation {
             if (navigation == null) {
-                println("test here is that instatiaate ?")
                 navigation = Navigation()
             }
             return navigation as Navigation

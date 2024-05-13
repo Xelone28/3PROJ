@@ -1,4 +1,6 @@
-﻿namespace DotNetAPI.Models.Expense
+﻿using Microsoft.AspNetCore.Http;
+
+namespace DotNetAPI.Models.Expense
 {
     public class ExpenseUpdateDTO
     {
@@ -10,5 +12,6 @@
         public int? Date { get; set; }
         public string? Place { get; set; }
         public string? Description { get; set; }
+        public IFormFile? Image { get; set; }
     }
 }
