@@ -2,14 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 function Groups() {
+  const user = JSON.parse(localStorage.getItem('user'));
   const [groups, setGroups] = useState([]);
   const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1];
-  console.log(token);
+  // console.log(token);
+  const Id = user.id;
 
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const response = await fetch('http://localhost:5000/group', {
+        const response = await fetch(`http://localhost:5000/useringroup/user/${Id}`, {
           headers: {
             'Authorization': `Bearer ${token}`, 
           },

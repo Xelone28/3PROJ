@@ -12,6 +12,7 @@ import Header from './Components/Header';
 import Logout from './Components/Logout';
 import Groups from './Components/Groups';
 import Groupepage from './Components/Groupepage'
+import Invitations from './Components/Invitations'
 
 
 
@@ -50,6 +51,7 @@ function App() {
           <Route path="/Groups" element={<Groups/>} />
           <Route path="/Creategroup" element={<Creategroup/>} />
           <Route path="/group/:Id" element={<Groupepage/>} />
+          <Route path="/invitations" element={<Invitations/>} />
         </Routes>
       </div>
     </Router>
