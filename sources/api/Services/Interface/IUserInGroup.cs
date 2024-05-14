@@ -6,7 +6,7 @@ namespace DotNetAPI.Services.Interface
     public interface IUserInGroupService
     {
         Task<List<UserInGroup>?> GetMembershipsByUserId(int userId, bool isActive);
-        Task<List<UserInGroup>?> GetUsersFromGroup(int userId);
+        Task<List<UserInGroup>?> GetUsersFromGroup(int groupId);
         Task<UserInGroup?> GetMembership(int userId, int groupId);
         Task<UserInGroup> CreateMembership(UserInGroupCreateDTO userInGroup, User user);
         Task UpdateMembership(UserInGroup userInGroup);

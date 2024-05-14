@@ -3,18 +3,28 @@ using Microsoft.AspNetCore.Authentication;
 using DotNetAPI.Helpers;
 using DotNetAPI.Models.Debt;
 using DotNetAPI.Services.Interface;
+using DotNetAPI.Models.User;
 
 [ApiController]
 [Route("[controller]")]
 
 public class DebtController : ControllerBase
 {
-private readonly IDebtService _debtService;
+    private readonly IDebtService _debtService;
+    private readonly IExpenseService _expenseService;
+    private readonly IUserInGroupService _userInGroupService;
     private readonly AuthenticationService _authenticationService;
 
-    public DebtController(IDebtService debtService, AuthenticationService authenticationService)
+    public DebtController(
+        IDebtService debtService,
+        IExpenseService expenseService,
+        IUserInGroupService userInGroupService,
+        AuthenticationService authenticationService
+        )
     {
         _debtService = debtService;
+        _expenseService = expenseService;
+        _userInGroupService = userInGroupService;
         _authenticationService = authenticationService;
     }
 
@@ -24,6 +34,34 @@ private readonly IDebtService _debtService;
     {
         var debts = await _debtService.GetAllDebts();
         return Ok(debts);
+    }
+
+    [HttpGet("expense/{id}")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<Debt>>> GetByExpenseId(int id)
+    {
+        var expense = await _expenseService.GetExpenseById(id);
+        if (expense == null)
+        {
+            return NotFound();
+        } else {
+            var userId = (HttpContext.Items["User"] as User)?.Id ?? null;
+            if (userId != null)
+            {
+                var users = await _userInGroupService.GetUsersFromGroup(expense.GroupId);
+                if (users != null) {
+                    foreach (var user in users)
+                    {
+                        if (user.UserId == userId)
+                        {
+                            return Ok(await _debtService.GetDebtsByExpenseId(id));
+                        }
+                    }
+                }
+                
+            }
+        }
+        return Unauthorized("You do not have access to this expense");
     }
 
     [HttpGet("{id}")]
