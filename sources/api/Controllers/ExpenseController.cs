@@ -79,9 +79,9 @@ public class ExpenseController : ControllerBase
     [Authorize]
     public async Task<ActionResult<Expense>> Post([FromForm] ExpenseWithImageDTO expenseModel)
     {
-        if (expenseModel == null || expenseModel.Image == null)
+        if (expenseModel == null)
         {
-            return BadRequest("No image uploaded.");
+            return BadRequest("Given values are not correct");
         }
 
         var expense = new Expense
