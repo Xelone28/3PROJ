@@ -163,7 +163,6 @@ class Navigation() {
                     GroupDetails(
                         groupService = groupService,
                         userInGroupService = userInGroupService,
-                        expenseService = expenseService,
                         applicationContext = applicationContext,
                         navController = navController,
                         groupId = groupId

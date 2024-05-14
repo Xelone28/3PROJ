@@ -1,6 +1,10 @@
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.icu.text.SimpleDateFormat
+import android.net.Uri
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,8 +34,9 @@ import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.UserInGroupService
 import com.console.ratcord.domain.entity.category.Category
 import com.console.ratcord.domain.entity.expense.Expense
-import com.console.ratcord.domain.entity.expense.ExpenseMinimal
+import com.console.ratcord.domain.entity.expense.ExpenseMinimalUpdate
 import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
+import java.util.Date
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -42,6 +47,8 @@ fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService
     var categoriesFromGroup by remember { mutableStateOf<List<Category>?>(emptyList()) }
     var expense by remember { mutableStateOf<Expense?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var bitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
 
     LaunchedEffect(key1 = expense) {
         isLoading = true
@@ -60,14 +67,23 @@ fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService
     if (isLoading) {
         CircularProgressIndicator()
     } else if (expense is Expense) {
-        var userId by remember { mutableStateOf<Int?>(null) }
         var categoryId by remember { mutableStateOf<Int?>(null) }
-        var amount by remember { mutableStateOf<String>(expense!!.amount.toString()) }
         var date by remember { mutableStateOf<String?>(null) }
         var dateLabel by remember { mutableStateOf("Date") }
         var place by remember { mutableStateOf(expense!!.place) }
         var description by remember { mutableStateOf(expense!!.description) }
         var usersInvolved by remember { mutableStateOf<List<Int>?>(null) }
+
+        val imagePickerLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+        ) { uri: Uri? ->
+            imageUri = uri
+            uri?.let {
+                applicationContext.contentResolver.openInputStream(it)?.use { inputStream ->
+                    bitmap = BitmapFactory.decodeStream(inputStream)
+                }
+            }
+        }
 
         Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
             errorMessage?.let { message ->
@@ -80,18 +96,6 @@ fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService
                 )
             }
 
-            //Original expense user
-            SearchableDropDown(
-                context = applicationContext,
-                label = "Paid by",
-                entities = usersInGroup!!,
-                displayTextExtractor = { user ->
-                    user.username
-                },
-                onEntitySelected = { user ->
-                    userId = user.userId
-                }
-            )
             //Category
             SearchableDropDown(
                 context = applicationContext,
@@ -120,14 +124,6 @@ fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService
                 }
             )
             OutlinedTextField(
-                value = amount,
-                onValueChange = { newValue ->
-                    amount = newValue
-                },
-                label = { Text("Amount") },
-                modifier = Modifier.padding(top = 8.dp)
-            )
-            OutlinedTextField(
                 value = place,
                 onValueChange = { place = it },
                 label = { Text("Place") },
@@ -146,42 +142,49 @@ fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService
                     dateLabel = value
                     date = value
                 })
+            // Image picker button
+            Button(onClick = { imagePickerLauncher.launch("image/*") }) {
+                Text("Pick Image")
+            }
+
+            // Display the selected image
+            //imageUri?.let {
+            //    bitmap?.let { bmp ->
+            //        Image(bitmap = bmp.asImageBitmap(), contentDescription = "Selected Image",
+            //            modifier = Modifier.padding(top = 8.dp).fillMaxWidth(), contentScale = ContentScale.Fit)
+            //    }
+            //}
             Button(
                 onClick = {
-                    if (userId is Int && categoryId is Int && date is String && usersInvolved is List<Int> && description != "" && place != "") {
-                        coroutineScope.launch {
-                            val newAmount: Float? = try {
-                                amount.toFloat()
-                            } catch (e: Exception) {
-                                errorMessage = "Please modify amount"
-                                null
-                            }
-                            if (newAmount is Float) {
-                                var expenseTimestamp = SimpleDateFormat("yyyy-MM-dd").parse(date)
-                                val newExpense = ExpenseMinimal(
-                                    groupId = expense!!.groupId,
-                                    userId = userId!!,
-                                    amount = newAmount,
-                                    categoryId = categoryId!!,
-                                    date = expenseTimestamp.time / 1000,
-                                    description = description,
-                                    place = place,
-                                    userIdInvolved = usersInvolved!!
-                                )
-                                if (expenseService.updateExpense(
-                                        context = applicationContext,
-                                        expense = newExpense,
-                                        expenseId = expense!!.id
-                                    )
-                                ) {
-                                    navController.navigate("${ExpenseTab.Expenses}/${expense!!.groupId}")
-                                } else {
-                                    errorMessage = "Something went wrong, please try again"
-                                }
-                            }
+                    coroutineScope.launch {
+                        var expenseTimestamp: Date?;
+                        if (date != null) {
+                            expenseTimestamp = SimpleDateFormat("yyyy-MM-dd").parse(date)
+                        } else {
+                            expenseTimestamp = null
                         }
-                    } else {
-                        errorMessage = "Value is missing"
+
+                        val newExpense = ExpenseMinimalUpdate(
+                            categoryId = categoryId,
+                            date = expenseTimestamp?.time?.div(1000),
+                            description = description,
+                            place = place,
+                            userIdInvolved = usersInvolved
+                        )
+
+                        if (expenseService.updateExpense(
+                                context = applicationContext,
+                                expense = newExpense,
+                                expenseId = expense!!.id,
+                                imageUri = imageUri
+
+                            )
+                        ) {
+                            navController.navigate("${ExpenseTab.Expenses}/${expense!!.groupId}")
+                        } else {
+                            // Consider that it could timeout due to the image size
+                            errorMessage = "Something went wrong, please try again"
+                        }
                     }
                 },
                 modifier = Modifier.padding(top = 16.dp)

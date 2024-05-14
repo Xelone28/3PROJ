@@ -1,43 +1,39 @@
-import android.app.DatePickerDialog
 import android.content.Context
 import android.icu.text.SimpleDateFormat
+import android.net.Uri
 import android.os.Build
+import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.console.ratcord.ExpenseTab
 import com.console.ratcord.api.CategoryService
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.UserInGroupService
 import com.console.ratcord.domain.entity.category.Category
-import com.console.ratcord.domain.entity.expense.ExpenseMinimal
+import com.console.ratcord.domain.entity.expense.ExpenseMinimalWithImage
 import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -46,6 +42,19 @@ fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: C
     val coroutineScope = rememberCoroutineScope()
     var usersInGroup by remember { mutableStateOf<List<UserMinimalWithUserId>?>(emptyList()) }
     var categoriesFromGroup by remember { mutableStateOf<List<Category>?>(emptyList()) }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var bitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri = uri
+        uri?.let {
+            applicationContext.contentResolver.openInputStream(it)?.use { inputStream ->
+                bitmap = BitmapFactory.decodeStream(inputStream)
+            }
+        }
+    }
 
     if (groupId != null) {
         LaunchedEffect(key1 = groupId) {
@@ -74,55 +83,44 @@ fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: C
             }
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Go back",
                 )
             }
 
-            //Original expense user
+            // Original expense user
             SearchableDropDown(
                 context = applicationContext,
                 label = "Paid by",
                 entities = usersInGroup!!,
-                displayTextExtractor = { user ->
-                    user.username
-                },
-                onEntitySelected = { user ->
-                    userId = user.userId
-                }
+                displayTextExtractor = { user -> user.username },
+                onEntitySelected = { user -> userId = user.userId }
             )
-            //Category
+
+            // Category
             SearchableDropDown(
                 context = applicationContext,
                 label = "Category",
                 entities = categoriesFromGroup!!,
-                displayTextExtractor = { category ->
-                    category.name
-                },
-                onEntitySelected = { category ->
-                    categoryId = category.id
-                }
+                displayTextExtractor = { category -> category.name },
+                onEntitySelected = { category -> categoryId = category.id }
             )
-            //User Involved
+
+            // User Involved
             SearchableDropDownMultipleOptions(
                 context = applicationContext,
                 label = "User Involved",
                 entities = usersInGroup!!,
-                displayTextExtractor = { user ->
-                    user.username
-                },
+                displayTextExtractor = { user -> user.username },
                 onEntitiesSelected = { selectedUsers ->
                     usersInvolved = emptyList()
-                    selectedUsers.forEach { user ->
-                        usersInvolved = (usersInvolved ?: emptyList()) + user.userId
-                    }
+                    selectedUsers.forEach { user -> usersInvolved = (usersInvolved ?: emptyList()) + user.userId }
                 }
             )
+
             OutlinedTextField(
                 value = amount,
-                onValueChange = { newValue ->
-                    amount = newValue
-                },
+                onValueChange = { newValue -> amount = newValue },
                 label = { Text("Amount") },
                 modifier = Modifier.padding(top = 8.dp)
             )
@@ -138,13 +136,28 @@ fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: C
                 label = { Text("Description") },
                 modifier = Modifier.padding(top = 8.dp)
             )
+
             DatePicker(
                 label = dateLabel,
                 value = "",
-                onValueChange = {value ->
+                onValueChange = { value ->
                     dateLabel = value
                     date = value
-                })
+                }
+            )
+
+            Button(onClick = { imagePickerLauncher.launch("image/*") }) {
+                Text("Pick Image")
+            }
+
+            // Display the selected image
+            //imageUri?.let {
+            //    bitmap?.let { bmp ->
+            //        Image(bitmap = bmp.asImageBitmap(), contentDescription = "Selected Image",
+            //            modifier = Modifier.padding(top = 8.dp).fillMaxWidth(), contentScale = ContentScale.Fit)
+            //    }
+            //}
+
             Button(
                 onClick = {
                     if (userId is Int && categoryId is Int && date is String && usersInvolved is List<Int> && description != "" && place != "") {
@@ -157,7 +170,7 @@ fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: C
                             }
                             if (newAmount is Float) {
                                 var expenseTimestamp = SimpleDateFormat("yyyy-MM-dd").parse(date)
-                                val newExpense = ExpenseMinimal(
+                                val newExpense = ExpenseMinimalWithImage(
                                     groupId = groupId,
                                     userId = userId!!,
                                     amount = newAmount,
@@ -165,11 +178,13 @@ fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: C
                                     date = expenseTimestamp.time / 1000,
                                     description = description,
                                     place = place,
-                                    userIdInvolved = usersInvolved!!
+                                    userIdInvolved = usersInvolved!!,
+                                    imagePath = imageUri?.path // Save the image path
                                 )
-                                if (expenseService.createExpense(
+                                if (imageUri != null && expenseService.createExpense(
                                         context = applicationContext,
-                                        expense = newExpense
+                                        expense = newExpense,
+                                        imageUri!!
                                     )
                                 ) {
                                     navController.navigate("${ExpenseTab.Expenses}/${groupId}")

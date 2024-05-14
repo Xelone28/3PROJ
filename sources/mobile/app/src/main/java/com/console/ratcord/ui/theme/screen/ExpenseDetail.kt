@@ -1,14 +1,13 @@
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,13 +28,14 @@ import com.console.ratcord.Screen
 import com.console.ratcord.api.CategoryService
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.LocalStorage
-import com.console.ratcord.api.UserService
 import com.console.ratcord.api.Utils
 import com.console.ratcord.domain.entity.category.Category
 import com.console.ratcord.domain.entity.expense.Expense
-import com.console.ratcord.domain.entity.user.User
-import com.console.ratcord.domain.entity.user.UserMinimalWithId
 import kotlinx.coroutines.launch
+
+import androidx.compose.foundation.layout.fillMaxWidth
+import coil.compose.rememberAsyncImagePainter
+
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
@@ -87,11 +87,18 @@ fun ExpenseDetails(expenseService: ExpenseService, categoryService: CategoryServ
                     Text("User: ${user}", style = MaterialTheme.typography.bodyLarge)
                 }
             }
+            val imageUrl = expenseDetails!!.image
+            if (imageUrl is String) {
+                Image(
+                    painter = rememberAsyncImagePainter(imageUrl),
+                    contentDescription = "Expense Image",
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
             IconButton(onClick = { coroutineScope.launch {
                 expenseService.deleteExpense(context = applicationContext, expenseId = expenseDetails!!.id)
                 navController.navigate("${ExpenseTab.Expenses}/${expenseDetails!!.groupId}")
-            }
-            }) {
+            }}) {
                 Icon(
                     imageVector = Icons.Filled.Delete,
                     contentDescription = "Delete Expense",

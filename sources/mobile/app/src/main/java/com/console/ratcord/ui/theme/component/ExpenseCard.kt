@@ -7,10 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.console.ratcord.domain.entity.expense.Expense
+import com.console.ratcord.domain.entity.expense.ExpenseMinimal
 import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
 
 @Composable
-fun ExpenseCard(expense: Expense, onClick: () -> Unit) {
+fun ExpenseCard(expense: ExpenseMinimal, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .clickable(onClick = onClick)
