@@ -13,3 +13,12 @@
 ul {
     list-style-type: none;
   }
+
+  .expense {
+    border: 1px solid #000;
+    margin-left: 25%;
+    margin-bottom:2%;
+    margin-top:2%;
+    padding: 10px;
+    width: 50%;
+  }
