@@ -1,4 +1,8 @@
 import android.content.Context
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -38,8 +42,21 @@ fun EditUserForm(userService: UserService, applicationContext: Context, navContr
         var password by remember { mutableStateOf("") }
         var rib by remember { mutableStateOf("") }
         var paypalUsername by remember { mutableStateOf("") }
+        var imageUri by remember { mutableStateOf<Uri?>(null) }
+        var bitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
 
         val coroutineScope = rememberCoroutineScope()
+
+        val imagePickerLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+        ) { uri: Uri? ->
+            imageUri = uri
+            uri?.let {
+                applicationContext.contentResolver.openInputStream(it)?.use { inputStream ->
+                    bitmap = BitmapFactory.decodeStream(inputStream)
+                }
+            }
+        }
 
         Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
             errorMessage?.let { message ->
@@ -81,6 +98,9 @@ fun EditUserForm(userService: UserService, applicationContext: Context, navContr
                 label = { Text("PayPal Username") },
                 modifier = Modifier.padding(top = 8.dp)
             )
+            Button(onClick = { imagePickerLauncher.launch("image/*") }) {
+                Text("Pick Image")
+            }
             Button(
                 onClick = {
                     coroutineScope.launch {
@@ -94,8 +114,9 @@ fun EditUserForm(userService: UserService, applicationContext: Context, navContr
                         if (userService.updateUser(
                             context = applicationContext,
                             user = user,
-                            userId = userId
-                        )) {
+                            userId = userId,
+                            imageUri = imageUri)
+                            ) {
                             navController.navigate(Screen.Profile.route)
 
                         } else {

@@ -184,7 +184,7 @@ fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: C
                                 if (imageUri != null && expenseService.createExpense(
                                         context = applicationContext,
                                         expense = newExpense,
-                                        imageUri!!
+                                        imageUri
                                     )
                                 ) {
                                     navController.navigate("${ExpenseTab.Expenses}/${groupId}")

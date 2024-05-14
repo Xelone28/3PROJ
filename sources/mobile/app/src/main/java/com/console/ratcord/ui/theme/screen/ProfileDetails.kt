@@ -1,7 +1,9 @@
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.console.ratcord.Screen
 import com.console.ratcord.api.LocalStorage
 import com.console.ratcord.api.UserService
@@ -77,6 +80,15 @@ fun ProfileDetail(userService: UserService, applicationContext: Context, navCont
             userDetails!!.rib?.let {
                 Text("RIB: $it", style = MaterialTheme.typography.bodyLarge)
             }
+            val imageUrl = userDetails!!.image
+            if (imageUrl is String) {
+                Image(
+                    painter = rememberAsyncImagePainter(imageUrl),
+                    contentDescription = "Expense Image",
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             if (token?.let { Utils.getUserIdFromJwt(it) } == userId) {
                 IconButton(onClick = {
                     navController.navigate("${Screen.EnsureConnexion}/${userDetails!!.id}")

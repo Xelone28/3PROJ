@@ -82,8 +82,7 @@ class ExpenseService() {
     }
 
     @OptIn(InternalAPI::class)
-    suspend fun createExpense(context: Context, expense: ExpenseMinimalWithImage, imageUri: Uri): Boolean {
-        val client = HttpClient()
+    suspend fun createExpense(context: Context, expense: ExpenseMinimalWithImage, imageUri: Uri?): Boolean {
         val response: HttpResponse = try {
             client.post("http://10.0.2.2:5000/expense") {
                 headers {
@@ -101,7 +100,9 @@ class ExpenseService() {
                         expense.userIdInvolved.forEach { userId ->
                             append("userIdInvolved[]", userId.toString())
                         }
-                        appendFile("image", imageUri, context)
+                        if (imageUri != null) {
+                            appendFile("image", imageUri, context)
+                        }
                     }
                 )
             }

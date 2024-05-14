@@ -120,7 +120,7 @@ class Navigation() {
                     )
                 }
                 composable(Screen.Register.route) {
-                    RegisterForm(userService = userService, navController = navController)
+                    RegisterForm(applicationContext = applicationContext, userService = userService, navController = navController)
                 }
                 composable(Screen.Profile.route) {
                     Profile(
