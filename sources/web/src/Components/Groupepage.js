@@ -6,8 +6,8 @@ import '../assets/css/Groupepage.css';
 
 
 function GroupPage() {
-  const navigate = useNavigate();
   const { Id } = useParams();
+  const navigate = useNavigate();
   const [group, setGroup] = useState(null);
   const [users, setUsers] = useState([]);
   // const [userId, setUserId] = useState('');
@@ -17,15 +17,34 @@ function GroupPage() {
   const [groupName, setGroupName] = useState(group ? group.name : '');
   const [groupDesc, setGroupDesc] = useState(group ? group.description : '');
   const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1];
-  const [categoryName, setCategoryName] = useState('');
-  // const [categories, setCategories] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
   const [inviteUserId, setInviteUserId] = useState('')
   const [isInviteUserAdmin, setIsInviteUserAdmin] = useState(false)
+  const [expenses, setExpenses] = useState([]);
+  
+  const [categories, setCategories] = useState([]);
 
   
+  
+// -----------------------------get expenses---------------------------------------
+useEffect(() => {
+  const fetchExpenses = async () => {
+    const response = await fetch(`http://localhost:5000/expense/group/${Id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
 
+    if (response.ok) {
+      const data = await response.json();
+      setExpenses(data);
+    } else {
+      console.error(`Failed to fetch expenses: ${response.status}`);
+    }
+  };
+
+  fetchExpenses();
+}, [token, Id]);
 
 // -----------------------------get group info  ---------------------------------------
   useEffect(() => {
@@ -56,31 +75,31 @@ function GroupPage() {
   };
 
 
-    // -----------------------------get categories---------------------------------------
+  console.log('groupId:', Id);  // Add this line
 
-    useEffect(() => {
-      const fetchCategories = async () => {
-        if (group) {  // Check if group is not null
-          const response = await fetch(`http://localhost:5000/category/group/${group.id}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            setCategories(data);
-          } else {
-            console.error(`Error: ${response.status}`);
-          }
-        }
-      };
-      fetchCategories();
-    }, [group, token]); 
-
-    const handleCategoryChange = (event) => {
-      setSelectedCategory(event.target.value);
-      console.log("Selected category ID: ", event.target.value);
+  useEffect(() => {
+    
+  
+    const fetchCategories = async () => {
+      const response = await fetch(`http://localhost:5000/category/group/${Id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data);
+      } else {
+        console.error(`Failed to fetch categories: ${response.status}`);
+      }
     };
+  
+    fetchCategories();
+  }, [token,Id]);
+
+
 
 // -----------------------------delete group---------------------------------------
 
@@ -159,26 +178,7 @@ function GroupPage() {
   if (!group) {
     return <div>Loading...</div>;
   }
-// -----------------------------create category---------------------------------------
-  const handleCreateCategory = async () => {
-    const response = await fetch(`http://localhost:5000/category`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        groupId: group.id,
-        name: categoryName,
-      }),
-    });
-  
-    if (response.ok) {
-      alert("good")
-      window.location.reload();
-    } else {
-      alert("bad")
-    }
-  };
+
 // -----------------------------show user info---------------------------------------
 
   const fetchUserData = async (userId) => {
@@ -224,6 +224,8 @@ function GroupPage() {
     }
   };
 
+
+
   return (
     <div>
       <h1>{group.groupName}</h1>
@@ -235,8 +237,6 @@ function GroupPage() {
       </form>
       <button onClick={handleDelete}>Delete Group</button>
 
-      <input type="text" value={categoryName} onChange={e => setCategoryName(e.target.value)} placeholder="Category name" />
-      <button onClick={handleCreateCategory}>Create Category</button>
       <h3>
       users in this group
       </h3>
@@ -271,14 +271,22 @@ function GroupPage() {
   </div>
 )}
 
-<select value={selectedCategory} onChange={handleCategoryChange}>
-  <option value="">Select a category</option>
-  {categories.map((category) => (
-    <option key={category.id} value={category.id}>
-      {category.name}
-    </option>
-  ))}
-</select>
+
+<button onClick={() => navigate(`/createexpense/${group.id}`)}>Create Expense</button>
+{expenses.map(expense => {
+  const user = users.find(user => user.userId === expense.userId);
+  const category = categories.find(category => category.id === expense.categoryId);
+  return (
+    <div key={expense.id} className='expense' onClick={() => navigate(`/expensepage/${expense.id}`)}>
+      <p>Amount: {expense.amount}</p>
+      <p>Place: {expense.place}</p>
+      <p>Description: {expense.description}</p>
+      <p>Date: {new Date(expense.date * 1000).toLocaleDateString()}</p>
+      <p>Category: {category ? category.name : 'Unknown'}</p>
+      <p>Created by: {user ? user.username : 'Unknown'}</p>
+    </div>
+  );
+})}
 
     </div>
   );
