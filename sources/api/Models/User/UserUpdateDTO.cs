@@ -1,4 +1,6 @@
-﻿namespace DotNetAPI.Models.User
+﻿using Microsoft.AspNetCore.Http;
+
+namespace DotNetAPI.Models.User
 {
     public class UserUpdateDTO
     {
@@ -8,6 +10,7 @@
         public string? Password { get; set; }
         public string? Rib { get; set; }
         public string? PaypalUsername { get; set; }
+        public IFormFile? Image { get; set; }
     }
 }
 
