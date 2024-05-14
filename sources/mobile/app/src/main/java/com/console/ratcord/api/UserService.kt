@@ -1,6 +1,7 @@
 package com.console.ratcord.api
 
 import android.content.Context
+import android.net.Uri
 import com.console.ratcord.domain.entity.LoginResponse
 import com.console.ratcord.domain.entity.exception.AuthorizationException
 import com.console.ratcord.domain.entity.user.User
@@ -8,6 +9,9 @@ import com.console.ratcord.domain.entity.user.UserMinimal
 import com.console.ratcord.domain.entity.user.UserMinimalWithId
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.forms.FormBuilder
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.patch
@@ -16,6 +20,8 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
@@ -109,13 +115,25 @@ class UserService() {
         }
     }
 
-    suspend fun createUser(user: UserMinimal): Boolean{
+    @OptIn(InternalAPI::class)
+    suspend fun createUser(context: Context, user: UserMinimal, imageUri: Uri?): Boolean{
         val response: HttpResponse = try {
             client.post("http://10.0.2.2:5000/api/users") {
-                contentType(ContentType.Application.Json)
-                setBody(user)
+                body = MultiPartFormDataContent(
+                    formData {
+                        append("username", user.username)
+                        append("email", user.email)
+                        append("password", user.password)
+                        append("paypalusername", user.paypalUsername.toString())
+                        append("rib", user.rib.toString())
+                        if (imageUri != null) {
+                            appendFile("image", imageUri, context)
+                        }
+                    }
+                )
             }
         } catch (e: Exception) {
+            print("Check here for exception")
             println(e)
             return false
         }
@@ -125,6 +143,19 @@ class UserService() {
         } else {
             return false
         }
+    }
+
+    fun FormBuilder.appendFile(partName: String, fileUri: Uri, context: Context) {
+        val mimeType = context.contentResolver.getType(fileUri) ?: "application/octet-stream"
+        val inputStream = context.contentResolver.openInputStream(fileUri) ?: return
+        append(
+            partName,
+            inputStream.readBytes(),
+            Headers.build {
+                append(HttpHeaders.ContentDisposition, "filename=\"${fileUri.lastPathSegment}\"")
+                append(HttpHeaders.ContentType, mimeType)
+            }
+        )
     }
 
     @OptIn(InternalAPI::class)
@@ -157,13 +188,25 @@ class UserService() {
         }
     }
 
-    suspend fun updateUser(context: Context, user: UserMinimal, userId: Int): Boolean {
+    @OptIn(InternalAPI::class)
+    suspend fun updateUser(context: Context, user: UserMinimal, userId: Int, imageUri: Uri?): Boolean {
         val response: HttpResponse = try {
             client.patch("http://10.0.2.2:5000/api/users/$userId") {
                 headers {
                     append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                     contentType(ContentType.Application.Json)
-                    setBody(user)
+                    body = MultiPartFormDataContent(
+                        formData {
+                            append("username", user.username)
+                            append("email", user.email)
+                            append("password", user.password)
+                            append("paypalusername", user.paypalUsername.toString())
+                            append("rib", user.rib.toString())
+                            if (imageUri != null) {
+                                appendFile("image", imageUri, context)
+                            }
+                        }
+                    )
                 }
             }
         } catch (e: Exception) {

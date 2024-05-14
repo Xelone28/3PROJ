@@ -1,4 +1,8 @@
 import android.content.Context
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -25,15 +29,28 @@ import com.console.ratcord.domain.entity.user.UserMinimal
 import kotlin.reflect.KSuspendFunction1
 
 @Composable
-fun RegisterForm(userService: UserService, navController: NavController) {
+fun RegisterForm(applicationContext: Context, userService: UserService, navController: NavController) {
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var rib by remember { mutableStateOf("") }
     var paypalUsername by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var bitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri = uri
+        uri?.let {
+            applicationContext.contentResolver.openInputStream(it)?.use { inputStream ->
+                bitmap = BitmapFactory.decodeStream(inputStream)
+            }
+        }
+    }
 
     Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
         errorMessage?.let { message ->
@@ -75,6 +92,9 @@ fun RegisterForm(userService: UserService, navController: NavController) {
             label = { Text("PayPal Username") },
             modifier = Modifier.padding(top = 8.dp)
         )
+        Button(onClick = { imagePickerLauncher.launch("image/*") }) {
+            Text("Pick Image")
+        }
         Button(
             onClick = {
                 coroutineScope.launch {
@@ -83,9 +103,11 @@ fun RegisterForm(userService: UserService, navController: NavController) {
                         email = email,
                         password = password,
                         rib = rib.takeIf { it.isNotBlank() },
-                        paypalUsername = paypalUsername.takeIf { it.isNotBlank() }
+                        paypalUsername = paypalUsername.takeIf { it.isNotBlank() },
+                        imagePath = imageUri?.path
+
                     )
-                    if (userService.createUser(user)) {
+                    if (userService.createUser(context = applicationContext, user, imageUri)) {
                         navController.navigate(Screen.Profile.route)
                     } else {
                         errorMessage = "Register failed. Please your inputs."
