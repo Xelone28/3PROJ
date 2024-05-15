@@ -61,11 +61,6 @@ namespace DotNetAPI
                       .WithMany()
                       .HasForeignKey(p => p.GroupId)
                       .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne<Category>()
-                      .WithMany()
-                      .HasForeignKey(p => p.CategoryId)
-                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Debt>(entity =>

@@ -1,5 +1,7 @@
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,15 +37,21 @@ import kotlinx.coroutines.launch
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import coil.compose.rememberAsyncImagePainter
+import com.console.ratcord.api.DebtService
+import com.console.ratcord.domain.entity.debt.Debt
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun ExpenseDetails(expenseService: ExpenseService, categoryService: CategoryService, applicationContext: Context, navController: NavController, expenseId: Int?) {
+fun ExpenseDetails(expenseService: ExpenseService, debtService: DebtService, applicationContext: Context, navController: NavController, expenseId: Int?) {
     val token: String? = Utils.getItem(context = applicationContext, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
     val coroutineScope = rememberCoroutineScope()
     var expenseDetails by remember { mutableStateOf<Expense?>(null) }
-    var category by remember { mutableStateOf<Category?>(null) }
+    var debts by remember { mutableStateOf<List<Debt>?>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = token) {
@@ -53,7 +61,7 @@ fun ExpenseDetails(expenseService: ExpenseService, categoryService: CategoryServ
                 coroutineScope.launch {
                     try {
                         expenseDetails = expenseService.getExpenseById(context = applicationContext, expenseId = expenseId)
-                        category = categoryService.getCategoryById(context = applicationContext, categoryId = expenseDetails!!.categoryId)
+                        debts = debtService.getByExpenseId(context = applicationContext, expenseId = expenseId)
                     } catch (e: Exception) {
                         println("Failed to retrieve expense: ${e.message}")
                     } finally {
@@ -76,15 +84,28 @@ fun ExpenseDetails(expenseService: ExpenseService, categoryService: CategoryServ
                     contentDescription = "Go back",
                 )
             }
+
+            val timestamp = expenseDetails?.date?.toLong()
+            val formattedDate = if (timestamp != null) {
+                val date = Instant.ofEpochSecond(timestamp)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+                val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+                date.format(formatter)
+            } else {
+                "No date"
+            }
+
             Text("Amount: ${expenseDetails!!.amount}", style = MaterialTheme.typography.bodyLarge)
             Text("Description: ${expenseDetails!!.description}", style = MaterialTheme.typography.bodyLarge)
             Text("Place: ${expenseDetails!!.place}", style = MaterialTheme.typography.bodyLarge)
-            Text("Date: ${expenseDetails!!.date}", style = MaterialTheme.typography.bodyLarge)
-            Text("Cateogry: ${category!!.name}", style = MaterialTheme.typography.bodyLarge)
+            Text("Date: $formattedDate", style = MaterialTheme.typography.bodyLarge)
+            Text("Category: ${expenseDetails!!.category.name}", style = MaterialTheme.typography.bodyLarge)
+            Text("Paid by: ${expenseDetails!!.user.username}", style = MaterialTheme.typography.bodyLarge)
 
-            expenseDetails!!.userIdInvolved.let { userList ->
-                userList.forEach { user ->
-                    Text("User: ${user}", style = MaterialTheme.typography.bodyLarge)
+            debts.let { debtList ->
+                debtList?.forEach { debt ->
+                    Text("${debt.userInDebt.username} : ${debt.amount}", style = MaterialTheme.typography.bodyLarge)
                 }
             }
             val imageUrl = expenseDetails!!.image

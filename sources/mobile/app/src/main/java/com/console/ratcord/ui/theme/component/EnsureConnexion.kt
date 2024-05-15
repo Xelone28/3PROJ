@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.navigation.NavController
-import com.console.ratcord.Screen
 import com.console.ratcord.api.LocalStorage
 import com.console.ratcord.api.Utils
 import com.console.ratcord.domain.entity.user.UserMinimalWithId

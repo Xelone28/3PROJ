@@ -30,8 +30,7 @@ import com.console.ratcord.Screen
 import com.console.ratcord.api.LocalStorage
 import com.console.ratcord.api.UserService
 import com.console.ratcord.api.Utils
-import com.console.ratcord.domain.entity.user.User
-import com.console.ratcord.domain.entity.user.UserMinimalWithId
+import com.console.ratcord.domain.entity.user.UserMinimalWithImage
 import kotlinx.coroutines.launch
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -39,7 +38,7 @@ import kotlinx.coroutines.launch
 fun ProfileDetail(userService: UserService, applicationContext: Context, navController: NavController, userId: Int?) {
     val token: String? = Utils.getItem(context = applicationContext, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
     val coroutineScope = rememberCoroutineScope()
-    var userDetails by remember { mutableStateOf<UserMinimalWithId?>(null) }
+    var userDetails by remember { mutableStateOf<UserMinimalWithImage?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = token) {

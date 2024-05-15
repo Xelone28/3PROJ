@@ -7,7 +7,7 @@ namespace DotNetAPI.Models.Expense
         public int Id { get; set; }
         public required int UserId { get; set; }
         public required int GroupId { get; set; }
-        public required IList<int> UserIdInvolved { get; set; }
+        public required IList<UserDTO> UserInvolved { get; set; }
         public required int CategoryId { get; set; }
         public required float Amount { get; set; }
         public required int Date { get; set; }
@@ -15,5 +15,4 @@ namespace DotNetAPI.Models.Expense
         public string? Description { get; set; }
         public IFormFile? Image { get; set; }
     }
-
 }
