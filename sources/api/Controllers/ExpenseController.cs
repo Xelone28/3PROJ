@@ -5,6 +5,7 @@ using DotNetAPI.Models.Expense;
 using DotNetAPI.Services.Interface;
 using DotNetAPI.Services;
 using Microsoft.Extensions.Configuration;
+using DotNetAPI.Services.Service;
 
 [ApiController]
 [Route("[controller]")]
@@ -16,19 +17,22 @@ public class ExpenseController : ControllerBase
     private readonly AuthenticationService _authenticationService;
     private readonly IUtils _utils;
     private readonly IConfiguration _configuration;
+    private readonly IUserService _userService;
 
     public ExpenseController(
         IDebtService debtService,
         IExpenseService expenseService,
         AuthenticationService authenticationService,
         IUtils utils,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IUserService userService)
     {
         _debtService = debtService;
         _expenseService = expenseService;
         _authenticationService = authenticationService;
         _utils = utils;
         _configuration = configuration;
+        _userService = userService;
     }
 
     [HttpGet]
@@ -96,16 +100,24 @@ public class ExpenseController : ControllerBase
             Description = expenseModel.Description
         };
 
-        var newExpense = await _expenseService.CreateExpense(expense);
+        //test if UserIdInvolved exist
+        foreach (var userIdInvolved in expense.UserIdInvolved)
+        {
+            var user = await _userService.GetUserById(userIdInvolved);
+            if (user == null)
+            {
+                return BadRequest("User with id " + userIdInvolved + " does not exist.");
+            }
+        }
+
+        await _expenseService.CreateExpense(expense);
         await _debtService.CreateDebtsFromExpense(expense);
 
+        //upload image to s3
         string fileName = "expense" + Path.GetExtension(expenseModel.Image.FileName);
-
         var s3Paths = _configuration.GetSection("S3Paths");
         string expensePath = s3Paths["Expense"];
-
         string s3ImagePath = expensePath + expense.Id + "/" + fileName;
-
         using (var memoryStream = new MemoryStream())
         {
             await expenseModel.Image.CopyToAsync(memoryStream);
@@ -113,7 +125,7 @@ public class ExpenseController : ControllerBase
             await _utils.UploadFileAsync(memoryStream, s3ImagePath, expenseModel.Image.ContentType);
         }
 
-        return CreatedAtAction(nameof(Get), new { id = newExpense.Id }, newExpense);
+        return CreatedAtAction(nameof(Get), new { id = expense.Id }, expense);
     }
 
     [HttpPatch("{id}")]
