@@ -11,13 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-<<<<<<<< HEAD:sources/api/Migrations/20240515091701_InitialCreate.Designer.cs
-    [Migration("20240515091701_InitialCreate")]
-    partial class InitialCreate
-========
-    [Migration("20240515121643_makeMigration")]
+    [Migration("20240515190750_makeMigration")]
     partial class makeMigration
->>>>>>>> 59383d6 (Modify expense & dept entities (#88)):sources/api/Migrations/20240515121643_makeMigration.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -325,10 +320,10 @@ namespace DotNetAPI.Migrations
 
             modelBuilder.Entity("DotNetAPI.Models.Expense.Expense", b =>
                 {
-                    b.HasOne("DotNetAPI.Models.Category.Category", null)
+                    b.HasOne("DotNetAPI.Models.Category.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Models.Group.Group", null)
@@ -342,6 +337,8 @@ namespace DotNetAPI.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Category");
 
                     b.Navigation("User");
                 });

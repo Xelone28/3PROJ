@@ -33,6 +33,7 @@ import androidx.navigation.navArgument
 import com.console.ratcord.ExpenseTab
 import com.console.ratcord.Screen
 import com.console.ratcord.api.CategoryService
+import com.console.ratcord.api.DebtService
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.GroupService
 import com.console.ratcord.api.UserInGroupService
@@ -73,6 +74,7 @@ class Navigation() {
         val userInGroupService = UserInGroupService()
         val expenseService = ExpenseService()
         val categoryService = CategoryService()
+        val debtService = DebtService()
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -243,7 +245,7 @@ class Navigation() {
                             expenseId = expenseId,
                             navController = navController,
                             applicationContext = applicationContext,
-                            categoryService = categoryService
+                            debtService = debtService
                         )
                     }
                 }

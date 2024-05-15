@@ -9,6 +9,5 @@ data class UserMinimalWithId(
     val username: String,
     val email: String,
     val rib: String?,
-    val paypalUsername: String?,
-    val image: String?
+    val paypalUsername: String?
 )

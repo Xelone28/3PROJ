@@ -3,14 +3,9 @@ package com.console.ratcord.api
 import android.content.Context
 import com.console.ratcord.domain.entity.group.Group
 import com.console.ratcord.domain.entity.exception.AuthorizationException
-import com.console.ratcord.domain.entity.group.GroupMinimal
-import com.console.ratcord.domain.entity.group.GroupMinimalWithId
-import com.console.ratcord.domain.entity.user.UserMinimal
-import com.console.ratcord.domain.entity.user.UserMinimalWithId
 import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
 import com.console.ratcord.domain.entity.userInGroup.UserInGroup
 import com.console.ratcord.domain.entity.userInGroup.UserInGroupMinimal
-import com.console.ratcord.domain.entity.userInGroup.UserInGroupPerms
 import io.ktor.client.HttpClient
 import io.ktor.client.request.delete
 import io.ktor.client.request.get

@@ -1,12 +1,13 @@
 package com.console.ratcord.domain.entity.expense
 
 import androidx.room.PrimaryKey
+import com.console.ratcord.domain.entity.user.UserMinimalWithId
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class ExpenseMinimal(
     @PrimaryKey val id: Int,
-    val userId: Int,
+    val user: UserMinimalWithId,
     val groupId: Int,
     val userIdInvolved: List<Int>,
     val categoryId: Int,

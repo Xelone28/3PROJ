@@ -317,10 +317,10 @@ namespace DotNetAPI.Migrations
 
             modelBuilder.Entity("DotNetAPI.Models.Expense.Expense", b =>
                 {
-                    b.HasOne("DotNetAPI.Models.Category.Category", null)
+                    b.HasOne("DotNetAPI.Models.Category.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Models.Group.Group", null)
@@ -334,6 +334,8 @@ namespace DotNetAPI.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Category");
 
                     b.Navigation("User");
                 });

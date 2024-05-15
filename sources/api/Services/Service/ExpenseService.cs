@@ -18,9 +18,11 @@ namespace DotNetAPI.Services.Service
             return await _dbContext.Set<Expense>().ToListAsync();
         }
 
-        public async Task<Expense> GetExpenseById(int id)
+        public async Task<Expense?> GetExpenseById(int id)
         {
-            return await _dbContext.Set<Expense>().FindAsync(id);
+            return await _dbContext.Set<Expense>()
+                .Include(d => d.Category)
+                .FirstOrDefaultAsync(d => d.Id == id);
         }
 
         public async Task<Expense> CreateExpense(Expense expense)
@@ -55,7 +57,11 @@ namespace DotNetAPI.Services.Service
         //GetExpensesByGroupId
         public async Task<IEnumerable<Expense>> GetExpensesByGroupId(int groupId)
         {
-            return await _dbContext.Set<Expense>().Where(e => e.GroupId == groupId).ToListAsync();
+            return await _dbContext.Set<Expense>()
+                .Include(e => e.User)
+                .Include(e => e.Category)
+                .Where(e => e.GroupId == groupId)
+                .ToListAsync();
         }
         //GetExpensesByUserId
         public async Task<IEnumerable<Expense>> GetExpensesByUserId(int userId)

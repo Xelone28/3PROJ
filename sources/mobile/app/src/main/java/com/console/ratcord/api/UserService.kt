@@ -4,9 +4,9 @@ import android.content.Context
 import android.net.Uri
 import com.console.ratcord.domain.entity.LoginResponse
 import com.console.ratcord.domain.entity.exception.AuthorizationException
-import com.console.ratcord.domain.entity.user.User
 import com.console.ratcord.domain.entity.user.UserMinimal
 import com.console.ratcord.domain.entity.user.UserMinimalWithId
+import com.console.ratcord.domain.entity.user.UserMinimalWithImage
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.FormBuilder
@@ -61,7 +61,7 @@ class UserService() {
         }
     }
 
-    suspend fun getUserById(context: Context, userId: Int): UserMinimalWithId? {
+    suspend fun getUserById(context: Context, userId: Int): UserMinimalWithImage? {
         val response: HttpResponse = try {
             client.get("http://10.0.2.2:5000/api/users/$userId") {
                 headers {
@@ -79,7 +79,7 @@ class UserService() {
             }
             HttpStatusCode.OK -> {
                 val body: String = response.bodyAsText()
-                return Json.decodeFromString<UserMinimalWithId>(body)
+                return Json.decodeFromString<UserMinimalWithImage>(body)
             }
             else -> {
                 println("Received unexpected status: ${response.status}")
@@ -177,7 +177,7 @@ class UserService() {
         if (response.status.isSuccess()) {
             val loginResponse = response.body<LoginResponse>()
             Utils.storeItem(context = context, value = loginResponse.token, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
-            val user: UserMinimalWithId? = getUserById(context = context, userId = loginResponse.id)
+            val user: UserMinimalWithImage? = getUserById(context = context, userId = loginResponse.id)
             // ask baba if login should return the entire user ? -- HELP HERE --
             if (user != null){
                 Utils.storeItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.USER, value = Json.encodeToString(user))

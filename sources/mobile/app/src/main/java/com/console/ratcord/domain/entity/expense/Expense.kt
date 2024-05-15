@@ -6,6 +6,8 @@ import androidx.room.PrimaryKey
 import com.console.ratcord.domain.entity.category.Category
 import com.console.ratcord.domain.entity.group.Group
 import com.console.ratcord.domain.entity.user.User
+import com.console.ratcord.domain.entity.user.UserExtraMinimal
+import com.console.ratcord.domain.entity.user.UserMinimal
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -41,10 +43,10 @@ import kotlinx.serialization.Serializable
 )
 data class Expense(
     @PrimaryKey val id: Int,
-    val userId: Int,
+    val user: UserExtraMinimal,
     val groupId: Int,
-    val userIdInvolved: List<Int>,
-    val categoryId: Int,
+    val userInvolved: List<UserExtraMinimal>,
+    val category: Category,
     val amount: Float,
     val date: Int,
     val place: String,

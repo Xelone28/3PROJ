@@ -17,6 +17,7 @@ public class ExpenseController : ControllerBase
     private readonly IDebtService _debtService;
     private readonly IExpenseService _expenseService;
     private readonly IUserService _userService;
+    private readonly ICategoryService _categoryService;
     private readonly AuthenticationService _authenticationService;
     private readonly IUtils _utils;
     private readonly IConfiguration _configuration;
@@ -24,6 +25,7 @@ public class ExpenseController : ControllerBase
     public ExpenseController(
         IDebtService debtService,
         IExpenseService expenseService,
+        ICategoryService categoryService,
         AuthenticationService authenticationService,
         IUtils utils,
         IConfiguration configuration,
@@ -32,6 +34,7 @@ public class ExpenseController : ControllerBase
         _debtService = debtService;
         _expenseService = expenseService;
         _userService = userService;
+        _categoryService = categoryService;
         _authenticationService = authenticationService;
         _utils = utils;
         _configuration = configuration;
@@ -57,27 +60,60 @@ public class ExpenseController : ControllerBase
         var s3Paths = _configuration.GetSection("S3Paths");
         string expensePath = s3Paths["Expense"];
         string cdnUrl = s3Paths["CDNURL"];
-        
+
         string s3ImagePath = $"{expensePath}{id}";
         var attachmentFromExpense = await _utils.ListFiles(s3ImagePath);
         var imageUrl = "";
-        if (attachmentFromExpense.Count > 0) {
+        if (attachmentFromExpense.Count > 0)
+        {
             //Permits to make the use of attachment evolutive
             imageUrl = attachmentFromExpense[0];
+        }
+
+        var userDTO = new UserDTO
+        {
+            Email = expense.User.Email,
+            PaypalUsername = expense.User.PaypalUsername,
+            Rib = expense.User.Rib,
+            Username = expense.User.Username,
+            Id = expense.User.Id
+        };
+
+        IList<UserDTO> usersInvolved = new List<UserDTO>();
+
+        foreach (int userId in expense.UserIdInvolved)
+        {
+            User? userInvolved = await _userService.GetUserById(userId);
+            if (userInvolved is User)
+            {
+                usersInvolved.Add(new UserDTO
+                {
+                    Email = userInvolved.Email,
+                    PaypalUsername = userInvolved.PaypalUsername,
+                    Rib = userInvolved.Rib,
+                    Username = userInvolved.Username,
+                    Id = userInvolved.Id
+                });
+            }
+            else
+            {
+                return NotFound($"The user {userId} does not exists");
+            }
+
         }
 
         var expenseWithImageUrl = new ExpenseWithImageUrlDTO
         {
             Amount = expense.Amount,
-            CategoryId = expense.CategoryId,
+            Category = expense.Category,
             Date = expense.Date,
             GroupId = expense.GroupId,
             Place = expense.Place,
-            UserId = expense.User.Id,
-            UserIdInvolved = expense.UserIdInvolved,
+            User = userDTO,
+            UserInvolved = usersInvolved,
             Description = expense.Description,
             Id = expense.Id,
-            Image = string.IsNullOrEmpty(imageUrl) ? null : cdnUrl+imageUrl
+            Image = string.IsNullOrEmpty(imageUrl) ? null : cdnUrl + imageUrl
         };
         return Ok(expenseWithImageUrl);
     }
@@ -107,6 +143,12 @@ public class ExpenseController : ControllerBase
 
         }
 
+        var category = await _categoryService.GetCategoryById(expenseModel.CategoryId);
+        if (category == null)
+        {
+            return NotFound($"The category {expenseModel.CategoryId} does not exists");
+        }
+
         if (user == null)
         {
             return NotFound($"The user {expenseModel.UserId} does not exists");
@@ -120,7 +162,7 @@ public class ExpenseController : ControllerBase
             Date = expenseModel.Date,
             Place = expenseModel.Place,
             Description = expenseModel.Description,
-            CategoryId = expenseModel.CategoryId,
+            Category = category,
             Id = expenseModel.Id,
             User = user,
             UserIdInvolved = expenseModel.UserIdInvolved
@@ -176,7 +218,13 @@ public class ExpenseController : ControllerBase
             }
         }
 
-        expenseToUpdate.CategoryId = expense.CategoryId ?? expenseToUpdate.CategoryId;
+        Category? category = null;
+        if (expense.CategoryId is int)
+        {
+            category = await _categoryService.GetCategoryById((int)expense.CategoryId);
+        }
+
+        expenseToUpdate.Category = category ?? expenseToUpdate.Category;
         expenseToUpdate.Amount = expense.Amount ?? expenseToUpdate.Amount;
         expenseToUpdate.Date = expense.Date ?? expenseToUpdate.Date;
         expenseToUpdate.Description = expense.Description ?? expenseToUpdate.Description;
@@ -246,7 +294,34 @@ public class ExpenseController : ControllerBase
     public async Task<ActionResult<IEnumerable<Expense>>> GetExpensesByGroupId(int groupId)
     {
         var expenses = await _expenseService.GetExpensesByGroupId(groupId);
-        return Ok(expenses);
+        IList<ExpenseMinimal> expenseMinimals = new List<ExpenseMinimal>();
+
+        foreach (Expense expense in expenses)            
+        {
+            var user = new UserDTO
+            {
+                Email = expense.User.Email,
+                PaypalUsername = expense.User.PaypalUsername,
+                Rib = expense.User.Rib,
+                Username = expense.User.Username,
+                Id = expense.User.Id
+            };
+
+            var expenseMinimal = new ExpenseMinimal
+            {
+                Amount = expense.Amount,
+                CategoryId = expense.Category.Id,
+                Date = expense.Date,
+                GroupId = expense.Date,
+                Place = expense.Place,
+                User = user,
+                UserIdInvolved = expense.UserIdInvolved,
+                Description = expense.Description,
+                Id = expense.Id
+            };
+            expenseMinimals.Add(expenseMinimal);
+        }
+        return Ok(expenseMinimals);
     }
 
     //GetExpensesByUserId
