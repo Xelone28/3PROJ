@@ -81,16 +81,6 @@ namespace DotNetAPI
                       .WithMany()
                       .HasForeignKey(d => d.ExpenseId)
                       .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne<User>()
-                      .WithMany()
-                      .HasForeignKey(d => d.UserIdInCredit)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne<User>()
-                      .WithMany()
-                      .HasForeignKey(d => d.UserIdInDebt)
-                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Payment>(entity =>

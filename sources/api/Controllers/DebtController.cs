@@ -4,6 +4,8 @@ using DotNetAPI.Helpers;
 using DotNetAPI.Models.Debt;
 using DotNetAPI.Services.Interface;
 using DotNetAPI.Models.User;
+using System.Collections.Generic;
+using DotNetAPI.Models.Expense;
 
 [ApiController]
 [Route("[controller]")]
@@ -38,7 +40,7 @@ public class DebtController : ControllerBase
 
     [HttpGet("expense/{id}")]
     [Authorize]
-    public async Task<ActionResult<IEnumerable<Debt>>> GetByExpenseId(int id)
+    public async Task<ActionResult<IList<DebtMinimal>>> GetByExpenseId(int id)
     {
         var expense = await _expenseService.GetExpenseById(id);
         if (expense == null)
@@ -55,11 +57,42 @@ public class DebtController : ControllerBase
                     {
                         if (user.UserId == userId)
                         {
-                            return Ok(await _debtService.GetDebtsByExpenseId(id));
+                            IList<DebtMinimal> debtsDto = new List<DebtMinimal>();
+                            var debts = await _debtService.GetDebtsByExpenseId(id);
+                            foreach (Debt debt in debts)
+                            {
+                                var userInCredit = new UserDTO
+                                {
+                                    Id = debt.UserInCredit.Id,
+                                    Email = debt.UserInCredit.Email,
+                                    PaypalUsername = debt.UserInCredit.PaypalUsername,
+                                    Rib = debt.UserInCredit.Rib,
+                                    Username = debt.UserInCredit.Username
+                                };
+
+                                var userInDebt = new UserDTO
+                                {
+                                    Id = debt.UserInDebt.Id,
+                                    Email = debt.UserInDebt.Email,
+                                    PaypalUsername = debt.UserInDebt.PaypalUsername,
+                                    Rib = debt.UserInDebt.Rib,
+                                    Username = debt.UserInDebt.Username
+                                };
+
+                                debtsDto.Add(new DebtMinimal
+                                {
+                                    Amount = debt.Amount,
+                                    IsCanceled = debt.IsCanceled,
+                                    IsPaid = debt.IsPaid,
+                                    UserInCredit = userInCredit,
+                                    UserInDebt = userInDebt,
+                                    Id = debt.Id
+                                });
+                            }
+                            return Ok(debtsDto);
                         }
                     }
                 }
-                
             }
         }
         return Unauthorized("You do not have access to this expense");
@@ -67,14 +100,41 @@ public class DebtController : ControllerBase
 
     [HttpGet("{id}")]
     [Authorize]
-    public async Task<ActionResult<Debt>> Get(int id)
+    public async Task<ActionResult<DebtMinimal>> Get(int id)
     {
         var debt = await _debtService.GetDebtById(id);
         if (debt == null)
         {
             return NotFound();
         }
-        return Ok(debt);
+
+        var userInCredit = new UserDTO
+        {
+            Id = debt.UserInCredit.Id,
+            Email = debt.UserInCredit.Email,
+            PaypalUsername = debt.UserInCredit.PaypalUsername,
+            Rib = debt.UserInCredit.Rib,
+            Username = debt.UserInCredit.Username
+        };
+
+        var userInDebt = new UserDTO
+        {
+            Id = debt.UserInDebt.Id,
+            Email = debt.UserInDebt.Email,
+            PaypalUsername = debt.UserInDebt.PaypalUsername,
+            Rib = debt.UserInDebt.Rib,
+            Username = debt.UserInDebt.Username
+        };
+
+        return Ok(new DebtMinimal
+        {
+            Amount = debt.Amount,
+            IsCanceled = debt.IsCanceled,
+            IsPaid = debt.IsPaid,
+            UserInCredit = userInCredit,
+            UserInDebt = userInDebt,
+            Id = debt.Id
+        });
     }
 
     [HttpPost]

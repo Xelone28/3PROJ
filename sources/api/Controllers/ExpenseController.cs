@@ -20,12 +20,10 @@ public class ExpenseController : ControllerBase
     private readonly AuthenticationService _authenticationService;
     private readonly IUtils _utils;
     private readonly IConfiguration _configuration;
-    private readonly IUserService _userService;
 
     public ExpenseController(
         IDebtService debtService,
         IExpenseService expenseService,
-        IUserService userService,
         AuthenticationService authenticationService,
         IUtils utils,
         IConfiguration configuration,
@@ -37,7 +35,6 @@ public class ExpenseController : ControllerBase
         _authenticationService = authenticationService;
         _utils = utils;
         _configuration = configuration;
-        _userService = userService;
     }
 
     [HttpGet]

@@ -9,7 +9,7 @@ namespace DotNetAPI.Services.Interface
         Task<Debt> CreateDebt(Debt debt);
         Task CreateDebtsFromExpense(Expense expense, IList<User> UsersInDebt);
         Task<IEnumerable<Debt>> GetAllDebts();
-        Task<Debt> GetDebtById(int id);
+        Task<Debt?>GetDebtById(int id);
         Task<IEnumerable<Debt>> GetDebtsByUserIdInCredit(int userId);
         Task<IEnumerable<Debt>> GetDebtsByUserId(int userId);
         Task<IEnumerable<Debt>> GetDebtsByGroupId(int groupId);

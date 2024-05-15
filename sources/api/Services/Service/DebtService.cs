@@ -29,8 +29,6 @@ namespace DotNetAPI.Services.Service
                     {
                         GroupId = expense.GroupId,
                         ExpenseId = expense.Id,
-                        UserIdInCredit = expense.User.Id,
-                        UserIdInDebt = user.Id,
                         Amount = (float)Math.Round(expense.Amount / expense.UserIdInvolved.Count, 2),
                         IsPaid = false,
                         IsCanceled = false,
@@ -46,24 +44,28 @@ namespace DotNetAPI.Services.Service
         {
             return await _context.Debt.ToListAsync();
         }
-        public async Task<Debt> GetDebtById(int id)
+        public async Task<Debt?> GetDebtById(int id)
         {
             try
             {
-                return await _context.Debt.FindAsync(id);
+                return await _context.Debt
+                             .Include(d => d.UserInCredit)
+                             .Include(d => d.UserInDebt)
+                             .FirstOrDefaultAsync(d => d.Id == id);
             }
             catch (Exception ex)
             {
                 throw new ApplicationException("Error getting debt.", ex);
             }
         }
+
         public async Task<IEnumerable<Debt>> GetDebtsByUserIdInCredit(int userId)
         {
-            return await _context.Debt.Where(debt => debt.UserIdInCredit == userId).ToListAsync();
+            return await _context.Debt.Where(debt => debt.UserInCredit.Id == userId).ToListAsync();
         }
         public async Task<IEnumerable<Debt>> GetDebtsByUserId(int userId)
         {
-            return await _context.Debt.Where(debt => debt.UserIdInDebt == userId).ToListAsync();
+            return await _context.Debt.Where(debt => debt.UserInDebt.Id == userId).ToListAsync();
         }
         public async Task<IEnumerable<Debt>> GetDebtsByGroupId(int groupId)
         {

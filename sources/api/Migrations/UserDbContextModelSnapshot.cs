@@ -66,10 +66,10 @@ namespace DotNetAPI.Migrations
                     b.Property<bool>("IsPaid")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("UserIdInCredit")
+                    b.Property<int>("UserInCreditId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("UserIdInDebt")
+                    b.Property<int>("UserInDebtId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -78,9 +78,9 @@ namespace DotNetAPI.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.HasIndex("UserIdInCredit");
+                    b.HasIndex("UserInCreditId");
 
-                    b.HasIndex("UserIdInDebt");
+                    b.HasIndex("UserInDebtId");
 
                     b.ToTable("Debt");
                 });
@@ -298,17 +298,21 @@ namespace DotNetAPI.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("DotNetAPI.Models.User.User", null)
+                    b.HasOne("DotNetAPI.Models.User.User", "UserInCredit")
                         .WithMany()
-                        .HasForeignKey("UserIdInCredit")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasForeignKey("UserInCreditId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DotNetAPI.Models.User.User", null)
+                    b.HasOne("DotNetAPI.Models.User.User", "UserInDebt")
                         .WithMany()
-                        .HasForeignKey("UserIdInDebt")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasForeignKey("UserInDebtId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("UserInCredit");
+
+                    b.Navigation("UserInDebt");
                 });
 
             modelBuilder.Entity("DotNetAPI.Models.Expense.Expense", b =>
@@ -325,11 +329,13 @@ namespace DotNetAPI.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("DotNetAPI.Models.User.User", null)
+                    b.HasOne("DotNetAPI.Models.User.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DotNetAPI.Models.Payement.Payment", b =>
