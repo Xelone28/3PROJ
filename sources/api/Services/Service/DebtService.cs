@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using DotNetAPI.Models.Expense;
 using DotNetAPI.Models.Debt;
 using DotNetAPI.Services.Interface;
+using DotNetAPI.Models.User;
 
 namespace DotNetAPI.Services.Service
 {
@@ -18,21 +19,23 @@ namespace DotNetAPI.Services.Service
             await _context.SaveChangesAsync();
             return debt;
         }
-        public async Task CreateDebtsFromExpense(Expense expense)
+        public async Task CreateDebtsFromExpense(Expense expense, IList<User> UsersInDebt)
         {
-            foreach (int userId in expense.UserIdInvolved)
+            foreach (User user in UsersInDebt)
             {
-                if (userId != expense.UserId)
+                if (user.Id != expense.User.Id)
                 {
                     Debt debt = new Debt
                     {
                         GroupId = expense.GroupId,
                         ExpenseId = expense.Id,
-                        UserIdInCredit = expense.UserId,
-                        UserIdInDebt = userId,
+                        UserIdInCredit = expense.User.Id,
+                        UserIdInDebt = user.Id,
                         Amount = (float)Math.Round(expense.Amount / expense.UserIdInvolved.Count, 2),
                         IsPaid = false,
-                        IsCanceled = false
+                        IsCanceled = false,
+                        UserInCredit = expense.User,
+                        UserInDebt = user
                     };
                     _context.Debt.Add(debt);
                 }
@@ -75,15 +78,16 @@ namespace DotNetAPI.Services.Service
             _context.Entry(debt).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
-        public async Task UpdateDebtsFromExpense(Expense expense)
+        public async Task UpdateDebtsFromExpense(Expense expense, IList<User> UsersInDebt)
         {
             var debts = await _context.Debt.Where(debt => debt.ExpenseId == expense.Id).ToListAsync();
+
             foreach (Debt debt in debts)
             {
                 _context.Debt.Remove(debt);
             }
             await _context.SaveChangesAsync();
-            await CreateDebtsFromExpense(expense);
+            await CreateDebtsFromExpense(expense, UsersInDebt);
         }
         public async Task DeleteDebt(int id)
         {

@@ -15,7 +15,7 @@
 
         public required int Date { get; set; }
         public required int Amount { get; set; }
-        public required string Type { get; set; } // Enum ??
+        public required string Type { get; set; }
 
         public required int TaxeId { get; set; }
         public required Taxe.Taxe Taxe { get; set; }

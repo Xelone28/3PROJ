@@ -44,7 +44,8 @@ public class DebtController : ControllerBase
         if (expense == null)
         {
             return NotFound();
-        } else {
+        } else
+        {
             var userId = (HttpContext.Items["User"] as User)?.Id ?? null;
             if (userId != null)
             {

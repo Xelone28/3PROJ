@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using DotNetAPI.Helpers;
 using DotNetAPI.Models.Expense;
 using DotNetAPI.Services.Interface;
 using DotNetAPI.Services;
 using Microsoft.Extensions.Configuration;
-using DotNetAPI.Services.Service;
+using DotNetAPI.Models.User;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using DotNetAPI.Models.Category;
 
 [ApiController]
 [Route("[controller]")]
@@ -14,6 +16,7 @@ public class ExpenseController : ControllerBase
 {
     private readonly IDebtService _debtService;
     private readonly IExpenseService _expenseService;
+    private readonly IUserService _userService;
     private readonly AuthenticationService _authenticationService;
     private readonly IUtils _utils;
     private readonly IConfiguration _configuration;
@@ -22,6 +25,7 @@ public class ExpenseController : ControllerBase
     public ExpenseController(
         IDebtService debtService,
         IExpenseService expenseService,
+        IUserService userService,
         AuthenticationService authenticationService,
         IUtils utils,
         IConfiguration configuration,
@@ -29,6 +33,7 @@ public class ExpenseController : ControllerBase
     {
         _debtService = debtService;
         _expenseService = expenseService;
+        _userService = userService;
         _authenticationService = authenticationService;
         _utils = utils;
         _configuration = configuration;
@@ -63,6 +68,7 @@ public class ExpenseController : ControllerBase
             //Permits to make the use of attachment evolutive
             imageUrl = attachmentFromExpense[0];
         }
+
         var expenseWithImageUrl = new ExpenseWithImageUrlDTO
         {
             Amount = expense.Amount,
@@ -70,7 +76,7 @@ public class ExpenseController : ControllerBase
             Date = expense.Date,
             GroupId = expense.GroupId,
             Place = expense.Place,
-            UserId = expense.UserId,
+            UserId = expense.User.Id,
             UserIdInvolved = expense.UserIdInvolved,
             Description = expense.Description,
             Id = expense.Id,
@@ -88,30 +94,43 @@ public class ExpenseController : ControllerBase
             return BadRequest("Given values are not correct");
         }
 
+        IList<User> usersInvolved = new List<User>();
+        User? user = await _userService.GetUserById(expenseModel.UserId);
+
+        foreach (int userId in expenseModel.UserIdInvolved)
+        {
+            User? userInvolved = await _userService.GetUserById(userId);
+            if (userInvolved is User)
+            {
+                usersInvolved.Add(userInvolved);
+            } else
+            {
+                return NotFound($"The user {userId} does not exists");
+            }
+
+        }
+
+        if (user == null)
+        {
+            return NotFound($"The user {expenseModel.UserId} does not exists");
+        }
+
+
         var expense = new Expense
         {
-            UserId = expenseModel.UserId,
             GroupId = expenseModel.GroupId,
-            UserIdInvolved = expenseModel.UserIdInvolved,
-            CategoryId = expenseModel.CategoryId,
             Amount = expenseModel.Amount,
             Date = expenseModel.Date,
             Place = expenseModel.Place,
-            Description = expenseModel.Description
+            Description = expenseModel.Description,
+            CategoryId = expenseModel.CategoryId,
+            Id = expenseModel.Id,
+            User = user,
+            UserIdInvolved = expenseModel.UserIdInvolved
         };
 
-        //test if UserIdInvolved exist
-        foreach (var userIdInvolved in expense.UserIdInvolved)
-        {
-            var user = await _userService.GetUserById(userIdInvolved);
-            if (user == null)
-            {
-                return BadRequest("User with id " + userIdInvolved + " does not exist.");
-            }
-        }
-
-        await _expenseService.CreateExpense(expense);
-        await _debtService.CreateDebtsFromExpense(expense);
+        var newExpense = await _expenseService.CreateExpense(expense);
+        await _debtService.CreateDebtsFromExpense(expense, usersInvolved);
 
         //upload image to s3
         string fileName = "expense" + Path.GetExtension(expenseModel.Image.FileName);
@@ -143,13 +162,28 @@ public class ExpenseController : ControllerBase
             return NotFound();
         }
 
+        IList<User> usersInvolved = new List<User>();
+
+        if (expense.UserIdInvolved != null)
+        {
+            foreach (int userId in expense.UserIdInvolved)
+            {
+                User? user = await _userService.GetUserById(userId);
+                if (user == null)
+                {
+                    return NotFound($"The user id {userId} does not exists");
+                } else
+                {
+                    usersInvolved.Add(user);
+                }
+            }
+        }
+
         expenseToUpdate.CategoryId = expense.CategoryId ?? expenseToUpdate.CategoryId;
-        expenseToUpdate.UserId = expense.UserId ?? expenseToUpdate.UserId;
-        expenseToUpdate.Date = expense.Date ?? expenseToUpdate.Date;
         expenseToUpdate.Amount = expense.Amount ?? expenseToUpdate.Amount;
+        expenseToUpdate.Date = expense.Date ?? expenseToUpdate.Date;
         expenseToUpdate.Description = expense.Description ?? expenseToUpdate.Description;
         expenseToUpdate.UserIdInvolved = expense.UserIdInvolved ?? expenseToUpdate.UserIdInvolved;
-        expenseToUpdate.GroupId = expense.GroupId ?? expenseToUpdate.GroupId;
         expenseToUpdate.Place = expense.Place ?? expenseToUpdate.Place;
 
         if (expense.Image != null)
@@ -183,7 +217,7 @@ public class ExpenseController : ControllerBase
         }
 
         await _expenseService.UpdateExpense(expenseToUpdate);
-        await _debtService.UpdateDebtsFromExpense(expenseToUpdate);
+        await _debtService.UpdateDebtsFromExpense(expenseToUpdate, usersInvolved);
         return NoContent();
     }
 
