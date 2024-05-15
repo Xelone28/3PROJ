@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using DotNetAPI.Models.Expense;
 using DotNetAPI.Models.Debt;
 using DotNetAPI.Services.Interface;
+using DotNetAPI.Models.User;
 
 namespace DotNetAPI.Services.Service
 {
@@ -18,21 +19,21 @@ namespace DotNetAPI.Services.Service
             await _context.SaveChangesAsync();
             return debt;
         }
-        public async Task CreateDebtsFromExpense(Expense expense)
+        public async Task CreateDebtsFromExpense(Expense expense, IList<User> UsersInDebt)
         {
-            foreach (int userId in expense.UserIdInvolved)
+            foreach (User user in UsersInDebt)
             {
-                if (userId != expense.UserId)
+                if (user.Id != expense.User.Id)
                 {
                     Debt debt = new Debt
                     {
                         GroupId = expense.GroupId,
                         ExpenseId = expense.Id,
-                        UserIdInCredit = expense.UserId,
-                        UserIdInDebt = userId,
                         Amount = (float)Math.Round(expense.Amount / expense.UserIdInvolved.Count, 2),
                         IsPaid = false,
-                        IsCanceled = false
+                        IsCanceled = false,
+                        UserInCredit = expense.User,
+                        UserInDebt = user
                     };
                     _context.Debt.Add(debt);
                 }
@@ -43,24 +44,28 @@ namespace DotNetAPI.Services.Service
         {
             return await _context.Debt.ToListAsync();
         }
-        public async Task<Debt> GetDebtById(int id)
+        public async Task<Debt?> GetDebtById(int id)
         {
             try
             {
-                return await _context.Debt.FindAsync(id);
+                return await _context.Debt
+                             .Include(d => d.UserInCredit)
+                             .Include(d => d.UserInDebt)
+                             .FirstOrDefaultAsync(d => d.Id == id);
             }
             catch (Exception ex)
             {
                 throw new ApplicationException("Error getting debt.", ex);
             }
         }
+
         public async Task<IEnumerable<Debt>> GetDebtsByUserIdInCredit(int userId)
         {
-            return await _context.Debt.Where(debt => debt.UserIdInCredit == userId).ToListAsync();
+            return await _context.Debt.Where(debt => debt.UserInCredit.Id == userId).ToListAsync();
         }
         public async Task<IEnumerable<Debt>> GetDebtsByUserId(int userId)
         {
-            return await _context.Debt.Where(debt => debt.UserIdInDebt == userId).ToListAsync();
+            return await _context.Debt.Where(debt => debt.UserInDebt.Id == userId).ToListAsync();
         }
         public async Task<IEnumerable<Debt>> GetDebtsByGroupId(int groupId)
         {
@@ -75,15 +80,16 @@ namespace DotNetAPI.Services.Service
             _context.Entry(debt).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
-        public async Task UpdateDebtsFromExpense(Expense expense)
+        public async Task UpdateDebtsFromExpense(Expense expense, IList<User> UsersInDebt)
         {
             var debts = await _context.Debt.Where(debt => debt.ExpenseId == expense.Id).ToListAsync();
+
             foreach (Debt debt in debts)
             {
                 _context.Debt.Remove(debt);
             }
             await _context.SaveChangesAsync();
-            await CreateDebtsFromExpense(expense);
+            await CreateDebtsFromExpense(expense, UsersInDebt);
         }
         public async Task DeleteDebt(int id)
         {

@@ -60,12 +60,12 @@ namespace DotNetAPI.Services.Service
         //GetExpensesByUserId
         public async Task<IEnumerable<Expense>> GetExpensesByUserId(int userId)
         {
-            return await _dbContext.Set<Expense>().Where(e => e.UserId == userId).ToListAsync();
+            return await _dbContext.Set<Expense>().Where(e => e.User.Id == userId).ToListAsync();
         }
         //GetExpensesByUserIdAndGroupId
         public async Task<IEnumerable<Expense>> GetExpensesByUserIdAndGroupId(int userId, int groupId)
         {
-            return await _dbContext.Set<Expense>().Where(e => e.UserId == userId && e.GroupId == groupId).ToListAsync();
+            return await _dbContext.Set<Expense>().Where(e => e.User.Id == userId && e.GroupId == groupId).ToListAsync();
         }
     }
 }

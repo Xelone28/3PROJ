@@ -57,11 +57,6 @@ namespace DotNetAPI
             {
                 entity.HasKey(a => a.Id);
 
-                entity.HasOne<User>()
-                      .WithMany()
-                      .HasForeignKey(p => p.UserId)
-                      .OnDelete(DeleteBehavior.Restrict);
-
                 entity.HasOne<Group>()
                       .WithMany()
                       .HasForeignKey(p => p.GroupId)
@@ -85,16 +80,6 @@ namespace DotNetAPI
                 entity.HasOne<Expense>()
                       .WithMany()
                       .HasForeignKey(d => d.ExpenseId)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne<User>()
-                      .WithMany()
-                      .HasForeignKey(d => d.UserIdInCredit)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne<User>()
-                      .WithMany()
-                      .HasForeignKey(d => d.UserIdInDebt)
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
