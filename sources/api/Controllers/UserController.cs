@@ -162,7 +162,6 @@ namespace DotNetAPI.Controllers
 
             if (!string.IsNullOrEmpty(user.Password))
             {
-                // Make sure to hash the password before saving it
                 userFromDb.Password = user.Password;
             }
 
@@ -196,8 +195,13 @@ namespace DotNetAPI.Controllers
 
                 }
             }
-            await _userService.UpdateUser(userFromDb);
-            return NoContent();
+            if (await _userService.UpdateUser(userFromDb, userFromDb.Password) == null)
+            {
+                return NotFound("The user does not exists");
+            } else
+            {
+                return NoContent();
+            }
         }
 
 

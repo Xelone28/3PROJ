@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using DotNetAPI.Models.Authenticate;
 using DotNetAPI.Models.User;
 using DotNetAPI.Services.Interface;
+using System.Security.Cryptography;
 
 namespace DotNetAPI.Services.Service
 {
@@ -24,22 +25,56 @@ namespace DotNetAPI.Services.Service
 
         }
 
-        public async Task<IEnumerable<UserDTO>> GetAllUsers()
+        private byte[] GenerateSalt()
         {
-            var users = await _dbContext.User.ToListAsync();
-            return users.Select(u => new UserDTO
+            byte[] salt = new byte[16];
+            using (var rng = RandomNumberGenerator.Create())
             {
-                Id = u.Id,
-                Username = u.Username,
-                Email = u.Email,
-                Rib = u.Rib,
-                PaypalUsername = u.PaypalUsername
-            }).ToList();
+                rng.GetBytes(salt);
+            }
+            return salt;
+        }
+
+        private string HashPassword(string password, byte[] salt)
+        {
+            using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000, HashAlgorithmName.SHA256))
+            {
+                byte[] hash = pbkdf2.GetBytes(20);
+                byte[] hashBytes = new byte[36];
+                Array.Copy(salt, 0, hashBytes, 0, 16);
+                Array.Copy(hash, 0, hashBytes, 16, 20);
+                return Convert.ToBase64String(hashBytes);
+            }
+        }
+
+        private bool VerifyPassword(string enteredPassword, string storedPassword)
+        {
+            byte[] hashBytes = Convert.FromBase64String(storedPassword);
+            byte[] salt = new byte[16];
+            Array.Copy(hashBytes, 0, salt, 0, 16);
+            using (var pbkdf2 = new Rfc2898DeriveBytes(enteredPassword, salt, 10000, HashAlgorithmName.SHA256))
+            {
+                byte[] hash = pbkdf2.GetBytes(20);
+                for (int i = 0; i < 20; i++)
+                {
+                    if (hashBytes[i + 16] != hash[i])
+                        return false;
+                }
+                return true;
+            }
         }
 
         public async Task<User?> GetUserById(int id)
         {
-            return await _dbContext.User.FindAsync(id);
+            try
+            {
+                return await _dbContext.User.FindAsync(id);
+            } catch (Exception ex)
+            {
+                throw new ApplicationException("User cannot be retrieve: " + ex);
+
+            }
+
         }
 
         public async Task<User?> GetUserByEmail(string email)
@@ -50,20 +85,30 @@ namespace DotNetAPI.Services.Service
 
         public async Task<User> GetUserByEmailAndPassword(string email, string password)
         {
-            var user = await _dbContext.User
-                .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
-            if (user == null)
+            try
             {
-                throw new NotFoundException($"User with Email: {email} not found.");
+                var user = await _dbContext.User
+                .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
+                if (user == null)
+                {
+                    throw new ApplicationException($"User with Email: {email} not found.");
+                }
+                return user;
             }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("User cannot be retrieve: "+ex);
+            }
+            
 
-            return user;
         }
 
         public async Task<User> AddUser(User user)
         {
             try
             {
+                byte[] salt = GenerateSalt();
+                user.Password = HashPassword(user.Password, salt);
                 _dbContext.User.Add(user);
                 await _dbContext.SaveChangesAsync();
                 return user;
@@ -74,13 +119,25 @@ namespace DotNetAPI.Services.Service
             }
         }
 
-        public async Task<User> UpdateUser(User user)
+        public async Task<User?> UpdateUser(User user, string? newPassword)
         {
             try
             {
-                _dbContext.Entry(user).State = EntityState.Modified;
-                await _dbContext.SaveChangesAsync();
-                return user;
+                if (user != null)
+                {
+                    if (newPassword != null)
+                    {
+                        byte[] salt = GenerateSalt();
+                        user.Password = HashPassword(newPassword, salt);
+                    }
+
+                    await _dbContext.SaveChangesAsync();
+                    return user;
+                } else
+                {
+                    return null;
+                }
+                
             }
             catch (Exception ex)
             {
@@ -109,15 +166,25 @@ namespace DotNetAPI.Services.Service
             }
 
         }
+
         public async Task<AuthenticateResponse?> Authenticate(AuthenticateRequest model)
         {
-            var user = await _dbContext.User.SingleOrDefaultAsync(x => x.Email == model.Email && x.Password == model.Password);
+            try
+            {
+                var user = await _dbContext.User.SingleOrDefaultAsync(x => x.Email == model.Email);
 
-            if (user == null) return null;
+                if (user != null && VerifyPassword(model.Password, user.Password))
+                {
+                    var token = await generateJwtToken(user);
+                    return new AuthenticateResponse(user, token);
+                }
 
-            var token = await generateJwtToken(user);
+                return null;
+            } catch(Exception ex)
+            {
+                throw new ApplicationException("Error loggin in user.", ex);
 
-            return new AuthenticateResponse(user, token);
+            }
 
         }
 
@@ -151,17 +218,8 @@ namespace DotNetAPI.Services.Service
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error generating JWT token: {ex.Message}");
-                throw;
+                throw new ApplicationException($"Error generating JWT token: {ex.Message}");
             }
-        }
-
-    }
-
-    public class NotFoundException : Exception
-    {
-        public NotFoundException(string message) : base(message)
-        {
         }
     }
 }
