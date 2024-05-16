@@ -29,7 +29,7 @@ namespace DotNetAPI.Services.Service
                     {
                         GroupId = expense.GroupId,
                         ExpenseId = expense.Id,
-                        Amount = (float)Math.Round(expense.Amount / expense.UserIdInvolved.Count, 2),
+                        Amount = (float)Math.Round(expense.Amount / expense.UserIdsInvolved.Count, 2),
                         IsPaid = false,
                         IsCanceled = false,
                         UserInCredit = expense.User,

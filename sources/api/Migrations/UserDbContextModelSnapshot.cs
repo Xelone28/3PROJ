@@ -115,7 +115,7 @@ namespace DotNetAPI.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
-                    b.Property<int[]>("UserIdInvolved")
+                    b.Property<int[]>("UserIdsInvolved")
                         .IsRequired()
                         .HasColumnType("integer[]");
 

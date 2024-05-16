@@ -30,21 +30,6 @@ namespace DotNetAPI.Controllers
             _configuration = configuration;
         }
 
-        [HttpGet]
-        [Authorize]
-        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
-        {
-            try
-            {
-                var users = await _userService.GetAllUsers();
-                return Ok(users);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
-            }
-        }
-
         [HttpGet("{id}")]
         [Authorize]
         public async Task<ActionResult<UserDTO>> GetUser(int id)

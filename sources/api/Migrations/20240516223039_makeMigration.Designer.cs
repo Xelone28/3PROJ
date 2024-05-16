@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20240515190750_makeMigration")]
+    [Migration("20240516223039_makeMigration")]
     partial class makeMigration
     {
         /// <inheritdoc />
@@ -118,7 +118,7 @@ namespace DotNetAPI.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
-                    b.Property<int[]>("UserIdInvolved")
+                    b.Property<int[]>("UserIdsInvolved")
                         .IsRequired()
                         .HasColumnType("integer[]");
 

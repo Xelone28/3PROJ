@@ -81,7 +81,7 @@ public class ExpenseController : ControllerBase
 
         IList<UserDTO> usersInvolved = new List<UserDTO>();
 
-        foreach (int userId in expense.UserIdInvolved)
+        foreach (int userId in expense.UserIdsInvolved)
         {
             User? userInvolved = await _userService.GetUserById(userId);
             if (userInvolved is User)
@@ -110,7 +110,7 @@ public class ExpenseController : ControllerBase
             GroupId = expense.GroupId,
             Place = expense.Place,
             User = userDTO,
-            UserInvolved = usersInvolved,
+            UsersInvolved = usersInvolved,
             Description = expense.Description,
             Id = expense.Id,
             Image = string.IsNullOrEmpty(imageUrl) ? null : cdnUrl + imageUrl
@@ -130,7 +130,7 @@ public class ExpenseController : ControllerBase
         IList<User> usersInvolved = new List<User>();
         User? user = await _userService.GetUserById(expenseModel.UserId);
 
-        foreach (int userId in expenseModel.UserIdInvolved)
+        foreach (int userId in expenseModel.UserIdsInvolved)
         {
             User? userInvolved = await _userService.GetUserById(userId);
             if (userInvolved is User)
@@ -165,7 +165,7 @@ public class ExpenseController : ControllerBase
             Category = category,
             Id = expenseModel.Id,
             User = user,
-            UserIdInvolved = expenseModel.UserIdInvolved
+            UserIdsInvolved = expenseModel.UserIdsInvolved
         };
 
         var newExpense = await _expenseService.CreateExpense(expense);
@@ -176,6 +176,7 @@ public class ExpenseController : ControllerBase
         var s3Paths = _configuration.GetSection("S3Paths");
         string expensePath = s3Paths["Expense"];
         string s3ImagePath = expensePath + expense.Id + "/" + fileName;
+
         using (var memoryStream = new MemoryStream())
         {
             await expenseModel.Image.CopyToAsync(memoryStream);
@@ -228,7 +229,7 @@ public class ExpenseController : ControllerBase
         expenseToUpdate.Amount = expense.Amount ?? expenseToUpdate.Amount;
         expenseToUpdate.Date = expense.Date ?? expenseToUpdate.Date;
         expenseToUpdate.Description = expense.Description ?? expenseToUpdate.Description;
-        expenseToUpdate.UserIdInvolved = expense.UserIdInvolved ?? expenseToUpdate.UserIdInvolved;
+        expenseToUpdate.UserIdsInvolved = expense.UserIdInvolved ?? expenseToUpdate.UserIdsInvolved;
         expenseToUpdate.Place = expense.Place ?? expenseToUpdate.Place;
 
         if (expense.Image != null)
@@ -315,7 +316,7 @@ public class ExpenseController : ControllerBase
                 GroupId = expense.Date,
                 Place = expense.Place,
                 User = user,
-                UserIdInvolved = expense.UserIdInvolved,
+                UserIdsInvolved = expense.UserIdsInvolved,
                 Description = expense.Description,
                 Id = expense.Id
             };
