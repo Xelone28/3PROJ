@@ -8,7 +8,7 @@ namespace DotNetAPI.Services.Interface
         Task<IEnumerable<UserDTO>> GetAllUsers();
         Task<User?> GetUserById(int id);
         Task<User> AddUser(User user);
-        Task<User> UpdateUser(User user);
+        Task<User?> UpdateUser(User user, string? password);
         Task DeleteUser(int id);
         Task<User> GetUserByEmailAndPassword(string email, string password);
         Task<User?> GetUserByEmail(string email);
