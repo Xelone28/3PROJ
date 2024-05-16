@@ -110,7 +110,7 @@ namespace DotNetAPI.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     GroupId = table.Column<int>(type: "integer", nullable: false),
-                    UserIdInvolved = table.Column<int[]>(type: "integer[]", nullable: false),
+                    UserIdsInvolved = table.Column<int[]>(type: "integer[]", nullable: false),
                     CategoryId = table.Column<int>(type: "integer", nullable: false),
                     Amount = table.Column<float>(type: "real", nullable: false),
                     Date = table.Column<int>(type: "integer", nullable: false),
