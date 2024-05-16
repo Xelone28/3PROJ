@@ -21,6 +21,7 @@ public class ExpenseController : ControllerBase
     private readonly AuthenticationService _authenticationService;
     private readonly IUtils _utils;
     private readonly IConfiguration _configuration;
+    private readonly IDebtBalancingService _debtBalancingService;
 
     public ExpenseController(
         IDebtService debtService,
@@ -29,7 +30,9 @@ public class ExpenseController : ControllerBase
         AuthenticationService authenticationService,
         IUtils utils,
         IConfiguration configuration,
-        IUserService userService)
+        IUserService userService,
+        IDebtBalancingService debtBalancingService
+        )
     {
         _debtService = debtService;
         _expenseService = expenseService;
@@ -38,6 +41,7 @@ public class ExpenseController : ControllerBase
         _authenticationService = authenticationService;
         _utils = utils;
         _configuration = configuration;
+        _debtBalancingService = debtBalancingService;
     }
 
     [HttpGet]
@@ -170,6 +174,10 @@ public class ExpenseController : ControllerBase
 
         var newExpense = await _expenseService.CreateExpense(expense);
         await _debtService.CreateDebtsFromExpense(expense, usersInvolved);
+        
+        //balance debts
+        await _debtBalancingService.BalanceDebts(expenseModel.GroupId);
+
 
         //upload image to s3
         string fileName = "expense" + Path.GetExtension(expenseModel.Image.FileName);
@@ -264,6 +272,10 @@ public class ExpenseController : ControllerBase
 
         await _expenseService.UpdateExpense(expenseToUpdate);
         await _debtService.UpdateDebtsFromExpense(expenseToUpdate, usersInvolved);
+
+        //balance debts
+        await _debtBalancingService.BalanceDebts(expenseToUpdate.GroupId);
+
         return NoContent();
     }
 

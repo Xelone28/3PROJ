@@ -58,7 +58,6 @@ namespace DotNetAPI.Services.Service
                 throw new ApplicationException("Error getting debt.", ex);
             }
         }
-
         public async Task<IEnumerable<Debt>> GetDebtsByUserIdInCredit(int userId)
         {
             return await _context.Debt.Where(debt => debt.UserInCredit.Id == userId).ToListAsync();
