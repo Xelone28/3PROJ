@@ -111,7 +111,8 @@ function ExpensePage() {
       <p>Description: {expense.description}</p>
       <p>Date: {new Date(expense.date * 1000).toLocaleDateString()}</p>
       <p>Category: {category ? category.name : 'Loading...'}</p> 
-      <p>Users Involved: {users.map(user => user.username).join(', ')}</p>     
+      <p>Users Involved: {users.map(user => user.username).join(', ')}</p>
+      <p>{expense.image && <img src={expense.image} alt="User" style={{width: "400px"}} />}</p>
       <button onClick={deleteExpense}>Delete</button>
 
     </div>

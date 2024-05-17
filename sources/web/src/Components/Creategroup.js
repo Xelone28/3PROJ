@@ -2,16 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function Creategroup() {
-  const user = JSON.parse(localStorage.getItem('user'));
-  const [members, setMembers] = useState(['']);
   const [groupName, setGroupName] = useState('');
   const [groupDesc, setGroupDesc] = useState('');
   const navigate = useNavigate();
-  const userId = user.id;
   const token = document.cookie
-  .split('; ')
-  .find(row => row.startsWith('token='))
-  .split('=')[1];
+    .split('; ')
+    .find(row => row.startsWith('token='))
+    .split('=')[1];
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -27,13 +24,11 @@ function Creategroup() {
         groupDesc: groupDesc,
       }),
     }); 
-    try {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    } else {
       alert('Group created successfully!');
       navigate('/groups');
-    }
-    catch (error) {
-      console.error('Error handling response:', error);
-      alert('An error occurred while processing your request.');
     }
   };
 

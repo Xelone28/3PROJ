@@ -75,7 +75,7 @@ useEffect(() => {
   };
 
 
-  console.log('groupId:', Id);  // Add this line
+  // console.log('groupId:', Id);  // Add this line
 
   useEffect(() => {
     
@@ -224,6 +224,23 @@ useEffect(() => {
     }
   };
 
+  const handleDeleteExpense = async (expenseId) => {
+    const response = await fetch(`http://localhost:5000/expense/${expenseId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  
+    if (response.ok) {
+      alert('Expense deleted successfully!');
+      window.location.reload();
+      // Update your state here to remove the deleted expense
+    } else {
+      console.error(`Error: ${response.status}`);
+    }
+  };
+
 
 
   return (
@@ -264,6 +281,7 @@ useEffect(() => {
 {showModal && selectedUser && (
   <div className="modal">
     <h2>{selectedUser.username}</h2>
+    {selectedUser.image && <img src={selectedUser.image} style={{width: "300px"}} alt="User" />}
     <p>Email: {selectedUser.email}</p>
     <p>RIB: {selectedUser.rib}</p>
     <p>Paypal Username: {selectedUser.paypalUsername}</p>
@@ -277,13 +295,17 @@ useEffect(() => {
   const user = users.find(user => user.userId === expense.userId);
   const category = categories.find(category => category.id === expense.categoryId);
   return (
-    <div key={expense.id} className='expense' onClick={() => navigate(`/expensepage/${expense.id}`)}>
+    <div key={expense.id} className='expense'>
       <p>Amount: {expense.amount}</p>
       <p>Place: {expense.place}</p>
-      <p>Description: {expense.description}</p>
+      {/* <p>Description: {expense.description}</p> */}
       <p>Date: {new Date(expense.date * 1000).toLocaleDateString()}</p>
       <p>Category: {category ? category.name : 'Unknown'}</p>
       <p>Created by: {user ? user.username : 'Unknown'}</p>
+      <button onClick={() => navigate(`/Expensepage/${expense.id}`)}>view</button>
+      <button onClick={() => handleDeleteExpense(expense.id)}>Delete</button>
+      <button onClick={() => navigate(`/editexpense/${expense.id}`)}>Edit</button>
+
     </div>
   );
 })}
