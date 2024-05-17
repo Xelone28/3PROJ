@@ -97,7 +97,7 @@ class ExpenseService() {
                         append("date", expense.date.toString())
                         append("place", expense.place)
                         append("description", expense.description)
-                        expense.userIdInvolved.forEach { userId ->
+                        expense.userIdsInvolved.forEach { userId ->
                             append("userIdInvolved[]", userId.toString())
                         }
                         if (imageUri != null) {
@@ -154,7 +154,7 @@ class ExpenseService() {
                         expense.description?.let {
                             append("description", expense.description.toString())
                         }
-                        expense.userIdInvolved?.forEach { userId ->
+                        expense.userIdsInvolved?.forEach { userId ->
                             append("userIdInvolved[]", userId.toString())
                         }
                         if (imageUri is Uri) {

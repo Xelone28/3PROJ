@@ -5,7 +5,7 @@ import kotlinx.serialization.Transient
 
 @Serializable
 data class ExpenseMinimalUpdate(
-    val userIdInvolved: List<Int>?,
+    val userIdsInvolved: List<Int>?,
     val categoryId: Int?,
     val date: Long?,
     val place: String?,

@@ -45,7 +45,7 @@ data class Expense(
     @PrimaryKey val id: Int,
     val user: UserExtraMinimal,
     val groupId: Int,
-    val userInvolved: List<UserExtraMinimal>,
+    val usersInvolved: List<UserExtraMinimal>,
     val category: Category,
     val amount: Float,
     val date: Int,

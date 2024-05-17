@@ -67,7 +67,10 @@ fun Groups(userInGroupService: UserInGroupService, applicationContext: Context, 
                 )
             }
             Button(onClick = {navController.navigate(Screen.RegisterGroup.route) }) {
-                Text(text = "Register")
+                Text(text = "Create group")
+            }
+            Button(onClick = {navController.navigate(Screen.GroupsInvitation.route) }) {
+                Text(text = "Invitations")
             }
             groups?.let { groupList ->
                 groupList.forEach { group ->

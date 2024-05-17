@@ -5,6 +5,7 @@ import com.console.ratcord.domain.entity.group.Group
 import com.console.ratcord.domain.entity.exception.AuthorizationException
 import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
 import com.console.ratcord.domain.entity.userInGroup.UserInGroup
+import com.console.ratcord.domain.entity.userInGroup.UserInGroupInvitation
 import com.console.ratcord.domain.entity.userInGroup.UserInGroupMinimal
 import io.ktor.client.HttpClient
 import io.ktor.client.request.delete
@@ -94,7 +95,7 @@ class UserInGroupService() {
         }
     }
 
-    suspend fun getInvitationsToGroup(context: Context, userId: Int): List<UserInGroup>? {
+    suspend fun getInvitationsToGroup(context: Context, userId: Int): List<UserInGroupInvitation>? {
         val response: HttpResponse = try {
             client.get("http://10.0.2.2:5000/useringroup/invitation/$userId") {
                 headers {
@@ -112,7 +113,7 @@ class UserInGroupService() {
             }
             HttpStatusCode.OK -> {
                 val body: String = response.bodyAsText()
-                return Json.decodeFromString<List<UserInGroup>>(body)
+                return Json.decodeFromString<List<UserInGroupInvitation>>(body)
             }
             else -> {
                 println("Received unexpected status: ${response.status}")

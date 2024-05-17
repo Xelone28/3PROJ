@@ -178,7 +178,7 @@ fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: C
                                     date = expenseTimestamp.time / 1000,
                                     description = description,
                                     place = place,
-                                    userIdInvolved = usersInvolved!!,
+                                    userIdsInvolved = usersInvolved!!,
                                     imagePath = imageUri?.path // Save the image path
                                 )
                                 if (imageUri != null && expenseService.createExpense(

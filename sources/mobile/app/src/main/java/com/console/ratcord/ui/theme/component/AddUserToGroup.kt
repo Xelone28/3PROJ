@@ -71,7 +71,7 @@ fun AddUserToGroup(context: Context, userInGroupService: UserInGroupService, use
                         userInGroupService.addUserInGroup(context, userInGroup)
                         navController.navigate(Screen.Profile.route)
                     } else {
-                        errorMessage = "Register failed. Please your inputs."
+                        errorMessage = "The user does not exist."
                     }
                 }
             },

@@ -55,7 +55,7 @@ public class DebtController : ControllerBase
                 if (users != null) {
                     foreach (var user in users)
                     {
-                        if (user.UserId == userId)
+                        if (user.User.Id == userId)
                         {
                             IList<DebtMinimal> debtsDto = new List<DebtMinimal>();
                             var debts = await _debtService.GetDebtsByExpenseId(id);

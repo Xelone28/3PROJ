@@ -7,7 +7,7 @@ import kotlinx.serialization.Transient
 data class ExpenseMinimalWithImage(
     val userId: Int,
     val groupId: Int,
-    val userIdInvolved: List<Int>,
+    val userIdsInvolved: List<Int>,
     val categoryId: Int,
     val amount: Float,
     val date: Long,
