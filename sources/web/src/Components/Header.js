@@ -3,18 +3,25 @@ import { Link } from 'react-router-dom';
 
 function Header({ user }) {
   const [username, setUsername] = useState('');
+  let token = null;
+  const tokenCookie = document.cookie.split('; ').find(row => row.startsWith('token='));
+  if (tokenCookie) {
+    token = tokenCookie.split('=')[1];
+  }
+
 
   useEffect(() => {
     const fetchUser = async () => {
       if (!user || !user.id) return;
-      const response = await fetch(`http://localhost:5000/api/users/${user.id}`);
-      const userData = await response.json();
+      const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
+        headers: {'Authorization': `Bearer ${token}`}
+      });      const userData = await response.json();
       setUsername(userData.username);
     };
 
     // console.log('user prop:', user); // Check the value of the user prop
     fetchUser();
-  }, [user]);
+  }, [user,token]);
 
   // console.log('username:', username); // Check the value of the username
 

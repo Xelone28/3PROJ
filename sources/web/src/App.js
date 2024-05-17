@@ -14,7 +14,7 @@ import Groups from './Components/Groups';
 import Groupepage from './Components/Groupepage';
 import Invitations from './Components/Invitations';
 import CreateExpense from './Components/Createexpense';
-import Editgroup from './Components/Editgroup';
+import EditExpense from './Components/Editexpense';
 import Expensepage from './Components/Expensepage';
 
 
@@ -54,9 +54,9 @@ function App() {
           <Route path="/Groups" element={<Groups/>} />
           <Route path="/Creategroup" element={<Creategroup/>} />
           <Route path="/group/:Id" element={<Groupepage/>} />
-          <Route path="/editgroup/:Id" element={<Editgroup/>} />
           <Route path="/invitations" element={<Invitations/>} />
           <Route path="/createexpense/:groupId" element={<CreateExpense />} />
+          <Route path="/editexpense/:expenseId" element={<EditExpense/>} />
           <Route path="/expensepage/:expenseId" element={<Expensepage />} />
         </Routes>
       </div>

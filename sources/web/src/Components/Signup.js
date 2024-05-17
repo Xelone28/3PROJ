@@ -1,43 +1,41 @@
-
 import React, { useState } from 'react';
 import '../assets/css/Signup.css';
 import { useNavigate } from 'react-router-dom';
+
 const Signup = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+  const [image, setImage] = useState(null);  // New state variable for the image
+
   const navigate = useNavigate();
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (password !== confirmPassword) {
+    if (password !== confirmPassword ) {
       alert("Passwords don't match");
+    } else if(!image){
+      alert("upload a profile image");
     } else {
       // Get form data
       const email = event.target.elements.email.value;
       const username = event.target.elements.username.value;
       const rib = event.target.elements.rib.value;
       const paypalUsername = event.target.elements.paypal.value;
-  
-      // Create user object
-      const user = {
-        Username: username,
-        Email: email,
-        Password: password,
-        Rib: rib,
-        PaypalUsername: paypalUsername
-      };
-  
-      const userJson = JSON.stringify(user);
-      console.log(userJson); // Log JSON string
-  
+
+      // Create FormData object
+      const formData = new FormData();
+      formData.append('Username', username);
+      formData.append('Email', email);
+      formData.append('Password', password);
+      formData.append('Rib', rib);
+      formData.append('PaypalUsername', paypalUsername);
+      formData.append('Image', image);  // Add image
+
+
       // Send POST request
       fetch('http://localhost:5000/api/users', {
         method: 'POST',
-        
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: userJson,
+        body: formData,
       })
       .then(response => response.json())
       .then(data => {
@@ -48,6 +46,7 @@ const Signup = () => {
         } else {
           console.error('Server response:', data);
           alert('An error occurred while creating the user.');
+          console.log(data);
         }
       })
       .catch((error) => {
@@ -55,6 +54,10 @@ const Signup = () => {
         alert('An error occurred while creating the user.');
       });
     }
+  };
+
+  const handleImageChange = (event) => {  // New function to handle image changes
+    setImage(event.target.files[0]);
   };
 
   return (
@@ -86,6 +89,10 @@ const Signup = () => {
             Confirm Password:
             <input type="password" name="confirmPassword" onChange={e => setConfirmPassword(e.target.value)} />
           </label>
+          <label>
+          Image:
+          <input type="file" name="image" onChange={handleImageChange} />
+        </label>
         </div>
         <div className="form-row">
           <input type="submit" value="Submit" />
