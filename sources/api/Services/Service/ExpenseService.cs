@@ -21,6 +21,7 @@ namespace DotNetAPI.Services.Service
         public async Task<Expense?> GetExpenseById(int id)
         {
             return await _dbContext.Set<Expense>()
+                .Include(d => d.User)
                 .Include(d => d.Category)
                 .FirstOrDefaultAsync(d => d.Id == id);
         }
