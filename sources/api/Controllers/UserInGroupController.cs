@@ -3,6 +3,7 @@ using DotNetAPI.Helpers;
 using DotNetAPI.Models.UserInGroup;
 using DotNetAPI.Services.Interface;
 using DotNetAPI.Models.Group;
+using DotNetAPI.Models.Expense;
 
 [ApiController]
 [Route("[controller]")]
@@ -57,17 +58,16 @@ public class UserInGroupController : ControllerBase
                 return NotFound("Membership not found.");
             } else
             {
-                var membershipsDtos = new List<UserInGroupCreateDTO>();
+                IList<UserInGroupCreateDTO> membershipsDtos = new List<UserInGroupCreateDTO>();
                 foreach (UserInGroup membership in memberships)
                 {
-                    membershipsDtos.Add(
-                        new UserInGroupCreateDTO
-                        {
-                            UserId = membership.User.Id,
-                            GroupId = membership.Group.Id,
-                            IsGroupAdmin = membership.IsGroupAdmin
-                        }
-                    );
+                    var invitation = new UserInGroupCreateDTO
+                    {
+                        UserId = membership.User.Id,
+                        GroupId = membership.Group.Id,
+                        IsGroupAdmin = membership.IsGroupAdmin
+                    };
+                    membershipsDtos.Add(invitation);
                 }
                 return Ok(membershipsDtos);
             }
