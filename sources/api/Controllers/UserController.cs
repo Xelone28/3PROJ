@@ -180,7 +180,7 @@ namespace DotNetAPI.Controllers
 
                 }
             }
-            if (await _userService.UpdateUser(userFromDb, userFromDb.Password) == null)
+            if (await _userService.UpdateUser(userFromDb, string.IsNullOrEmpty(user.Password) ? null: user.Password) == null)
             {
                 return NotFound("The user does not exists");
             } else

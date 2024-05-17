@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20240516223039_makeMigration")]
+    [Migration("20240517135759_makeMigration")]
     partial class makeMigration
     {
         /// <inheritdoc />

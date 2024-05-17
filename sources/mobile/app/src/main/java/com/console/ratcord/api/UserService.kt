@@ -197,11 +197,22 @@ class UserService() {
                     contentType(ContentType.Application.Json)
                     body = MultiPartFormDataContent(
                         formData {
-                            append("username", user.username)
-                            append("email", user.email)
-                            append("password", user.password)
-                            append("paypalusername", user.paypalUsername.toString())
-                            append("rib", user.rib.toString())
+                            if (user.username.isNotEmpty()) {
+                                append("username", user.username)
+                            }
+                            if (user.email.isNotEmpty()) {
+                                append("email", user.email)
+                            }
+                            if (user.password.isNotEmpty()) {
+                                append("password", user.password)
+                            }
+                            if (user.paypalUsername?.isNotEmpty() == true) {
+                                append("paypalusername", user.paypalUsername.toString())
+                            }
+                            if (user.rib?.isNotEmpty() == true) {
+                                append("rib", user.rib.toString())
+                            }
+
                             if (imageUri != null) {
                                 appendFile("image", imageUri, context)
                             }

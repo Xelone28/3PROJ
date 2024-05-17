@@ -58,13 +58,12 @@ public class UserInGroupController : ControllerBase
                 return NotFound("Membership not found.");
             } else
             {
-                IList<UserInGroupCreateDTO> membershipsDtos = new List<UserInGroupCreateDTO>();
+                IList<UserInGroupInvitationDTO> membershipsDtos = new List<UserInGroupInvitationDTO>();
                 foreach (UserInGroup membership in memberships)
                 {
-                    var invitation = new UserInGroupCreateDTO
+                    var invitation = new UserInGroupInvitationDTO
                     {
-                        UserId = membership.User.Id,
-                        GroupId = membership.Group.Id,
+                        Group = membership.Group,
                         IsGroupAdmin = membership.IsGroupAdmin
                     };
                     membershipsDtos.Add(invitation);

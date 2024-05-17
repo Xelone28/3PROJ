@@ -157,6 +157,13 @@ class Navigation() {
                         navController = navController
                     )
                 }
+                composable(Screen.GroupsInvitation.route) {
+                    GroupsInvitation(
+                        userInGroupService = userInGroupService,
+                        applicationContext = applicationContext,
+                        navController = navController
+                    )
+                }
                 composable(
                     "${Screen.GroupDetails}/{groupId}",
                     arguments = listOf(navArgument("groupId") { type = NavType.IntType })

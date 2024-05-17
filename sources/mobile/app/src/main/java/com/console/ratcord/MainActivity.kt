@@ -1,8 +1,10 @@
 package com.console.ratcord
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import com.console.ratcord.api.Utils
 
 sealed class Screen(val route: String) {
@@ -16,6 +18,7 @@ sealed class Screen(val route: String) {
     object Groups : Screen("Groups")
     object EditUser : Screen("EditUser/{userId}")
     object EnsureConnexion : Screen("EnsureConnexion")
+    object GroupsInvitation : Screen("GroupsInvitation")
 }
 
 sealed class ExpenseTab(val route: String) {
@@ -26,6 +29,7 @@ sealed class ExpenseTab(val route: String) {
     object EditExpense : ExpenseTab("EditExpense/{expenseId}")
 }
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

@@ -24,6 +24,7 @@ import androidx.navigation.NavController
 import com.console.ratcord.api.LocalStorage
 import com.console.ratcord.api.Utils
 import com.console.ratcord.domain.entity.user.UserMinimalWithId
+import com.console.ratcord.domain.entity.user.UserMinimalWithImage
 import kotlinx.serialization.json.Json
 
 @Composable
@@ -57,8 +58,8 @@ fun EnsureConnexion(userService: UserService, applicationContext: Context, navCo
                         key = LocalStorage.USER
                     )
                     if (loggedInUser != null) {
-                        val loggedInUserSerialized: UserMinimalWithId =
-                            Json.decodeFromString<UserMinimalWithId>(loggedInUser)
+                        val loggedInUserSerialized: UserMinimalWithImage =
+                            Json.decodeFromString<UserMinimalWithImage>(loggedInUser)
                         if (userService.login(
                             context = applicationContext,
                             email = loggedInUserSerialized.email,

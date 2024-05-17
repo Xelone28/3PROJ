@@ -1,9 +1,8 @@
 package com.console.ratcord.domain.entity.userInGroup
+import com.console.ratcord.domain.entity.group.Group
 import kotlinx.serialization.Serializable
 @Serializable
-data class UserInGroupMinimal(
-    val groupId: Int,
-    val userId: Int,
+data class UserInGroupInvitation(
+    val group: Group,
     val isGroupAdmin: Boolean,
-    val isActive: Boolean
 )

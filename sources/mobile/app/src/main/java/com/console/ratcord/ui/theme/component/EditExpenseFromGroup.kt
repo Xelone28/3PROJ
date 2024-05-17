@@ -169,7 +169,7 @@ fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService
                             date = expenseTimestamp?.time?.div(1000),
                             description = description,
                             place = place,
-                            userIdInvolved = usersInvolved
+                            userIdsInvolved = usersInvolved
                         )
 
                         if (expenseService.updateExpense(
