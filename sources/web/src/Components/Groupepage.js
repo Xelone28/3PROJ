@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { Bar } from 'react-chartjs-2';
 import '../assets/css/Groupepage.css';
 
 function GroupPage() {
@@ -8,6 +9,7 @@ function GroupPage() {
   const navigate = useNavigate();
   const [group, setGroup] = useState(null);
   const [users, setUsers] = useState([]);
+  const [debts, setDebts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [groupName, setGroupName] = useState(group ? group.name : '');
@@ -17,7 +19,7 @@ function GroupPage() {
   const [isInviteUserAdmin, setIsInviteUserAdmin] = useState(false);
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
-
+  
   useEffect(() => {
     const fetchExpenses = async () => {
       const response = await fetch(`http://localhost:5000/expense/group/${Id}`, {
@@ -56,14 +58,6 @@ function GroupPage() {
     fetchGroup();
   }, [Id, token]);
 
-  const handleNameChange = (e) => {
-    setGroupName(e.target.value);
-  };
-
-  const handleDescChange = (e) => {
-    setGroupDesc(e.target.value);
-  };
-
   useEffect(() => {
     const fetchCategories = async () => {
       const response = await fetch(`http://localhost:5000/category/group/${Id}`, {
@@ -84,6 +78,67 @@ function GroupPage() {
     fetchCategories();
   }, [token, Id]);
 
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const response = await fetch(`http://localhost:5000/useringroup/users/${Id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      }
+    };
+
+    fetchUsers();
+  }, [Id, token]);
+
+  useEffect(() => {
+    const fetchDebts = async () => {
+      const response = await fetch(`http://localhost:5000/DebtAdjustment/group/${Id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setDebts(data);
+      } else {
+        console.error(`Failed to fetch debts: ${response.status}`);
+      }
+    };
+
+    fetchDebts();
+  }, [token, Id]);
+
+  const calculateBalances = () => {
+    const balances = {};
+
+    users.forEach(user => {
+      balances[user.userId] = 0;
+    });
+
+    debts.forEach(debt => {
+      balances[debt.userInCreditId] += debt.adjustmentAmount;
+      balances[debt.userInDebtId] -= debt.adjustmentAmount;
+    });
+
+    return balances;
+  };
+
+  const handleNameChange = (e) => {
+    setGroupName(e.target.value);
+  };
+
+  const handleDescChange = (e) => {
+    setGroupDesc(e.target.value);
+  };
+
   const handleDelete = async () => {
     try {
       const response = await fetch(`http://localhost:5000/group/${Id}`, {
@@ -102,24 +157,6 @@ function GroupPage() {
       console.error('Failed to delete group:', error);
     }
   };
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const response = await fetch(`http://localhost:5000/useringroup/users/${Id}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
-      }
-    };
-
-    fetchUsers();
-  }, [Id, token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -213,10 +250,55 @@ function GroupPage() {
     }
   };
 
+  const balances = calculateBalances();
+  const balanceData = {
+    labels: users.map(user => user.username),
+    datasets: [
+      {
+        label: 'Balance',
+        data: users.map(user => balances[user.userId] || 0),
+        backgroundColor: users.map(user => (balances[user.userId] >= 0 ? 'rgba(75, 192, 192, 0.6)' : 'rgba(255, 99, 132, 0.6)')),
+        borderColor: users.map(user => (balances[user.userId] >= 0 ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)')),
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const options = {
+    indexAxis: 'y',
+    scales: {
+      x: {
+        beginAtZero: true,
+      },
+    },
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+      },
+      tooltip: {
+        callbacks: {
+          label: function(tooltipItem) {
+            return tooltipItem.dataset.label + ': ' + (tooltipItem.raw >= 0 ? 'Somme due' : 'Somme à payer') + ' ' + tooltipItem.raw;
+          }
+        }
+      }
+    }
+  };
+
   return (
     <div>
       <h1>{group.groupName}</h1>
       <p>{group.groupDesc}</p>
+
+      <div className='chart-container'>
+        <div style={{ height: '300px', width: '50%' }}>
+          <Bar data={balanceData} options={options} />
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit}>
         <input type="text" value={groupName} onChange={handleNameChange} placeholder="New group name" />
         <input type="text" value={groupDesc} onChange={handleDescChange} placeholder="New group description" />
@@ -273,6 +355,8 @@ function GroupPage() {
           </div>
         );
       })}
+
+
     </div>
   );
 }
