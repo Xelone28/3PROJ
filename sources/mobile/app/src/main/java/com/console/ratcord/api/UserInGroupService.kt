@@ -26,9 +26,10 @@ import kotlinx.serialization.json.put
 
 class UserInGroupService() {
     private val client: HttpClient = Utils.getHttpClient()
-    suspend fun addUserInGroup(context: Context, userInGroup: UserInGroupMinimal): Boolean {
-        val response: HttpResponse = try {
-            client.post("http://10.0.2.2:5000/useringroup") {
+
+    suspend fun addUserInGroup(context: Context, userInGroup: UserInGroupMinimal): Utils.Companion.Result<Boolean> {
+        return try {
+            val response: HttpResponse = client.post("http://10.0.2.2:5000/useringroup") {
                 headers {
                     append(
                         "Authorization",
@@ -44,192 +45,125 @@ class UserInGroupService() {
                     setBody(userInGroup)
                 }
             }
+            handleResponse(response)
         } catch (e: Exception) {
-            println(e)
-            return false
-        }
-        when (response.status) {
-            HttpStatusCode.Unauthorized -> {
-                throw AuthorizationException("Unauthorized access update user perms.")
-            }
-
-            HttpStatusCode.NoContent -> {
-                return true
-            }
-
-            else -> {
-                println("Received unexpected status: ${response.status}")
-                return false
-            }
+            Utils.Companion.Result.Error(Utils.Companion.NetworkException("Network error occurred: ${e.localizedMessage}"))
         }
     }
 
-    suspend fun updateUserInGroup(context: Context, isActive: Boolean?, isGroupAdmin: Boolean?, userId: Int, groupId: Int): Boolean {
+    suspend fun updateUserInGroup(context: Context, isActive: Boolean?, isGroupAdmin: Boolean?, userId: Int, groupId: Int): Utils.Companion.Result<Boolean> {
         val jsonBody = buildJsonObject {
             put("isGroupAdmin", isGroupAdmin)
             put("isActive", isActive)
         }.toString()
-        val response: HttpResponse = try {
-            client.patch("http://10.0.2.2:5000/useringroup/$userId/$groupId") {
+        return try {
+            val response: HttpResponse = client.patch("http://10.0.2.2:5000/useringroup/$userId/$groupId") {
                 headers {
                     append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                     contentType(ContentType.Application.Json)
                     setBody(jsonBody)
                 }
             }
+            handleResponse(response)
         } catch (e: Exception) {
-            println("Network error occurred: ${e.localizedMessage}")
-            return false
+            Utils.Companion.Result.Error(Utils.Companion.NetworkException("Network error occurred: ${e.localizedMessage}"))
         }
+    }
 
-        when (response.status) {
+    suspend fun getInvitationsToGroup(context: Context, userId: Int): Utils.Companion.Result<List<UserInGroupInvitation>> {
+        return try {
+            val response: HttpResponse = client.get("http://10.0.2.2:5000/useringroup/invitation/$userId") {
+                headers {
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                }
+            }
+            handleResponseWithBody(response)
+        } catch (e: Exception) {
+            Utils.Companion.Result.Error(Utils.Companion.NetworkException("Network error occurred: ${e.localizedMessage}"))
+        }
+    }
+
+    suspend fun getUsersInUserGroups(context: Context, userId: Int): Utils.Companion.Result<List<UserExtraMinimal>> {
+        return try {
+            val response: HttpResponse = client.get("http://10.0.2.2:5000/useringroup/$userId/groupusers") {
+                headers {
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                }
+            }
+            handleResponseWithBody(response)
+        } catch (e: Exception) {
+            Utils.Companion.Result.Error(Utils.Companion.NetworkException("Network error occurred: ${e.localizedMessage}"))
+        }
+    }
+
+    suspend fun deleteUserFromGroup(context: Context, userId: Int, groupId: Int): Utils.Companion.Result<Boolean> {
+        return try {
+            val response: HttpResponse = client.delete("http://10.0.2.2:5000/useringroup/$userId/$groupId") {
+                headers {
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                }
+            }
+            handleResponse(response)
+        } catch (e: Exception) {
+            Utils.Companion.Result.Error(Utils.Companion.NetworkException("Network error occurred: ${e.localizedMessage}"))
+        }
+    }
+
+    suspend fun getUsersInGroup(context: Context, id: Int): Utils.Companion.Result<List<UserMinimalWithUserId>> {
+        return try {
+            val response: HttpResponse = client.get("http://10.0.2.2:5000/useringroup/users/$id") {
+                headers {
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                }
+            }
+            handleResponseWithBody(response)
+        } catch (e: Exception) {
+            Utils.Companion.Result.Error(Utils.Companion.NetworkException("Network error occurred: ${e.localizedMessage}"))
+        }
+    }
+
+    suspend fun getGroupsFromUserId(context: Context, id: Int): Utils.Companion.Result<List<Group>> {
+        return try {
+            val response: HttpResponse = client.get("http://10.0.2.2:5000/useringroup/user/$id") {
+                headers {
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                }
+            }
+            handleResponseWithBody(response)
+        } catch (e: Exception) {
+            Utils.Companion.Result.Error(Utils.Companion.NetworkException("Network error occurred: ${e.localizedMessage}"))
+        }
+    }
+
+    private suspend fun handleResponse(response: HttpResponse): Utils.Companion.Result<Boolean> {
+        return when (response.status) {
             HttpStatusCode.Unauthorized -> {
-                throw AuthorizationException("Unauthorized access to data.")
+                Utils.Companion.Result.Error(Utils.Companion.AuthorizationException("Unauthorized access to data."))
             }
             HttpStatusCode.NoContent -> {
-                return true
+                Utils.Companion.Result.Success(true)
             }
             else -> {
-                println("Received unexpected status: ${response.status}")
-                return false
+                val errorMessage = response.bodyAsText() // Read the error message from the response body
+                Utils.Companion.Result.Error(Utils.Companion.UnexpectedResponseException("Received unexpected status: ${response.status}. Message: $errorMessage"))
             }
         }
     }
 
-    suspend fun getInvitationsToGroup(context: Context, userId: Int): List<UserInGroupInvitation>? {
-        val response: HttpResponse = try {
-            client.get("http://10.0.2.2:5000/useringroup/invitation/$userId") {
-                headers {
-                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
-                }
-            }
-        } catch (e: Exception) {
-            println("Network error occurred: ${e.localizedMessage}")
-            return null
-        }
-
-        when (response.status) {
+    private suspend inline fun <reified T> handleResponseWithBody(response: HttpResponse): Utils.Companion.Result<T> {
+        return when (response.status) {
             HttpStatusCode.Unauthorized -> {
-                throw AuthorizationException("Unauthorized access to data.")
+                Utils.Companion.Result.Error(Utils.Companion.AuthorizationException("Unauthorized access to data."))
             }
-            HttpStatusCode.OK -> {
-                val body: String = response.bodyAsText()
-                return Json.decodeFromString<List<UserInGroupInvitation>>(body)
-            }
-            else -> {
-                println("Received unexpected status: ${response.status}")
-                return null
-            }
-        }
-    }
-
-    suspend fun getUsersInUserGroups(context: Context, userId: Int): List<UserExtraMinimal>? {
-        val response: HttpResponse = try {
-            client.get("http://10.0.2.2:5000/useringroup/$userId/groupusers") {
-                headers {
-                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
-                }
-            }
-        } catch (e: Exception) {
-            println("Network error occurred: ${e.localizedMessage}")
-            return null
-        }
-
-        when (response.status) {
-            HttpStatusCode.Unauthorized -> {
-                throw AuthorizationException("Unauthorized access to data.")
-            }
-            HttpStatusCode.OK -> {
-                val body: String = response.bodyAsText()
-                return Json.decodeFromString<List<UserExtraMinimal>>(body)
-            }
-            else -> {
-                println("Received unexpected status: ${response.status}")
-                return null
-            }
-        }
-    }
-
-    suspend fun deleteUserFromGroup(context: Context, userId: Int, groupId: Int): Boolean {
-        val response: HttpResponse = try {
-            client.delete("http://10.0.2.2:5000/useringroup/$userId/$groupId") {
-                headers {
-                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
-                }
-            }
-        } catch (e: Exception) {
-            println("Network error occurred: ${e.localizedMessage}")
-            return false
-        }
-
-        when (response.status) {
-            HttpStatusCode.Unauthorized -> {
-                throw AuthorizationException("Unauthorized access to data.")
-            }
-            HttpStatusCode.NoContent -> {
-                return true
-            }
-            else -> {
-                println("Received unexpected status: ${response.status}")
-                return false
-            }
-        }
-    }
-
-    suspend fun getUsersInGroup(context: Context, id: Int): List<UserMinimalWithUserId>? {
-        val response: HttpResponse = try {
-            client.get("http://10.0.2.2:5000/useringroup/users/$id") {
-                headers {
-                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
-                }
-            }
-        } catch (e: Exception) {
-            println("Network error occurred: ${e.localizedMessage}")
-            return null
-        }
-        when (response.status) {
-            HttpStatusCode.Unauthorized -> {
-                throw AuthorizationException("Unauthorized access to group data.")
-            }
-
             HttpStatusCode.OK -> {
                 val body: String = response.bodyAsText()
                 val json = Json { ignoreUnknownKeys = true }
-                return json.decodeFromString<List<UserMinimalWithUserId>>(body)
+                val data = json.decodeFromString<T>(body)
+                Utils.Companion.Result.Success(data)
             }
-
             else -> {
-                println("Received unexpected status: ${response.status}")
-                return null
-            }
-        }
-    }
-
-    suspend fun getGroupsFromUserId(context: Context, id: Int): List<Group>? {
-        val response: HttpResponse = try {
-            client.get("http://10.0.2.2:5000/useringroup/user/$id") {
-                headers {
-                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
-                }
-            }
-        } catch (e: Exception) {
-            println("Network error occurred: ${e.localizedMessage}")
-            return null
-        }
-        when (response.status) {
-            HttpStatusCode.Unauthorized -> {
-                throw AuthorizationException("Unauthorized access to group data.")
-            }
-
-            HttpStatusCode.OK -> {
-                val body: String = response.bodyAsText()
-                val json = Json { ignoreUnknownKeys = true }
-                return json.decodeFromString<List<Group>>(body)
-            }
-
-            else -> {
-                println("Received unexpected status: ${response.status}")
-                return null
+                val errorMessage = response.bodyAsText() // Read the error message from the response body
+                Utils.Companion.Result.Error(Utils.Companion.UnexpectedResponseException("Received unexpected status: ${response.status}. Message: $errorMessage"))
             }
         }
     }

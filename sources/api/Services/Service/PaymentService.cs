@@ -63,7 +63,7 @@ namespace DotNetAPI.Services
                     DebtAdjustment = debtAdjustment
                 };
 
-                _context.Payments.Add(payment);
+                _context.Payment.Add(payment);
                 await _context.SaveChangesAsync();
 
                 // Mark all related original debts as paid

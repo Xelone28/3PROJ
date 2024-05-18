@@ -2,13 +2,14 @@ import android.content.Context
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.console.ratcord.api.UserInGroupService
+import com.console.ratcord.api.Utils
 import com.console.ratcord.domain.entity.user.UserExtraMinimal
 import com.console.ratcord.domain.entity.user.UserMinimalWithImage
 import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
 import kotlinx.coroutines.launch
 
 @Composable
-fun PrivateChat(userLoggedIn: UserMinimalWithImage, applicationContext: Context, userInGroupService: UserInGroupService) { //NOT GOOD HERE
+fun PrivateChat(userLoggedIn: UserMinimalWithImage, applicationContext: Context, userInGroupService: UserInGroupService) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var usersInGroup by remember { mutableStateOf<List<UserExtraMinimal>?>(emptyList()) }
     var userToCommunicateWith by remember { mutableStateOf<UserExtraMinimal?>(null) }
@@ -16,16 +17,27 @@ fun PrivateChat(userLoggedIn: UserMinimalWithImage, applicationContext: Context,
 
     LaunchedEffect(key1 = 1) {
         coroutineScope.launch {
-            try {
-                usersInGroup = userInGroupService.getUsersInUserGroups(applicationContext, userLoggedIn.id)
-            } catch (e: Exception) {
-                errorMessage = "Failed to retrieve users from group"
+            when (val result = userInGroupService.getUsersInUserGroups(applicationContext, userLoggedIn.id)) {
+                is Utils.Companion.Result.Success -> {
+                    usersInGroup = result.data
+                }
+                is Utils.Companion.Result.Error -> {
+                    val exception = result.exception
+                    errorMessage = when (exception) {
+                        is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                        is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                        is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                        else -> "An unknown error occurred."
+                    }
+                }
             }
         }
     }
+
     errorMessage?.let { message ->
         AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
     }
+
     if (userToCommunicateWith == null && usersInGroup != null) {
         SearchableDropDown(
             context = applicationContext,
@@ -36,8 +48,8 @@ fun PrivateChat(userLoggedIn: UserMinimalWithImage, applicationContext: Context,
         )
     } else {
         val orderedList = userToCommunicateWith?.let { listOf(userLoggedIn.id, it.id).sorted() }
-        if (orderedList is List){
-            val privateRecipient = "PrivateChat"+orderedList[0].toString()+orderedList[1].toString()
+        if (orderedList is List<Int>) {
+            val privateRecipient = "PrivateChat${orderedList[0]}${orderedList[1]}"
             ChatScreen(username = userLoggedIn.username, privateRecipient = privateRecipient)
         } else {
             errorMessage = "An error occurred, please contact an administrator"

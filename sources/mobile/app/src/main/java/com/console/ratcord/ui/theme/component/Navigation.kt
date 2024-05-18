@@ -283,6 +283,34 @@ class Navigation() {
                     )
                 }
                 composable(
+                    "${Screen.AddCategoryToGroup}/{groupId}",
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+                ) { navBackStackEntry ->
+                    val groupId = navBackStackEntry.arguments?.getInt("groupId")
+                    if (groupId != null) {
+                        AddCategoryToGroup(
+                            navController = navController,
+                            groupId = groupId,
+                            context = applicationContext,
+                            categoryService = categoryService
+                        )
+                    }
+                }
+                composable(
+                    "${Screen.CategoriesFromGroup}/{groupId}",
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+                ) { navBackStackEntry ->
+                    val groupId = navBackStackEntry.arguments?.getInt("groupId")
+                    if (groupId != null) {
+                        CategoriesFromGroup(
+                            navController = navController,
+                            groupId = groupId,
+                            applicationContext = applicationContext,
+                            categoryService = categoryService
+                        )
+                    }
+                }
+                composable(
                     "${ExpenseTab.UsersFromGroup}/{groupId}",
                     arguments = listOf(navArgument("groupId") { type = NavType.IntType })
                 ) { navBackStackEntry ->
@@ -366,6 +394,9 @@ class Navigation() {
             }
             Button(onClick = { navController.navigate("${ExpenseTab.Expenses}/${groupId}") }) {
                 Text(text = "Expenses")
+            }
+            Button(onClick = { navController.navigate("${Screen.CategoriesFromGroup}/${groupId}") }) {
+                Text(text = "Categories")
             }
             Button(onClick = { navController.navigate("${Screen.Chat}/${groupName}/${groupId}") }) {
                 Text(text = "Group chat")

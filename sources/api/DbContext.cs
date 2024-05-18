@@ -11,21 +11,21 @@ using DotNetAPI.Models.UserInvolvedExpense;
 
 namespace DotNetAPI
 {
-    public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(options)
+    public class UserDbContext : DbContext
     {
+        public UserDbContext(DbContextOptions<UserDbContext> options) : base(options) { }
+
         public DbSet<User> User { get; set; }
         public DbSet<Group> Group { get; set; }
         public DbSet<UserInGroup> UserInGroup { get; set; }
-        public DbSet<Expense> Expense{ get; set; }
+        public DbSet<Expense> Expense { get; set; }
         public DbSet<Category> Category { get; set; }
         public DbSet<Payment> Payment { get; set; }
         public DbSet<Debt> Debt { get; set; }
         public DbSet<Taxe> Taxe { get; set; }
-        public DbSet<UserInvolvedExpense> UserInvolvedExpense{ get; set; }
-        public DbSet<Payment> Payments { get; set; }
+        public DbSet<UserInvolvedExpense> UserInvolvedExpense { get; set; }
         public DbSet<DebtAdjustment> DebtAdjustments { get; set; }
         public DbSet<DebtAdjustmentOriginalDebt> DebtAdjustmentOriginalDebt { get; set; }
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -43,14 +43,14 @@ namespace DotNetAPI
 
             modelBuilder.Entity<UserInGroup>(entity =>
             {
-                entity.HasKey(uig => new { uig.UserId, uig.GroupId});
+                entity.HasKey(uig => new { uig.UserId, uig.GroupId });
             });
 
             modelBuilder.Entity<Category>(entity =>
             {
                 entity.HasKey(e => e.Id);
 
-                entity.Property(e => e.Name);
+                entity.Property(e => e.Name).IsRequired();
 
                 entity.HasOne<Group>()
                       .WithMany()
@@ -62,10 +62,20 @@ namespace DotNetAPI
             {
                 entity.HasKey(a => a.Id);
 
+                entity.HasOne(e => e.User)
+                      .WithMany()
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
                 entity.HasOne<Group>()
                       .WithMany()
-                      .HasForeignKey(p => p.GroupId)
+                      .HasForeignKey(e => e.GroupId)
                       .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Category)
+                      .WithMany()
+                      .HasForeignKey(e => e.CategoryId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Debt>(entity =>
@@ -96,7 +106,7 @@ namespace DotNetAPI
                       .WithMany()
                       .HasForeignKey(p => p.GroupId)
                       .OnDelete(DeleteBehavior.Cascade);
-                
+
                 entity.HasOne<DebtAdjustment>(p => p.DebtAdjustment)
                       .WithMany()
                       .HasForeignKey(p => p.DebtAdjustmentId)
@@ -118,13 +128,13 @@ namespace DotNetAPI
                       .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne<Group>(da => da.Group)
-                     .WithMany()
-                     .HasForeignKey(p => p.GroupId)
-                     .OnDelete(DeleteBehavior.Cascade);
+                      .WithMany()
+                      .HasForeignKey(p => p.GroupId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<UserInvolvedExpense>()
-           .HasKey(uie => new { uie.UserId, uie.ExpenseId });
+                .HasKey(uie => new { uie.UserId, uie.ExpenseId });
 
             modelBuilder.Entity<UserInvolvedExpense>()
                 .HasOne(uie => uie.User)

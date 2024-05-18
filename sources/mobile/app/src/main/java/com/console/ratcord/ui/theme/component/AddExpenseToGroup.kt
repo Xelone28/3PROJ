@@ -31,13 +31,21 @@ import com.console.ratcord.ExpenseTab
 import com.console.ratcord.api.CategoryService
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.UserInGroupService
+import com.console.ratcord.api.Utils
 import com.console.ratcord.domain.entity.category.Category
 import com.console.ratcord.domain.entity.expense.ExpenseMinimalWithImage
+import com.console.ratcord.domain.entity.user.User
 import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: CategoryService, expenseService: ExpenseService, applicationContext: Context, navController: NavController, groupId: Int?) {
+fun AddExpenseToGroup(
+    userInGroupService: UserInGroupService,
+    categoryService: CategoryService,
+    expenseService: ExpenseService,
+    applicationContext: Context,
+    navController: NavController,
+    groupId: Int?
+) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
     var usersInGroup by remember { mutableStateOf<List<UserMinimalWithUserId>?>(emptyList()) }
@@ -59,11 +67,37 @@ fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: C
     if (groupId != null) {
         LaunchedEffect(key1 = groupId) {
             coroutineScope.launch {
-                try {
-                    usersInGroup = userInGroupService.getUsersInGroup(applicationContext, groupId)
-                    categoriesFromGroup = categoryService.getCategoryByGroupId(applicationContext, groupId)
-                } catch (e: Exception) {
-                    errorMessage = "Failed to retrieve users from group"
+                val usersResult = userInGroupService.getUsersInGroup(applicationContext, groupId)
+                val categoriesResult = categoryService.getCategoryByGroupId(applicationContext, groupId)
+
+                when (usersResult) {
+                    is Utils.Companion.Result.Success -> {
+                        usersInGroup = usersResult.data
+                    }
+                    is Utils.Companion.Result.Error -> {
+                        val exception = usersResult.exception
+                        errorMessage = when (exception) {
+                            is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                            is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                            is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                            else -> "An unknown error occurred."
+                        }
+                    }
+                }
+
+                when (categoriesResult) {
+                    is Utils.Companion.Result.Success -> {
+                        categoriesFromGroup = categoriesResult.data
+                    }
+                    is Utils.Companion.Result.Error -> {
+                        val exception = categoriesResult.exception
+                        errorMessage = when (exception) {
+                            is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                            is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                            is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                            else -> "An unknown error occurred."
+                        }
+                    }
                 }
             }
         }
@@ -151,48 +185,61 @@ fun AddExpenseToGroup(userInGroupService: UserInGroupService, categoryService: C
             }
 
             // Display the selected image
-            //imageUri?.let {
+            // imageUri?.let {
             //    bitmap?.let { bmp ->
             //        Image(bitmap = bmp.asImageBitmap(), contentDescription = "Selected Image",
             //            modifier = Modifier.padding(top = 8.dp).fillMaxWidth(), contentScale = ContentScale.Fit)
             //    }
-            //}
+            // }
 
             Button(
                 onClick = {
-                    if (userId is Int && categoryId is Int && date is String && usersInvolved is List<Int> && description != "" && place != "") {
+                    if (userId != null && categoryId != null && date != null && usersInvolved != null && description.isNotEmpty() && place.isNotEmpty()) {
                         coroutineScope.launch {
                             val newAmount: Float? = try {
                                 amount.toFloat()
                             } catch (e: Exception) {
-                                errorMessage = "Please modify amount"
+                                errorMessage = "Please enter a valid amount."
                                 null
                             }
-                            if (newAmount is Float) {
-                                var expenseTimestamp = SimpleDateFormat("yyyy-MM-dd").parse(date)
+                            if (newAmount != null) {
+                                val expenseTimestamp = SimpleDateFormat("yyyy-MM-dd").parse(date).time / 1000
                                 val newExpense = ExpenseMinimalWithImage(
                                     groupId = groupId,
                                     userId = userId!!,
                                     amount = newAmount,
                                     categoryId = categoryId!!,
-                                    date = expenseTimestamp.time / 1000,
+                                    date = expenseTimestamp,
                                     description = description,
                                     place = place,
                                     userIdsInvolved = usersInvolved!!,
-                                    imagePath = imageUri?.path // Save the image path
+                                    imagePath = imageUri?.path
                                 )
-                                if (imageUri != null && expenseService.createExpense(
-                                        context = applicationContext,
-                                        expense = newExpense,
-                                        imageUri
-                                    )
-                                ) {
-                                    navController.navigate("${ExpenseTab.Expenses}/${groupId}")
-                                } else {
-                                    errorMessage = "Something went wrong, please try again"
+
+                                val createExpenseResult = expenseService.createExpense(
+                                    context = applicationContext,
+                                    expense = newExpense,
+                                    imageUri = imageUri
+                                )
+
+                                when (createExpenseResult) {
+                                    is Utils.Companion.Result.Success -> {
+                                        navController.navigate("${ExpenseTab.Expenses}/${groupId}")
+                                    }
+                                    is Utils.Companion.Result.Error -> {
+                                        val exception = createExpenseResult.exception
+                                        errorMessage = when (exception) {
+                                            is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                            is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                            is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                            else -> "An unknown error occurred."
+                                        }
+                                    }
                                 }
                             }
                         }
+                    } else {
+                        errorMessage = "Please fill in all fields."
                     }
                 },
                 modifier = Modifier.padding(top = 16.dp)

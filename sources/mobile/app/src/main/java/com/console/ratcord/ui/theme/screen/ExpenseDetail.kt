@@ -53,6 +53,7 @@ fun ExpenseDetails(expenseService: ExpenseService, debtService: DebtService, app
     var expenseDetails by remember { mutableStateOf<Expense?>(null) }
     var debts by remember { mutableStateOf<List<Debt>?>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(key1 = token) {
         if (token != null) {
@@ -60,10 +61,37 @@ fun ExpenseDetails(expenseService: ExpenseService, debtService: DebtService, app
                 isLoading = true
                 coroutineScope.launch {
                     try {
-                        expenseDetails = expenseService.getExpenseById(context = applicationContext, expenseId = expenseId)
-                        debts = debtService.getByExpenseId(context = applicationContext, expenseId = expenseId)
+                        when (val expenseResult = expenseService.getExpenseById(applicationContext, expenseId)) {
+                            is Utils.Companion.Result.Success -> {
+                                expenseDetails = expenseResult.data
+                            }
+                            is Utils.Companion.Result.Error -> {
+                                val exception = expenseResult.exception
+                                errorMessage = when (exception) {
+                                    is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                    is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                    is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                    else -> "An unknown error occurred."
+                                }
+                            }
+                        }
+
+                        when (val debtsResult = debtService.getByExpenseId(applicationContext, expenseId)) {
+                            is Utils.Companion.Result.Success -> {
+                                debts = debtsResult.data
+                            }
+                            is Utils.Companion.Result.Error -> {
+                                val exception = debtsResult.exception
+                                errorMessage = when (exception) {
+                                    is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                    is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                    is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                    else -> "An unknown error occurred."
+                                }
+                            }
+                        }
                     } catch (e: Exception) {
-                        println("Failed to retrieve expense: ${e.message}")
+                        errorMessage = "Failed to retrieve expense: ${e.message}"
                     } finally {
                         isLoading = false
                     }
@@ -78,9 +106,13 @@ fun ExpenseDetails(expenseService: ExpenseService, debtService: DebtService, app
         if (isLoading) {
             CircularProgressIndicator()
         } else if (expenseDetails != null) {
+            errorMessage?.let { message ->
+                AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
+            }
+
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go back",
                 )
             }
@@ -103,11 +135,10 @@ fun ExpenseDetails(expenseService: ExpenseService, debtService: DebtService, app
             Text("Category: ${expenseDetails!!.category.name}", style = MaterialTheme.typography.bodyLarge)
             Text("Paid by: ${expenseDetails!!.user.username}", style = MaterialTheme.typography.bodyLarge)
 
-            debts.let { debtList ->
-                debtList?.forEach { debt ->
-                    Text("${debt.userInDebt.username} : ${debt.amount}", style = MaterialTheme.typography.bodyLarge)
-                }
+            debts?.forEach { debt ->
+                Text("${debt.userInDebt.username} : ${debt.amount}", style = MaterialTheme.typography.bodyLarge)
             }
+
             val imageUrl = expenseDetails!!.image
             if (imageUrl is String) {
                 Image(
@@ -116,15 +147,31 @@ fun ExpenseDetails(expenseService: ExpenseService, debtService: DebtService, app
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            IconButton(onClick = { coroutineScope.launch {
-                expenseService.deleteExpense(context = applicationContext, expenseId = expenseDetails!!.id)
-                navController.navigate("${ExpenseTab.Expenses}/${expenseDetails!!.groupId}")
-            }}) {
+
+            IconButton(onClick = {
+                coroutineScope.launch {
+                    when (val deleteResult = expenseService.deleteExpense(applicationContext, expenseDetails!!.id)) {
+                        is Utils.Companion.Result.Success -> {
+                            navController.navigate("${ExpenseTab.Expenses}/${expenseDetails!!.groupId}")
+                        }
+                        is Utils.Companion.Result.Error -> {
+                            val exception = deleteResult.exception
+                            errorMessage = when (exception) {
+                                is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                else -> "An unknown error occurred."
+                            }
+                        }
+                    }
+                }
+            }) {
                 Icon(
                     imageVector = Icons.Filled.Delete,
                     contentDescription = "Delete Expense",
                 )
             }
+
             IconButton(onClick = {
                 navController.navigate("${ExpenseTab.EditExpense}/${expenseDetails!!.id}")
             }) {

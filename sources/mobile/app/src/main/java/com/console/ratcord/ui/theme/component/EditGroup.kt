@@ -23,8 +23,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
 import com.console.ratcord.Screen
 import com.console.ratcord.api.GroupService
+import com.console.ratcord.api.Utils
 import com.console.ratcord.domain.entity.group.GroupMinimal
-
 @Composable
 fun EditGroup(groupService: GroupService, applicationContext: Context, navController: NavController, groupId: Int?) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -41,16 +41,28 @@ fun EditGroup(groupService: GroupService, applicationContext: Context, navContro
             }
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go back",
                 )
             }
 
             IconButton(onClick = {
                 coroutineScope.launch {
-                    groupService.deleteGroup(context = applicationContext, groupId = groupId)
+                    when (val result = groupService.deleteGroup(context = applicationContext, groupId = groupId)) {
+                        is Utils.Companion.Result.Success -> {
+                            navController.navigate(Screen.Groups.route)
+                        }
+                        is Utils.Companion.Result.Error -> {
+                            val exception = result.exception
+                            errorMessage = when (exception) {
+                                is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                else -> "An unknown error occurred."
+                            }
+                        }
+                    }
                 }
-                navController.navigate(Screen.Groups.route)
             }) {
                 Icon(
                     imageVector = Icons.Filled.Delete,
@@ -75,19 +87,26 @@ fun EditGroup(groupService: GroupService, applicationContext: Context, navContro
                     coroutineScope.launch {
                         val groupMinimal = GroupMinimal(
                             groupName = groupName,
-                            groupDesc  = groupDescription,
+                            groupDesc = groupDescription,
                         )
-                        if (groupService.updateGroup(
+                        when (val result = groupService.updateGroup(
                             context = applicationContext,
                             groupId = groupId,
-                            groupMinimal = groupMinimal))
-                        {
-                            navController.navigate(Screen.Groups.route)
-
-                        } else {
-                            errorMessage = "Something went wrong, please try again"
+                            groupMinimal = groupMinimal
+                        )) {
+                            is Utils.Companion.Result.Success -> {
+                                navController.navigate(Screen.Groups.route)
+                            }
+                            is Utils.Companion.Result.Error -> {
+                                val exception = result.exception
+                                errorMessage = when (exception) {
+                                    is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                    is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                    is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                    else -> "An unknown error occurred."
+                                }
+                            }
                         }
-
                     }
                 },
                 modifier = Modifier.padding(top = 16.dp)

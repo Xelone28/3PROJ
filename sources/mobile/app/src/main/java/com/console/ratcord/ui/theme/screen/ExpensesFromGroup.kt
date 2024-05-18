@@ -23,6 +23,7 @@ import com.console.ratcord.Screen
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.GroupService
 import com.console.ratcord.api.UserInGroupService
+import com.console.ratcord.api.Utils
 import com.console.ratcord.domain.entity.expense.Expense
 import com.console.ratcord.domain.entity.expense.ExpenseMinimal
 import kotlinx.coroutines.launch
@@ -38,14 +39,21 @@ fun ExpensesFromGroup(expenseFromGroup: ExpenseService, applicationContext: Cont
         LaunchedEffect(key1 = groupId) {
             isLoading = true
             coroutineScope.launch {
-                try {
-                    expenses = expenseFromGroup.getExpenseByGroupId(context = applicationContext, groupId = groupId)
-                } catch (e: Exception) {
-                    println(e)
-                    errorMessage = "Failed to retrieve group"
-                } finally {
-                    isLoading = false
+                when (val result = expenseFromGroup.getExpenseByGroupId(context = applicationContext, groupId = groupId)) {
+                    is Utils.Companion.Result.Success -> {
+                        expenses = result.data
+                    }
+                    is Utils.Companion.Result.Error -> {
+                        val exception = result.exception
+                        errorMessage = when (exception) {
+                            is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                            is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                            is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                            else -> "An unknown error occurred."
+                        }
+                    }
                 }
+                isLoading = false
             }
         }
     } else {
@@ -61,20 +69,18 @@ fun ExpensesFromGroup(expenseFromGroup: ExpenseService, applicationContext: Cont
         } else {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go back",
                 )
             }
-            if (expenses != null) {
-                expenses?.let { expenseList ->
-                    expenseList.forEach { expense ->
-                        ExpenseCard(
-                            expense = expense,
-                            onClick = {
-                                navController.navigate("${ExpenseTab.ExpenseDetails}/${expense.id}")
-                            }
-                        )
-                    }
+            expenses?.let { expenseList ->
+                expenseList.forEach { expense ->
+                    ExpenseCard(
+                        expense = expense,
+                        onClick = {
+                            navController.navigate("${ExpenseTab.ExpenseDetails}/${expense.id}")
+                        }
+                    )
                 }
             }
             IconButton(onClick = { navController.navigate("${ExpenseTab.AddExpenseToGroup}/${groupId}") }) {

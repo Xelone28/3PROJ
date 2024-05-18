@@ -21,72 +21,41 @@ import com.console.ratcord.domain.entity.expense.ExpenseMinimal
 import com.console.ratcord.domain.entity.expense.ExpenseMinimalUpdate
 import io.ktor.util.InternalAPI
 
-class ExpenseService() {
+class ExpenseService {
     private val client: HttpClient = Utils.getHttpClient()
-    suspend fun getExpenseById(context: Context, expenseId: Int): Expense? {
-        val response: HttpResponse = try {
-            client.get("http://10.0.2.2:5000/expense/$expenseId") {
+
+    suspend fun getExpenseById(context: Context, expenseId: Int): Utils.Companion.Result<Expense> {
+        return try {
+            val response: HttpResponse = client.get("http://10.0.2.2:5000/expense/$expenseId") {
                 headers {
-                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                    append("Authorization", "Bearer ${Utils.getItem(context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                 }
             }
+            handleResponseWithBody(response)
         } catch (e: Exception) {
-            println("Network error occurred: ${e.localizedMessage}")
-            return null
-        }
-
-        when (response.status) {
-            HttpStatusCode.Unauthorized -> {
-                throw AuthorizationException("Unauthorized access to expense data.")
-            }
-
-            HttpStatusCode.OK -> {
-                val body: String = response.bodyAsText()
-                return Json.decodeFromString<Expense>(body)
-            }
-
-            else -> {
-                println("Received unexpected status: ${response.status}")
-                return null
-            }
+            Utils.Companion.Result.Error(Utils.Companion.NetworkException("Network error occurred: ${e.localizedMessage}"))
         }
     }
 
-    suspend fun getExpenseByGroupId(context: Context, groupId: Int): List<ExpenseMinimal>? {
-        val response: HttpResponse = try {
-            client.get("http://10.0.2.2:5000/expense/group/$groupId") {
+    suspend fun getExpenseByGroupId(context: Context, groupId: Int): Utils.Companion.Result<List<ExpenseMinimal>> {
+        return try {
+            val response: HttpResponse = client.get("http://10.0.2.2:5000/expense/group/$groupId") {
                 headers {
-                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                    append("Authorization", "Bearer ${Utils.getItem(context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                 }
             }
+            handleResponseWithBody(response)
         } catch (e: Exception) {
-            println("Network error occurred: ${e.localizedMessage}")
-            return null
-        }
-
-        when (response.status) {
-            HttpStatusCode.Unauthorized -> {
-                throw AuthorizationException("Unauthorized access to user data.")
-            }
-
-            HttpStatusCode.OK -> {
-                val body: String = response.bodyAsText()
-                return Json.decodeFromString<List<ExpenseMinimal>>(body)
-            }
-
-            else -> {
-                println("Received unexpected status: ${response.status}")
-                return null
-            }
+            Utils.Companion.Result.Error(Utils.Companion.NetworkException("Network error occurred: ${e.localizedMessage}"))
         }
     }
 
     @OptIn(InternalAPI::class)
-    suspend fun createExpense(context: Context, expense: ExpenseMinimalWithImage, imageUri: Uri?): Boolean {
-        val response: HttpResponse = try {
-            client.post("http://10.0.2.2:5000/expense") {
+    suspend fun createExpense(context: Context, expense: ExpenseMinimalWithImage, imageUri: Uri?): Utils.Companion.Result<Boolean> {
+        return try {
+            val response: HttpResponse = client.post("http://10.0.2.2:5000/expense") {
                 headers {
-                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                    append("Authorization", "Bearer ${Utils.getItem(context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                 }
                 body = MultiPartFormDataContent(
                     formData {
@@ -106,17 +75,9 @@ class ExpenseService() {
                     }
                 )
             }
+            handleResponse(response)
         } catch (e: Exception) {
-            println("HTTP request failed: ${e.message}")
-            return false
-        }
-
-        return when (response.status) {
-            HttpStatusCode.OK, HttpStatusCode.Created -> true
-            else -> {
-                println("Failed with status: ${response.status}")
-                false
-            }
+            Utils.Companion.Result.Error(Utils.Companion.NetworkException("HTTP request failed: ${e.localizedMessage}"))
         }
     }
 
@@ -134,77 +95,83 @@ class ExpenseService() {
     }
 
     @OptIn(InternalAPI::class)
-    suspend fun updateExpense(context: Context, expense: ExpenseMinimalUpdate, expenseId: Int, imageUri: Uri?): Boolean {
-        val response: HttpResponse = try {
-            client.patch("http://10.0.2.2:5000/expense/$expenseId") {
+    suspend fun updateExpense(context: Context, expense: ExpenseMinimalUpdate, expenseId: Int, imageUri: Uri?): Utils.Companion.Result<Boolean> {
+        return try {
+            val response: HttpResponse = client.patch("http://10.0.2.2:5000/expense/$expenseId") {
                 headers {
-                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                    append("Authorization", "Bearer ${Utils.getItem(context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                 }
                 body = MultiPartFormDataContent(
                     formData {
                         expense.categoryId?.let {
-                            append("place", expense.categoryId.toString())
+                            append("categoryId", it.toString())
                         }
                         expense.date?.let {
-                            append("place", expense.date.toString())
+                            append("date", it.toString())
                         }
                         expense.place?.let {
-                            append("place", expense.place.toString())
+                            append("place", it)
                         }
                         expense.description?.let {
-                            append("description", expense.description.toString())
+                            append("description", it)
                         }
                         expense.userIdsInvolved?.forEach { userId ->
                             append("userIdInvolved[]", userId.toString())
                         }
-                        if (imageUri is Uri) {
+                        if (imageUri != null) {
                             appendFile("image", imageUri, context)
                         }
-
                     }
                 )
             }
+            handleResponse(response)
         } catch (e: Exception) {
-            println("HTTP request failed: ${e.message}")
-            return false
+            Utils.Companion.Result.Error(Utils.Companion.NetworkException("HTTP request failed: ${e.localizedMessage}"))
         }
+    }
 
+    suspend fun deleteExpense(context: Context, expenseId: Int): Utils.Companion.Result<Boolean> {
+        return try {
+            val response: HttpResponse = client.delete("http://10.0.2.2:5000/expense/$expenseId") {
+                headers {
+                    append("Authorization", "Bearer ${Utils.getItem(context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                }
+            }
+            handleResponse(response)
+        } catch (e: Exception) {
+            Utils.Companion.Result.Error(Utils.Companion.NetworkException("Network error occurred: ${e.localizedMessage}"))
+        }
+    }
+
+    private suspend fun handleResponse(response: HttpResponse): Utils.Companion.Result<Boolean> {
         return when (response.status) {
             HttpStatusCode.Unauthorized -> {
-                throw AuthorizationException("Unauthorized access to user data.")
+                Utils.Companion.Result.Error(Utils.Companion.AuthorizationException("Unauthorized access to data."))
             }
-            HttpStatusCode.NoContent, HttpStatusCode.OK -> {
-                true
+            HttpStatusCode.NoContent, HttpStatusCode.OK, HttpStatusCode.Created -> {
+                Utils.Companion.Result.Success(true)
             }
             else -> {
-                println("Failed with status: ${response.status}")
-                false
+                val errorMessage = response.bodyAsText() // Read the error message from the response body
+                Utils.Companion.Result.Error(Utils.Companion.UnexpectedResponseException("Received unexpected status: ${response.status}. Message: $errorMessage"))
             }
         }
     }
 
-    suspend fun deleteExpense(context: Context, expenseId: Int): Boolean {
-        val response: HttpResponse = try {
-            client.delete("http://10.0.2.2:5000/expense/$expenseId") {
-                headers {
-                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
-                }
-            }
-        } catch (e: Exception) {
-            println("Network error occurred: ${e.localizedMessage}")
-            return false
-        }
-
-        when (response.status) {
+    private suspend inline fun <reified T> handleResponseWithBody(response: HttpResponse): Utils.Companion.Result<T> {
+        return when (response.status) {
             HttpStatusCode.Unauthorized -> {
-                throw AuthorizationException("Unauthorized access to data.")
+                Utils.Companion.Result.Error(Utils.Companion.AuthorizationException("Unauthorized access to data."))
             }
-            HttpStatusCode.NoContent -> {
-                return true
+            HttpStatusCode.OK -> {
+                val body: String = response.bodyAsText()
+                val json = Json { ignoreUnknownKeys = true }
+                val data = json.decodeFromString<T>(body)
+                Utils.Companion.Result.Success(data)
             }
             else -> {
-                println("Received unexpected status: ${response.status}")
-                return false
+                val errorMessage = response.bodyAsText() // Read the error message from the response body
+                Utils.Companion.Result.Error(Utils.Companion.UnexpectedResponseException("Received unexpected status: ${response.status}. Message: $errorMessage"))
             }
         }
     }
