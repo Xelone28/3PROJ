@@ -27,6 +27,7 @@ sealed class ExpenseTab(val route: String) {
     object ExpenseDetails : ExpenseTab("ExpenseDetails/{expenseId}")
     object AddExpenseToGroup : ExpenseTab("addExpenseToGroup/{groupId}")
     object EditExpense : ExpenseTab("EditExpense/{expenseId}")
+    object Stripe : Screen ("Stripe") // to modify
 }
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)

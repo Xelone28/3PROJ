@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -55,6 +56,11 @@ data class BottomNavigationItem(
                 label = "Profile",
                 icon = Icons.Filled.AccountCircle,
                 route = Screen.Profile.route
+            ),
+            BottomNavigationItem(
+                label = "Stripe",
+                icon = Icons.Filled.PlayArrow,
+                route = ExpenseTab.Stripe.route
             )
         )
     }
@@ -216,6 +222,10 @@ class Navigation() {
                         screenRedirection = "${Screen.EditUser}/$userId"
                     )
                 }
+                composable(ExpenseTab.Stripe.route) {
+                    paymentStripe()
+                }
+
                 composable(
                     "${ExpenseTab.UsersFromGroup}/{groupId}",
                     arguments = listOf(navArgument("groupId") { type = NavType.IntType })

@@ -96,4 +96,10 @@ dependencies {
 
     // nav
     implementation("androidx.navigation:navigation-compose:2.7.7")
+    //Stripe
+    implementation ("com.stripe:stripe-android:20.43.0")
+    implementation ("com.github.kittinunf.fuel:fuel:2.3.1")
+    implementation ("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
+    implementation ("com.github.kittinunf.fuel:fuel-json:2.3.1")
+
 }
