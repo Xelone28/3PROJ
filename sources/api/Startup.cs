@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
@@ -122,13 +122,14 @@ services.AddCors(options =>
     {
         // Migration done here
         app.UseDeveloperExceptionPage();
-        //dbContext.Database.Migrate();
+        dbContext.Database.Migrate();
         
         app.UseCors("AllowMyOrigin");
         app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseMiddleware<JwtMiddleware>();
+        app.UseCors("AllowMyOrigin");
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();

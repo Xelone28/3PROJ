@@ -3,65 +3,55 @@ import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import '../assets/css/Groupepage.css';
 
-
-
 function GroupPage() {
   const { Id } = useParams();
   const navigate = useNavigate();
   const [group, setGroup] = useState(null);
   const [users, setUsers] = useState([]);
-  // const [userId, setUserId] = useState('');
-  // const [isGroupAdmin, setIsGroupAdmin] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [groupName, setGroupName] = useState(group ? group.name : '');
   const [groupDesc, setGroupDesc] = useState(group ? group.description : '');
   const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1];
-  const [inviteUserId, setInviteUserId] = useState('')
-  const [isInviteUserAdmin, setIsInviteUserAdmin] = useState(false)
+  const [inviteUserId, setInviteUserId] = useState('');
+  const [isInviteUserAdmin, setIsInviteUserAdmin] = useState(false);
   const [expenses, setExpenses] = useState([]);
-  
   const [categories, setCategories] = useState([]);
 
-  
-  
-// -----------------------------get expenses---------------------------------------
-useEffect(() => {
-  const fetchExpenses = async () => {
-    const response = await fetch(`http://localhost:5000/expense/group/${Id}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      setExpenses(data);
-    } else {
-      console.error(`Failed to fetch expenses: ${response.status}`);
-    }
-  };
-
-  fetchExpenses();
-}, [token, Id]);
-
-// -----------------------------get group info  ---------------------------------------
   useEffect(() => {
-    // console.log('Id:', Id);
+    const fetchExpenses = async () => {
+      const response = await fetch(`http://localhost:5000/expense/group/${Id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setExpenses(data);
+        console.log('expenses:', data);
+      } else {
+        console.error(`Failed to fetch expenses: ${response.status}`);
+      }
+    };
+
+    fetchExpenses();
+  }, [token, Id]);
+
+  useEffect(() => {
     const fetchGroup = async () => {
       try {
         const response = await fetch(`http://localhost:5000/group/${Id}`, {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            'Authorization': `Bearer ${token}`,
+          },
         });
         const data = await response.json();
         setGroup(data);
       } catch (error) {
         console.error('Failed to fetch group:', error);
       }
-      
     };
     fetchGroup();
   }, [Id, token]);
@@ -74,12 +64,7 @@ useEffect(() => {
     setGroupDesc(e.target.value);
   };
 
-
-  // console.log('groupId:', Id);  // Add this line
-
   useEffect(() => {
-    
-  
     const fetchCategories = async () => {
       const response = await fetch(`http://localhost:5000/category/group/${Id}`, {
         method: 'GET',
@@ -87,7 +72,7 @@ useEffect(() => {
           'Authorization': `Bearer ${token}`,
         },
       });
-  
+
       if (response.ok) {
         const data = await response.json();
         setCategories(data);
@@ -95,35 +80,29 @@ useEffect(() => {
         console.error(`Failed to fetch categories: ${response.status}`);
       }
     };
-  
+
     fetchCategories();
-  }, [token,Id]);
-
-
-
-// -----------------------------delete group---------------------------------------
+  }, [token, Id]);
 
   const handleDelete = async () => {
     try {
       const response = await fetch(`http://localhost:5000/group/${Id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Redirect to /groups after deleting the group
       navigate('/groups');
     } catch (error) {
       console.error('Failed to delete group:', error);
     }
   };
 
-// -----------------------------get users in group---------------------------------------
   useEffect(() => {
     const fetchUsers = async () => {
       const response = await fetch(`http://localhost:5000/useringroup/users/${Id}`, {
@@ -132,17 +111,16 @@ useEffect(() => {
           'Authorization': `Bearer ${token}`,
         },
       });
-  
+
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
-      } else {
       }
     };
-  
+
     fetchUsers();
-  }, [Id,token]);
-// -----------------------------modify group---------------------------------------
+  }, [Id, token]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -150,14 +128,14 @@ useEffect(() => {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           groupName,
-          groupDesc
-        })
+          groupDesc,
+        }),
       });
-  
+
       if (response.ok) {
         const text = await response.text();
         if (text) {
@@ -167,8 +145,7 @@ useEffect(() => {
       } else {
         console.error('Failed to update group:', response.status);
       }
-  
-      // Redirect to /groups
+
       navigate('/groups');
     } catch (error) {
       console.error('Failed to update group:', error);
@@ -179,8 +156,6 @@ useEffect(() => {
     return <div>Loading...</div>;
   }
 
-// -----------------------------show user info---------------------------------------
-
   const fetchUserData = async (userId) => {
     const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
       method: 'GET',
@@ -188,7 +163,7 @@ useEffect(() => {
         'Authorization': `Bearer ${token}`,
       },
     });
-  
+
     if (response.ok) {
       const data = await response.json();
       setSelectedUser(data);
@@ -198,11 +173,9 @@ useEffect(() => {
     }
   };
 
-// -----------------------------invite user---------------------------------------
-
   const handleInviteSubmit = async (event) => {
     event.preventDefault();
-  
+
     const response = await fetch('http://localhost:5000/useringroup', {
       method: 'POST',
       headers: {
@@ -211,11 +184,11 @@ useEffect(() => {
       },
       body: JSON.stringify({
         userId: inviteUserId,
-        GroupId: group.id,  // Use the Id of the current group
-        IsGroupAdmin: isInviteUserAdmin,  // Replace with your actual value
+        GroupId: group.id,
+        IsGroupAdmin: isInviteUserAdmin,
       }),
     });
-  
+
     if (response.ok) {
       alert('User invited successfully!');
       window.location.reload();
@@ -231,17 +204,14 @@ useEffect(() => {
         'Authorization': `Bearer ${token}`,
       },
     });
-  
+
     if (response.ok) {
       alert('Expense deleted successfully!');
       window.location.reload();
-      // Update your state here to remove the deleted expense
     } else {
       console.error(`Error: ${response.status}`);
     }
   };
-
-
 
   return (
     <div>
@@ -254,62 +224,55 @@ useEffect(() => {
       </form>
       <button onClick={handleDelete}>Delete Group</button>
 
-      <h3>
-      users in this group
-      </h3>
+      <h3>Users in this group</h3>
       <ul>
-  {users.map(user => (
-    <li key={user.userId} onClick={() => fetchUserData(user.userId)}>
-      {user.username}
-    </li>
-  ))}
-</ul>
+        {users.map(user => (
+          <li key={user.userId} onClick={() => fetchUserData(user.userId)}>
+            {user.username}
+          </li>
+        ))}
+      </ul>
 
-<h2>Invite User</h2>
-    <form onSubmit={handleInviteSubmit}>
-      <label>
-        User ID to invite:
-        <input type="text" value={inviteUserId} onChange={e => setInviteUserId(e.target.value)} />
-      </label>
-      <label>
+      <h2>Invite User</h2>
+      <form onSubmit={handleInviteSubmit}>
+        <label>
+          User ID to invite:
+          <input type="text" value={inviteUserId} onChange={e => setInviteUserId(e.target.value)} />
+        </label>
+        <label>
           Set as admin:
           <input type="checkbox" checked={isInviteUserAdmin} onChange={e => setIsInviteUserAdmin(e.target.checked)} />
         </label>
-      <input type="submit" value="Invite" />
-    </form>
+        <input type="submit" value="Invite" />
+      </form>
 
-{showModal && selectedUser && (
-  <div className="modal">
-    <h2>{selectedUser.username}</h2>
-    {selectedUser.image && <img src={selectedUser.image} style={{width: "300px"}} alt="User" />}
-    <p>Email: {selectedUser.email}</p>
-    <p>RIB: {selectedUser.rib}</p>
-    <p>Paypal Username: {selectedUser.paypalUsername}</p>
-    <button onClick={() => setShowModal(false)}>Close</button>
-  </div>
-)}
+      {showModal && selectedUser && (
+        <div className="modal">
+          <h2>{selectedUser.username}</h2>
+          {selectedUser.image && <img src={selectedUser.image} style={{ width: "300px" }} alt="User" />}
+          <p>Email: {selectedUser.email}</p>
+          <p>RIB: {selectedUser.rib}</p>
+          <p>Paypal Username: {selectedUser.paypalUsername}</p>
+          <button onClick={() => setShowModal(false)}>Close</button>
+        </div>
+      )}
 
-
-<button onClick={() => navigate(`/createexpense/${group.id}`)}>Create Expense</button>
-{expenses.map(expense => {
-  const user = users.find(user => user.userId === expense.userId);
-  const category = categories.find(category => category.id === expense.categoryId);
-  return (
-    <div key={expense.id} className='expense'>
-      <p>Amount: {expense.amount}</p>
-      <p>Place: {expense.place}</p>
-      {/* <p>Description: {expense.description}</p> */}
-      <p>Date: {new Date(expense.date * 1000).toLocaleDateString()}</p>
-      <p>Category: {category ? category.name : 'Unknown'}</p>
-      <p>Created by: {user ? user.username : 'Unknown'}</p>
-      <button onClick={() => navigate(`/Expensepage/${expense.id}`)}>view</button>
-      <button onClick={() => handleDeleteExpense(expense.id)}>Delete</button>
-      <button onClick={() => navigate(`/editexpense/${expense.id}`)}>Edit</button>
-
-    </div>
-  );
-})}
-
+      <button onClick={() => navigate(`/createexpense/${group.id}`)}>Create Expense</button>
+      {expenses.map(expense => {
+        const category = categories.find(category => category.id === expense.categoryId);
+        return (
+          <div key={expense.id} className='expense'>
+            <p>Amount: {expense.amount}</p>
+            <p>Place: {expense.place}</p>
+            <p>Date: {new Date(expense.date * 1000).toLocaleDateString()}</p>
+            <p>Category: {category ? category.name : 'Unknown'}</p>
+            <p>Created by: {expense.user.username}</p>
+            <button onClick={() => navigate(`/Expensepage/${expense.id}`)}>View</button>
+            <button onClick={() => handleDeleteExpense(expense.id)}>Delete</button>
+            <button onClick={() => navigate(`/editexpense/${expense.id}`)}>Edit</button>
+          </div>
+        );
+      })}
     </div>
   );
 }
