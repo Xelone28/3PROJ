@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20240518032159_makeMigration")]
+    [Migration("20240518182120_makeMigration")]
     partial class makeMigration
     {
         /// <inheritdoc />
@@ -332,7 +332,7 @@ namespace DotNetAPI.Migrations
                     b.HasOne("DotNetAPI.Models.Group.Group", null)
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -347,7 +347,7 @@ namespace DotNetAPI.Migrations
                     b.HasOne("DotNetAPI.Models.Group.Group", null)
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Models.User.User", "UserInCredit")
@@ -372,7 +372,7 @@ namespace DotNetAPI.Migrations
                     b.HasOne("DotNetAPI.Models.Group.Group", "Group")
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Models.User.User", "UserInCredit")
@@ -424,7 +424,7 @@ namespace DotNetAPI.Migrations
                     b.HasOne("DotNetAPI.Models.Group.Group", null)
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Models.User.User", "User")
@@ -443,13 +443,13 @@ namespace DotNetAPI.Migrations
                     b.HasOne("DotNetAPI.Models.Debt.DebtAdjustment", "DebtAdjustment")
                         .WithMany()
                         .HasForeignKey("DebtAdjustmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Models.Group.Group", "Group")
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Models.User.User", "User")

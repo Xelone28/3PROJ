@@ -167,6 +167,20 @@ class Navigation() {
                         navController = navController
                     )
                 }
+                composable(
+                    "${Screen.EditGroup}/{groupId}",
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+                ) { navBackStackEntry ->
+                    val groupId = navBackStackEntry.arguments?.getInt("groupId")
+                    if (groupId != null) {
+                        EditGroup(
+                            groupId = groupId,
+                            applicationContext = applicationContext,
+                            navController = navController,
+                            groupService = groupService
+                        )
+                    }
+                }
                 composable(Screen.PrivateChat.route) {
                     val loggedInUser: String? = Utils.getItem(
                         context = applicationContext,

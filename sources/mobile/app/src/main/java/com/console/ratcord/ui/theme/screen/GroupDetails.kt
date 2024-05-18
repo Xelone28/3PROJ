@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -23,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.console.ratcord.ExpenseTab
 import com.console.ratcord.Screen
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.GroupService
@@ -75,6 +77,11 @@ fun GroupDetails(groupService: GroupService, userInGroupService: UserInGroupServ
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go back")
+                }
+                IconButton(onClick = { navController.navigate("${Screen.EditGroup}/${groupId}") }) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = "Edit group")
                 }
                 Text(
                     "Name: ${groupDetails!!.groupName}",

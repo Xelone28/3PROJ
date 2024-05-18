@@ -16,6 +16,7 @@ sealed class Screen(val route: String) {
     object GroupDetails : Screen("group_details/{groupId}")
     object AddUserInGroup : Screen("addUserInGroup/{groupId}")
     object Groups : Screen("Groups")
+    object EditGroup : Screen("EditGroup/{groupId}")
     object EditUser : Screen("EditUser/{userId}")
     object EnsureConnexion : Screen("EnsureConnexion")
     object GroupsInvitation : Screen("GroupsInvitation")

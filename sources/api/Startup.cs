@@ -122,7 +122,7 @@ services.AddCors(options =>
     {
         // Migration done here
         app.UseDeveloperExceptionPage();
-        //dbContext.Database.Migrate();
+        dbContext.Database.Migrate();
         
         app.UseCors("AllowMyOrigin");
         app.UseRouting();

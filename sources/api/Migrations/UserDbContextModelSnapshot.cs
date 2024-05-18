@@ -329,7 +329,7 @@ namespace DotNetAPI.Migrations
                     b.HasOne("DotNetAPI.Models.Group.Group", null)
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -344,7 +344,7 @@ namespace DotNetAPI.Migrations
                     b.HasOne("DotNetAPI.Models.Group.Group", null)
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Models.User.User", "UserInCredit")
@@ -369,7 +369,7 @@ namespace DotNetAPI.Migrations
                     b.HasOne("DotNetAPI.Models.Group.Group", "Group")
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Models.User.User", "UserInCredit")
@@ -421,7 +421,7 @@ namespace DotNetAPI.Migrations
                     b.HasOne("DotNetAPI.Models.Group.Group", null)
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Models.User.User", "User")
@@ -440,13 +440,13 @@ namespace DotNetAPI.Migrations
                     b.HasOne("DotNetAPI.Models.Debt.DebtAdjustment", "DebtAdjustment")
                         .WithMany()
                         .HasForeignKey("DebtAdjustmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Models.Group.Group", "Group")
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Models.User.User", "User")

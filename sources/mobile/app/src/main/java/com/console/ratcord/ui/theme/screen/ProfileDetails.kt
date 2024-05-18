@@ -50,6 +50,8 @@ fun ProfileDetail(userService: UserService, applicationContext: Context, navCont
                         userDetails = userService.getUserById(applicationContext, userId)
                     } catch (e: Exception) {
                         println("Failed to retrieve user: ${e.message}")
+                        Utils.storeItem(context = applicationContext, value = null, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
+                        Utils.storeItem(context = applicationContext, value = null, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.USER)
                     } finally {
                         isLoading = false
                     }
