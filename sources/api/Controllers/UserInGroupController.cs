@@ -4,6 +4,7 @@ using DotNetAPI.Models.UserInGroup;
 using DotNetAPI.Services.Interface;
 using DotNetAPI.Models.Group;
 using DotNetAPI.Models.Expense;
+using DotNetAPI.Models.User;
 
 [ApiController]
 [Route("[controller]")]
@@ -77,7 +78,7 @@ public class UserInGroupController : ControllerBase
             return StatusCode(500, "An error occurred while retrieving the membership: "+ex);
         }
     }
-
+    
     [HttpGet("users/{groupId}")]
     [Authorize]
     public async Task<IActionResult> GetUsersFromGroup(int groupId)
@@ -115,6 +116,29 @@ public class UserInGroupController : ControllerBase
             return StatusCode(500, "An error occurred while retrieving the membership: "+ex);
         }
     }
+
+    [HttpGet("{userId}/groupusers")]
+    [Authorize]
+    public async Task<IActionResult> GetUsersInUserGroups(int userId)
+    {
+        var users = await _userInGroupService.GetUsersInUserGroups(userId);
+
+        List<UserDTO> usersDto = new List<UserDTO>();
+        foreach (var user in users)
+        {
+            var userDto = new UserDTO
+            {
+                Email = user.Email,
+                PaypalUsername = user.PaypalUsername,
+                Rib = user.Rib,
+                Username = user.Username,
+                Id = user.Id
+            };
+            usersDto.Add(userDto);
+        }
+        return Ok(usersDto);
+    }
+
 
     [HttpPost]
     [Authorize]

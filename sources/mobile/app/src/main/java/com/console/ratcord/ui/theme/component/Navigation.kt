@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -36,8 +37,12 @@ import com.console.ratcord.api.CategoryService
 import com.console.ratcord.api.DebtService
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.GroupService
+import com.console.ratcord.api.LocalStorage
 import com.console.ratcord.api.UserInGroupService
 import com.console.ratcord.api.UserService
+import com.console.ratcord.api.Utils
+import com.console.ratcord.domain.entity.user.UserMinimalWithImage
+import kotlinx.serialization.json.Json
 
 data class BottomNavigationItem(
     val label : String = "",
@@ -55,6 +60,11 @@ data class BottomNavigationItem(
                 label = "Profile",
                 icon = Icons.Filled.AccountCircle,
                 route = Screen.Profile.route
+            ),
+            BottomNavigationItem(
+                label = "Messages",
+                icon = Icons.Filled.Face,
+                route = Screen.PrivateChat.route
             )
         )
     }
@@ -156,6 +166,48 @@ class Navigation() {
                         applicationContext = applicationContext,
                         navController = navController
                     )
+                }
+                composable(Screen.PrivateChat.route) {
+                    val loggedInUser: String? = Utils.getItem(
+                        context = applicationContext,
+                        fileKey = LocalStorage.PREFERENCES_FILE_KEY,
+                        key = LocalStorage.USER
+                    )
+                    val loggedInUserSerialized: UserMinimalWithImage? =
+                        loggedInUser?.let { Json.decodeFromString<UserMinimalWithImage>(it) }
+
+                    if (loggedInUserSerialized != null) {
+                        PrivateChat(
+                            userLoggedIn = loggedInUserSerialized,
+                            applicationContext = applicationContext,
+                            userInGroupService = userInGroupService
+                        )
+                    }
+                }
+                composable(
+                    "${Screen.Chat}/{roomName}/{groupId}",
+                    arguments = listOf(navArgument("roomName") { type = NavType.StringType }, navArgument("groupId") { type = NavType.IntType })
+                ) { navBackStackEntry ->
+                    val roomName = navBackStackEntry.arguments?.getString("roomName")
+                    val groupId = navBackStackEntry.arguments?.getInt("groupId")
+                    val loggedInUser: String? = Utils.getItem(
+                        context = applicationContext,
+                        fileKey = LocalStorage.PREFERENCES_FILE_KEY,
+                        key = LocalStorage.USER
+                    )
+                    val loggedInUserSerialized: UserMinimalWithImage? =
+                        loggedInUser?.let { Json.decodeFromString<UserMinimalWithImage>(it) }
+
+                    if (roomName != null) {
+                        if (loggedInUserSerialized != null) {
+                            if (groupId != null) {
+                                ChatScreen(
+                                    username = loggedInUserSerialized.username,
+                                    roomName = "GroupMesages$groupId"
+                                )
+                            }
+                        }
+                    }
                 }
                 composable(Screen.GroupsInvitation.route) {
                     GroupsInvitation(
@@ -293,13 +345,16 @@ class Navigation() {
     }
 
     @Composable
-    fun TopNavigationBar(navController: NavController, groupId: Int) {
+    fun TopNavigationBar(navController: NavController, groupId: Int, groupName: String) {
         Row {
             Button(onClick = { navController.navigate("${ExpenseTab.UsersFromGroup}/${groupId}") }) {
                 Text(text = "Users")
             }
             Button(onClick = { navController.navigate("${ExpenseTab.Expenses}/${groupId}") }) {
                 Text(text = "Expenses")
+            }
+            Button(onClick = { navController.navigate("${Screen.Chat}/${groupName}/${groupId}") }) {
+                Text(text = "Group chat")
             }
         }
     }
