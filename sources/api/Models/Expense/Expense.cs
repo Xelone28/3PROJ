@@ -1,4 +1,7 @@
-﻿namespace DotNetAPI.Models.Expense
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
+
+namespace DotNetAPI.Models.Expense
 {
     public class Expense
     {
@@ -7,6 +10,7 @@
         public required int GroupId { get; set; }
         public required IList<int> UserIdsInvolved { get; set; }
         public required Category.Category Category { get; set; }
+        public required IList<float> Weights { get; set; }
         public required float Amount { get; set; }
         public required int Date { get; set; }
         public required string Place { get; set; }

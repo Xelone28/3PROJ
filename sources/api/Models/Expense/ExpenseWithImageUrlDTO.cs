@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 
 namespace DotNetAPI.Models.Expense
 {
@@ -8,6 +8,7 @@ namespace DotNetAPI.Models.Expense
         public required int UserId { get; set; }
         public required int GroupId { get; set; }
         public required IList<int> UserIdsInvolved { get; set; }
+        public required IList<float> Weights { get; set; }
         public required int CategoryId { get; set; }
         public required float Amount { get; set; }
         public required int Date { get; set; }

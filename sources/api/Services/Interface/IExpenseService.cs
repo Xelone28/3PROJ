@@ -1,4 +1,6 @@
 ﻿using DotNetAPI.Models.Expense;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DotNetAPI.Services.Interface
 {

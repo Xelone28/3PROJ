@@ -12,6 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     [DbContext(typeof(UserDbContext))]
+<<<<<<< HEAD:sources/api/Migrations/20240518010511_InitialCreate.Designer.cs
 <<<<<<< HEAD:sources/api/Migrations/20240517090551_InitialCreate.Designer.cs
 <<<<<<<< HEAD:sources/api/Migrations/20240517135759_makeMigration.Designer.cs
     [Migration("20240517135759_makeMigration")]
@@ -21,6 +22,9 @@ namespace DotNetAPI.Migrations
 =======
     [Migration("20240518010511_InitialCreate")]
 >>>>>>> 17bcff6 (working debtBalancingService / DebtAdjustmentService / PaymentService):sources/api/Migrations/20240518010511_InitialCreate.Designer.cs
+=======
+    [Migration("20240518014636_InitialCreate")]
+>>>>>>> e18af54 (Add weights to the expense):sources/api/Migrations/20240518014636_InitialCreate.Designer.cs
     partial class InitialCreate
 >>>>>>>> 44eaf63 (working debtBalancingService):sources/api/Migrations/20240517090551_InitialCreate.Designer.cs
     {
@@ -180,6 +184,10 @@ namespace DotNetAPI.Migrations
                     b.Property<int[]>("UserIdsInvolved")
                         .IsRequired()
                         .HasColumnType("integer[]");
+
+                    b.Property<float[]>("Weights")
+                        .IsRequired()
+                        .HasColumnType("real[]");
 
                     b.HasKey("Id");
 

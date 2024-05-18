@@ -169,6 +169,10 @@ namespace DotNetAPI.Migrations
                         .IsRequired()
                         .HasColumnType("integer[]");
 
+                    b.Property<float[]>("Weights")
+                        .IsRequired()
+                        .HasColumnType("real[]");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");

@@ -3,15 +3,15 @@ using Microsoft.AspNetCore.Authentication;
 using DotNetAPI.Helpers;
 using DotNetAPI.Models.Expense;
 using DotNetAPI.Services.Interface;
-using DotNetAPI.Services;
 using Microsoft.Extensions.Configuration;
 using DotNetAPI.Models.User;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using DotNetAPI.Models.Category;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.IO;
+using System.Linq;
 
 [ApiController]
 [Route("[controller]")]
-
 public class ExpenseController : ControllerBase
 {
     private readonly IDebtService _debtService;
@@ -61,6 +61,7 @@ public class ExpenseController : ControllerBase
         {
             return NotFound();
         }
+
         var s3Paths = _configuration.GetSection("S3Paths");
         string expensePath = s3Paths["Expense"];
         string cdnUrl = s3Paths["CDNURL"];
@@ -70,7 +71,7 @@ public class ExpenseController : ControllerBase
         var imageUrl = "";
         if (attachmentFromExpense.Count > 0)
         {
-            //Permits to make the use of attachment evolutive
+            // Permits to make the use of attachment evolutive
             imageUrl = attachmentFromExpense[0];
         }
 
@@ -115,6 +116,7 @@ public class ExpenseController : ControllerBase
             Place = expense.Place,
             User = userDTO,
             UsersInvolved = usersInvolved,
+            Weights = expense.Weights,
             Description = expense.Description,
             Id = expense.Id,
             Image = string.IsNullOrEmpty(imageUrl) ? null : cdnUrl + imageUrl
@@ -140,11 +142,11 @@ public class ExpenseController : ControllerBase
             if (userInvolved is User)
             {
                 usersInvolved.Add(userInvolved);
-            } else
-            {
-                return NotFound($"The user {userId} does not exists");
             }
-
+            else
+            {
+                return NotFound($"The user {userId} does not exist");
+            }
         }
 
         var category = await _categoryService.GetCategoryById(expenseModel.CategoryId);
@@ -155,9 +157,13 @@ public class ExpenseController : ControllerBase
 
         if (user == null)
         {
-            return NotFound($"The user {expenseModel.UserId} does not exists");
+            return NotFound($"The user {expenseModel.UserId} does not exist");
         }
 
+        if (expenseModel.UserIdInvolved.Count != expenseModel.Weights.Count)
+        {
+            return BadRequest("The number of weights must match the number of users involved.");
+        }
 
         var expense = new Expense
         {
@@ -169,17 +175,17 @@ public class ExpenseController : ControllerBase
             Category = category,
             Id = expenseModel.Id,
             User = user,
+            Weights = expenseModel.Weights // Add this line
             UserIdsInvolved = expenseModel.UserIdsInvolved
         };
 
         var newExpense = await _expenseService.CreateExpense(expense);
-        await _debtService.CreateDebtsFromExpense(expense, usersInvolved);
-        
-        //balance debts
+        await _debtService.CreateDebtsFromExpense(expense, usersInvolved, expenseModel.Weights);
+
+        // Balance debts
         await _debtBalancingService.BalanceDebts(expenseModel.GroupId);
 
-
-        //upload image to s3
+        // Upload image to S3
         string fileName = "expense" + Path.GetExtension(expenseModel.Image.FileName);
         var s3Paths = _configuration.GetSection("S3Paths");
         string expensePath = s3Paths["Expense"];
@@ -219,8 +225,9 @@ public class ExpenseController : ControllerBase
                 User? user = await _userService.GetUserById(userId);
                 if (user == null)
                 {
-                    return NotFound($"The user id {userId} does not exists");
-                } else
+                    return NotFound($"The user id {userId} does not exist");
+                }
+                else
                 {
                     usersInvolved.Add(user);
                 }
@@ -238,6 +245,7 @@ public class ExpenseController : ControllerBase
         expenseToUpdate.Date = expense.Date ?? expenseToUpdate.Date;
         expenseToUpdate.Description = expense.Description ?? expenseToUpdate.Description;
         expenseToUpdate.UserIdsInvolved = expense.UserIdInvolved ?? expenseToUpdate.UserIdsInvolved;
+        expenseToUpdate.Weights = expense.Weights ?? expenseToUpdate.Weights;
         expenseToUpdate.Place = expense.Place ?? expenseToUpdate.Place;
 
         if (expense.Image != null)
@@ -263,17 +271,17 @@ public class ExpenseController : ControllerBase
                 {
                     await _utils.DeleteFile(file);
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine("Something went wrong" + ex.Message);
-
             }
         }
 
         await _expenseService.UpdateExpense(expenseToUpdate);
-        await _debtService.UpdateDebtsFromExpense(expenseToUpdate, usersInvolved);
+        await _debtService.UpdateDebtsFromExpense(expenseToUpdate, usersInvolved, expenseToUpdate.Weights);
 
-        //balance debts
+        // Balance debts
         await _debtBalancingService.BalanceDebts(expenseToUpdate.GroupId);
 
         return NoContent();
@@ -301,7 +309,8 @@ public class ExpenseController : ControllerBase
         }
         return NoContent();
     }
-    //GetExpensesByGroupId
+
+    // GetExpensesByGroupId
     [HttpGet("group/{groupId}")]
     [Authorize]
     public async Task<ActionResult<IEnumerable<Expense>>> GetExpensesByGroupId(int groupId)
@@ -337,7 +346,7 @@ public class ExpenseController : ControllerBase
         return Ok(expenseMinimals);
     }
 
-    //GetExpensesByUserId
+    // GetExpensesByUserId
     [HttpGet("user/{userId}")]
     [Authorize]
     public async Task<ActionResult<IEnumerable<Expense>>> GetExpensesByUserId(int userId)
@@ -346,7 +355,7 @@ public class ExpenseController : ControllerBase
         return Ok(expenses);
     }
 
-    //GetExpensesByUserIdAndGroupId
+    // GetExpensesByUserIdAndGroupId
     [HttpGet("user/{userId}/group/{groupId}")]
     [Authorize]
     public async Task<ActionResult<IEnumerable<Expense>>> GetExpensesByUserIdAndGroupId(int userId, int groupId)

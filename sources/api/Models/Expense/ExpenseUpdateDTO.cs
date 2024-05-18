@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
 
 namespace DotNetAPI.Models.Expense
 {
     public class ExpenseUpdateDTO
     {
-        public int? UserId { get; set; }
         public int? GroupId { get; set; }
+        public IList<int>? UserIdInvolved { get; set; }
+        public IList<float>? Weights { get; set; }
         public int? CategoryId { get; set; }
-        public List<int>? UserIdInvolved { get; set; }
         public float? Amount { get; set; }
         public int? Date { get; set; }
         public string? Place { get; set; }

@@ -146,7 +146,12 @@ namespace DotNetAPI.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     GroupId = table.Column<int>(type: "integer", nullable: false),
+<<<<<<< HEAD:sources/api/Migrations/20240518010511_InitialCreate.cs
                     UserIdsInvolved = table.Column<int[]>(type: "integer[]", nullable: false),
+=======
+                    UserIdInvolved = table.Column<int[]>(type: "integer[]", nullable: false),
+                    Weights = table.Column<float[]>(type: "real[]", nullable: false),
+>>>>>>> e18af54 (Add weights to the expense):sources/api/Migrations/20240518014636_InitialCreate.cs
                     CategoryId = table.Column<int>(type: "integer", nullable: false),
                     Amount = table.Column<float>(type: "real", nullable: false),
                     Date = table.Column<int>(type: "integer", nullable: false),
