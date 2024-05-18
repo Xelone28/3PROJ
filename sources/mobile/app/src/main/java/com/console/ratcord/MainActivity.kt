@@ -19,6 +19,8 @@ sealed class Screen(val route: String) {
     object EditUser : Screen("EditUser/{userId}")
     object EnsureConnexion : Screen("EnsureConnexion")
     object GroupsInvitation : Screen("GroupsInvitation")
+    object Chat : Screen("Chat/{roomName}/{groupId}")
+    object PrivateChat : Screen("PrivateChat")
 }
 
 sealed class ExpenseTab(val route: String) {

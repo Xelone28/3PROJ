@@ -11,5 +11,6 @@ namespace DotNetAPI.Services.Interface
         Task<UserInGroup> CreateMembership(UserInGroupCreateDTO userInGroup, User user);
         Task UpdateMembership(UserInGroup userInGroup);
         Task DeleteMembership(int userId, int groupId);
+        Task<List<User>> GetUsersInUserGroups(int userId);
     }
 }
