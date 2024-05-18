@@ -78,5 +78,16 @@ class Utils {
             }
             return httpClient!!
         }
+        //Handle HTTP Errors
+
+        class AuthorizationException(message: String) : Exception(message)
+        class NetworkException(message: String) : Exception(message)
+        class UnexpectedResponseException(message: String) : Exception(message)
+        class ConflictException(message: String) : Exception(message)
+
+        sealed class Result<out T> {
+            data class Success<out T>(val data: T) : Result<T>()
+            data class Error(val exception: Exception) : Result<Nothing>()
+        }
     }
 }

@@ -28,6 +28,7 @@ import com.console.ratcord.Screen
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.GroupService
 import com.console.ratcord.api.UserInGroupService
+import com.console.ratcord.api.Utils
 import com.console.ratcord.domain.entity.expense.Expense
 import com.console.ratcord.domain.entity.group.GroupMinimalWithId
 import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
@@ -46,15 +47,36 @@ fun UsersFromGroup(groupService: GroupService, userInGroupService: UserInGroupSe
         LaunchedEffect(key1 = groupId) {
             isLoading = true
             coroutineScope.launch {
-                try {
-                    groupDetails = groupService.getGroupById(applicationContext, groupId)
-                    usersInGroup = userInGroupService.getUsersInGroup(applicationContext, groupId)
-                } catch (e: Exception) {
-                    println(e)
-                    errorMessage = "Failed to retrieve group"
-                } finally {
-                    isLoading = false
+                when (val groupResult = groupService.getGroupById(applicationContext, groupId)) {
+                    is Utils.Companion.Result.Success -> {
+                        groupDetails = groupResult.data
+                    }
+                    is Utils.Companion.Result.Error -> {
+                        val exception = groupResult.exception
+                        errorMessage = when (exception) {
+                            is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                            is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                            is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                            else -> "An unknown error occurred."
+                        }
+                    }
                 }
+
+                when (val usersResult = userInGroupService.getUsersInGroup(applicationContext, groupId)) {
+                    is Utils.Companion.Result.Success -> {
+                        usersInGroup = usersResult.data
+                    }
+                    is Utils.Companion.Result.Error -> {
+                        val exception = usersResult.exception
+                        errorMessage = when (exception) {
+                            is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                            is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                            is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                            else -> "An unknown error occurred."
+                        }
+                    }
+                }
+                isLoading = false
             }
         }
     } else {
@@ -71,7 +93,7 @@ fun UsersFromGroup(groupService: GroupService, userInGroupService: UserInGroupSe
             if (groupDetails != null && usersInGroup != null) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
-                        imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Go back",
                     )
                 }
@@ -87,13 +109,11 @@ fun UsersFromGroup(groupService: GroupService, userInGroupService: UserInGroupSe
                         )
                     }
                 }
-                if (groupId is Int) {
-                    IconButton(onClick = { navController.navigate("${Screen.AddUserInGroup}/${groupId}") }) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = "Add user",
-                        )
-                    }
+                IconButton(onClick = { navController.navigate("${Screen.AddUserInGroup}/${groupId}") }) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = "Add user",
+                    )
                 }
             }
         }

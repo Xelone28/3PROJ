@@ -20,6 +20,8 @@ sealed class Screen(val route: String) {
     object EditUser : Screen("EditUser/{userId}")
     object EnsureConnexion : Screen("EnsureConnexion")
     object GroupsInvitation : Screen("GroupsInvitation")
+    object AddCategoryToGroup : Screen("AddCategoryToGroup/{groupId}")
+    object CategoriesFromGroup : Screen("CategoriesFromGroup/{groupId}")
     object Chat : Screen("Chat/{roomName}/{groupId}")
     object PrivateChat : Screen("PrivateChat")
 }

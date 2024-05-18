@@ -22,33 +22,36 @@ import com.console.ratcord.domain.entity.expense.ExpenseMinimal
 import com.console.ratcord.domain.entity.expense.ExpenseMinimalUpdate
 import io.ktor.util.InternalAPI
 
-class DebtService() {
+class DebtService {
     private val client: HttpClient = Utils.getHttpClient()
-    suspend fun getByExpenseId(context: Context, expenseId: Int): List<Debt>? {
-        val response: HttpResponse = try {
-            client.get("http://10.0.2.2:5000/debt/expense/$expenseId") {
+
+    suspend fun getByExpenseId(context: Context, expenseId: Int): Utils.Companion.Result<List<Debt>> {
+        return try {
+            val response: HttpResponse = client.get("http://10.0.2.2:5000/debt/expense/$expenseId") {
                 headers {
-                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                    append("Authorization", "Bearer ${Utils.getItem(context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
                 }
             }
+            handleResponseWithBody(response)
         } catch (e: Exception) {
-            println("Network error occurred: ${e.localizedMessage}")
-            return null
+            Utils.Companion.Result.Error(Utils.Companion.NetworkException("Network error occurred: ${e.localizedMessage}"))
         }
+    }
 
-        when (response.status) {
+    private suspend inline fun <reified T> handleResponseWithBody(response: HttpResponse): Utils.Companion.Result<T> {
+        return when (response.status) {
             HttpStatusCode.Unauthorized -> {
-                throw AuthorizationException("Unauthorized access to expense data.")
+                Utils.Companion.Result.Error(Utils.Companion.AuthorizationException("Unauthorized access to data."))
             }
-
             HttpStatusCode.OK -> {
                 val body: String = response.bodyAsText()
-                return Json.decodeFromString<List<Debt>>(body)
+                val json = Json { ignoreUnknownKeys = true }
+                val data = json.decodeFromString<T>(body)
+                Utils.Companion.Result.Success(data)
             }
-
             else -> {
-                println("Received unexpected status: ${response.status}")
-                return null
+                val errorMessage = response.bodyAsText() // Read the error message from the response body
+                Utils.Companion.Result.Error(Utils.Companion.UnexpectedResponseException("Received unexpected status: ${response.status}. Message: $errorMessage"))
             }
         }
     }

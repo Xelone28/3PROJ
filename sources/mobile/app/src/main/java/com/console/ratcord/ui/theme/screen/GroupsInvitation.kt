@@ -28,13 +28,13 @@ import com.console.ratcord.domain.entity.group.Group
 import com.console.ratcord.domain.entity.group.GroupMinimalWithId
 import com.console.ratcord.domain.entity.userInGroup.UserInGroupInvitation
 import kotlinx.coroutines.launch
-
 @Composable
 fun GroupsInvitation(userInGroupService: UserInGroupService, applicationContext: Context, navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     var userInvitationsToGroup by remember { mutableStateOf<List<UserInGroupInvitation>?>(null) }
     var isLoading by remember { mutableStateOf(false) }
     var userId by remember { mutableStateOf<Int?>(null) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(key1 = userInvitationsToGroup) {
         val token: String? = Utils.getItem(context = applicationContext, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
@@ -42,29 +42,41 @@ fun GroupsInvitation(userInGroupService: UserInGroupService, applicationContext:
             userId = Utils.getUserIdFromJwt(token)
             isLoading = true
             coroutineScope.launch {
-                try {
-                    if (userId is Int) {
-                        userInvitationsToGroup = userInGroupService.getInvitationsToGroup(applicationContext, userId!!)
+                userId?.let {
+                    when (val result = userInGroupService.getInvitationsToGroup(applicationContext, it)) {
+                        is Utils.Companion.Result.Success -> {
+                            userInvitationsToGroup = result.data
+                        }
+                        is Utils.Companion.Result.Error -> {
+                            val exception = result.exception
+                            errorMessage = when (exception) {
+                                is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                else -> "An unknown error occurred."
+                            }
+                        }
                     }
-                } catch (e: Exception) {
-                    println("Failed to retrieve group: ${e.message}")
-                } finally {
-                    isLoading = false
                 }
+                isLoading = false
             }
         } else {
             println("You must be logged in")
         }
     }
+
     Column(
         modifier = Modifier.padding(16.dp)
     ) {
+        errorMessage?.let { message ->
+            AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
+        }
         if (isLoading) {
             Text(text = "Loading...")
         } else {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go back",
                 )
             }
@@ -75,27 +87,77 @@ fun GroupsInvitation(userInGroupService: UserInGroupService, applicationContext:
                         acceptInvitation = {
                             coroutineScope.launch {
                                 userId?.let {
-                                    userInGroupService.updateUserInGroup(
+                                    when (val result = userInGroupService.updateUserInGroup(
                                         context = applicationContext,
                                         groupId = invitation.group.id,
                                         userId = it,
                                         isActive = true,
                                         isGroupAdmin = invitation.isGroupAdmin
-                                    )
+                                    )) {
+                                        is Utils.Companion.Result.Success -> {
+                                            when (val invitationsResult = userInGroupService.getInvitationsToGroup(applicationContext, it)) {
+                                                is Utils.Companion.Result.Success -> {
+                                                    userInvitationsToGroup = invitationsResult.data
+                                                }
+                                                is Utils.Companion.Result.Error -> {
+                                                    val exception = invitationsResult.exception
+                                                    errorMessage = when (exception) {
+                                                        is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                                        is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                                        is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                                        else -> "An unknown error occurred."
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        is Utils.Companion.Result.Error -> {
+                                            val exception = result.exception
+                                            errorMessage = when (exception) {
+                                                is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                                is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                                is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                                else -> "An unknown error occurred."
+                                            }
+                                        }
+                                    }
                                 }
-                                userInvitationsToGroup = userInGroupService.getInvitationsToGroup(applicationContext, userId!!)
                             }
                         },
                         denyInvitation = {
                             coroutineScope.launch {
                                 userId?.let {
-                                    userInGroupService.deleteUserFromGroup(
+                                    when (val result = userInGroupService.deleteUserFromGroup(
                                         context = applicationContext,
                                         groupId = invitation.group.id,
-                                        userId = it,
-                                    )
+                                        userId = it
+                                    )) {
+                                        is Utils.Companion.Result.Success -> {
+                                            when (val invitationsResult = userInGroupService.getInvitationsToGroup(applicationContext, it)) {
+                                                is Utils.Companion.Result.Success -> {
+                                                    userInvitationsToGroup = invitationsResult.data
+                                                }
+                                                is Utils.Companion.Result.Error -> {
+                                                    val exception = invitationsResult.exception
+                                                    errorMessage = when (exception) {
+                                                        is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                                        is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                                        is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                                        else -> "An unknown error occurred."
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        is Utils.Companion.Result.Error -> {
+                                            val exception = result.exception
+                                            errorMessage = when (exception) {
+                                                is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                                is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                                is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                                else -> "An unknown error occurred."
+                                            }
+                                        }
+                                    }
                                 }
-                                userInvitationsToGroup = userInGroupService.getInvitationsToGroup(applicationContext, userId!!)
                             }
                         },
                     )

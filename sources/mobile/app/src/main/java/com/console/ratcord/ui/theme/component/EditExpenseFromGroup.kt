@@ -32,6 +32,7 @@ import com.console.ratcord.ExpenseTab
 import com.console.ratcord.api.CategoryService
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.UserInGroupService
+import com.console.ratcord.api.Utils
 import com.console.ratcord.domain.entity.category.Category
 import com.console.ratcord.domain.entity.expense.Expense
 import com.console.ratcord.domain.entity.expense.ExpenseMinimalUpdate
@@ -54,19 +55,63 @@ fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService
         isLoading = true
         coroutineScope.launch {
             try {
-                expense = expenseService.getExpenseById(context = applicationContext, expenseId = expenseId)
-                usersInGroup = userInGroupService.getUsersInGroup(applicationContext, expense!!.groupId)
-                categoriesFromGroup = categoryService.getCategoryByGroupId(applicationContext, expense!!.groupId)
+                when (val expenseResult = expenseService.getExpenseById(applicationContext, expenseId)) {
+                    is Utils.Companion.Result.Success -> {
+                        expense = expenseResult.data
+                    }
+                    is Utils.Companion.Result.Error -> {
+                        val exception = expenseResult.exception
+                        errorMessage = when (exception) {
+                            is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                            is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                            is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                            else -> "An unknown error occurred."
+                        }
+                    }
+                }
+
+                expense?.let { exp ->
+                    when (val usersResult = userInGroupService.getUsersInGroup(applicationContext, exp.groupId)) {
+                        is Utils.Companion.Result.Success -> {
+                            usersInGroup = usersResult.data
+                        }
+                        is Utils.Companion.Result.Error -> {
+                            val exception = usersResult.exception
+                            errorMessage = when (exception) {
+                                is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                else -> "An unknown error occurred."
+                            }
+                        }
+                    }
+
+                    when (val categoriesResult = categoryService.getCategoryByGroupId(applicationContext, exp.groupId)) {
+                        is Utils.Companion.Result.Success -> {
+                            categoriesFromGroup = categoriesResult.data
+                        }
+                        is Utils.Companion.Result.Error -> {
+                            val exception = categoriesResult.exception
+                            errorMessage = when (exception) {
+                                is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                else -> "An unknown error occurred."
+                            }
+                        }
+                    }
+                }
             } catch (e: Exception) {
-                println("Failed to retrieve expense: ${e.message}")
+                errorMessage = "Failed to retrieve expense: ${e.message}"
             } finally {
                 isLoading = false
             }
         }
     }
+
     if (isLoading) {
         CircularProgressIndicator()
-    } else if (expense is Expense) {
+    } else if (expense != null) {
         var categoryId by remember { mutableStateOf<Int?>(null) }
         var date by remember { mutableStateOf<String?>(null) }
         var dateLabel by remember { mutableStateOf("Date") }
@@ -96,26 +141,21 @@ fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService
                 )
             }
 
-            //Category
+            // Category
             SearchableDropDown(
                 context = applicationContext,
                 label = "Category",
                 entities = categoriesFromGroup!!,
-                displayTextExtractor = { category ->
-                    category.name
-                },
-                onEntitySelected = { category ->
-                    categoryId = category.id
-                }
+                displayTextExtractor = { category -> category.name },
+                onEntitySelected = { category -> categoryId = category.id }
             )
-            //User Involved
+
+            // User Involved
             SearchableDropDownMultipleOptions(
                 context = applicationContext,
                 label = "User Involved",
                 entities = usersInGroup!!,
-                displayTextExtractor = { user ->
-                    user.username
-                },
+                displayTextExtractor = { user -> user.username },
                 onEntitiesSelected = { selectedUsers ->
                     usersInvolved = emptyList()
                     selectedUsers.forEach { user ->
@@ -123,25 +163,30 @@ fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService
                     }
                 }
             )
+
             OutlinedTextField(
                 value = place,
                 onValueChange = { place = it },
                 label = { Text("Place") },
                 modifier = Modifier.padding(top = 8.dp)
             )
+
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text("Description") },
                 modifier = Modifier.padding(top = 8.dp)
             )
+
             DatePicker(
                 label = dateLabel,
                 value = "",
                 onValueChange = { value: String ->
                     dateLabel = value
                     date = value
-                })
+                }
+            )
+
             // Image picker button
             Button(onClick = { imagePickerLauncher.launch("image/*") }) {
                 Text("Pick Image")
@@ -154,14 +199,12 @@ fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService
             //            modifier = Modifier.padding(top = 8.dp).fillMaxWidth(), contentScale = ContentScale.Fit)
             //    }
             //}
+
             Button(
                 onClick = {
                     coroutineScope.launch {
-                        var expenseTimestamp: Date?;
-                        if (date != null) {
-                            expenseTimestamp = SimpleDateFormat("yyyy-MM-dd").parse(date)
-                        } else {
-                            expenseTimestamp = null
+                        var expenseTimestamp: Date? = date?.let {
+                            SimpleDateFormat("yyyy-MM-dd").parse(it)
                         }
 
                         val newExpense = ExpenseMinimalUpdate(
@@ -172,18 +215,24 @@ fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService
                             userIdsInvolved = usersInvolved
                         )
 
-                        if (expenseService.updateExpense(
-                                context = applicationContext,
-                                expense = newExpense,
-                                expenseId = expense!!.id,
-                                imageUri = imageUri
-
-                            )
-                        ) {
-                            navController.navigate("${ExpenseTab.Expenses}/${expense!!.groupId}")
-                        } else {
-                            // Consider that it could timeout due to the image size
-                            errorMessage = "Something went wrong, please try again"
+                        when (val updateResult = expenseService.updateExpense(
+                            context = applicationContext,
+                            expense = newExpense,
+                            expenseId = expense!!.id,
+                            imageUri = imageUri
+                        )) {
+                            is Utils.Companion.Result.Success -> {
+                                navController.navigate("${ExpenseTab.Expenses}/${expense!!.groupId}")
+                            }
+                            is Utils.Companion.Result.Error -> {
+                                val exception = updateResult.exception
+                                errorMessage = when (exception) {
+                                    is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                    is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                    is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                    else -> "An unknown error occurred."
+                                }
+                            }
                         }
                     }
                 },

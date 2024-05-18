@@ -27,49 +27,61 @@ import com.console.ratcord.api.Utils
 import com.console.ratcord.domain.entity.group.Group
 import com.console.ratcord.domain.entity.group.GroupMinimalWithId
 import kotlinx.coroutines.launch
-
 @Composable
 fun Groups(userInGroupService: UserInGroupService, applicationContext: Context, navController: NavController) {
     val token: String? = Utils.getItem(context = applicationContext, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
     val coroutineScope = rememberCoroutineScope()
     var groups by remember { mutableStateOf<List<Group>?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(key1 = token) {
         if (token != null) {
             val userId: Int? = Utils.getUserIdFromJwt(token)
             isLoading = true
             coroutineScope.launch {
-                try {
-                    if (userId is Int) {
-                        groups = userInGroupService.getGroupsFromUserId(applicationContext, userId)
+                if (userId != null) {
+                    when (val result = userInGroupService.getGroupsFromUserId(applicationContext, userId)) {
+                        is Utils.Companion.Result.Success -> {
+                            groups = result.data
+                        }
+                        is Utils.Companion.Result.Error -> {
+                            val exception = result.exception
+                            errorMessage = when (exception) {
+                                is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                else -> "An unknown error occurred."
+                            }
+                        }
                     }
-                } catch (e: Exception) {
-                    println("Failed to retrieve group: ${e.message}")
-                } finally {
-                    isLoading = false
+                } else {
+                    errorMessage = "User ID is null. Please login again."
                 }
+                isLoading = false
             }
         } else {
             println("You must be logged in")
         }
     }
-    Column(
-        modifier = Modifier.padding(16.dp)
-    ) {
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        errorMessage?.let { message ->
+            AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
+        }
         if (isLoading) {
             Text(text = "Loading...")
         } else {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go back",
                 )
             }
-            Button(onClick = {navController.navigate(Screen.RegisterGroup.route) }) {
+            Button(onClick = { navController.navigate(Screen.RegisterGroup.route) }) {
                 Text(text = "Create group")
             }
-            Button(onClick = {navController.navigate(Screen.GroupsInvitation.route) }) {
+            Button(onClick = { navController.navigate(Screen.GroupsInvitation.route) }) {
                 Text(text = "Invitations")
             }
             groups?.let { groupList ->

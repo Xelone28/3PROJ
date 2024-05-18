@@ -20,14 +20,13 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
 import com.console.ratcord.Screen
-import com.console.ratcord.api.GroupService
+import com.console.ratcord.api.CategoryService
 import com.console.ratcord.api.Utils
-import com.console.ratcord.domain.entity.group.GroupMinimal
+import com.console.ratcord.domain.entity.category.CategoryMinimal
 
 @Composable
-fun GroupForm(groupService: GroupService, applicationContext: Context, navController: NavController) {
+fun AddCategoryToGroup(context: Context, categoryService: CategoryService, navController: NavController, groupId: Int) {
     var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
@@ -38,47 +37,44 @@ fun GroupForm(groupService: GroupService, applicationContext: Context, navContro
         }
         IconButton(onClick = { navController.popBackStack() }) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Go back",
             )
         }
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("Name") }
-        )
-        OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Description") },
+            label = { Text("Name") },
             modifier = Modifier.padding(top = 8.dp)
         )
         Button(
             onClick = {
-                coroutineScope.launch {
-                    val group = GroupMinimal(
-                        groupName = name,
-                        groupDesc = description.takeIf { it.isNotBlank() }
-                    )
-                    when (val result = groupService.createGroup(applicationContext, group)) {
-                        is Utils.Companion.Result.Success -> {
-                            navController.navigate(Screen.Groups.route)
-                        }
-                        is Utils.Companion.Result.Error -> {
-                            val exception = result.exception
-                            errorMessage = when (exception) {
-                                is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
-                                is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
-                                else -> "An unknown error occurred."
+                if (name.isNotEmpty()) {
+                    coroutineScope.launch {
+                        val categoryMinimal = CategoryMinimal(groupId = groupId, name = name)
+                        when (val result = categoryService.createCategory(context = context, category = categoryMinimal)) {
+                            is Utils.Companion.Result.Success -> {
+                                navController.navigate("${Screen.CategoriesFromGroup}/${groupId}")
+                            }
+                            is Utils.Companion.Result.Error -> {
+                                val exception = result.exception
+                                errorMessage = when (exception) {
+                                    is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                    is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                    is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                    else -> "An unknown error occurred."
+                                }
                             }
                         }
                     }
+                } else {
+                    errorMessage = "Name is empty, please put a name to the category"
+                    // `errorMessage` will be handled and displayed to the user elsewhere in your code
                 }
             },
             modifier = Modifier.padding(top = 16.dp)
         ) {
-            Text("Create")
+            Text("Add")
         }
     }
 }
