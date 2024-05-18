@@ -1,11 +1,12 @@
-﻿namespace DotNetAPI.Helpers;
-
-public class HttpException : Exception
+﻿namespace DotNetAPI.Helpers
 {
-    public int StatusCode { get; }
-
-    public HttpException(int statusCode, string message) : base(message)
+    public class HttpException : Exception
     {
-        StatusCode = statusCode;
+        public int StatusCode { get; }
+
+        public HttpException(int statusCode, string message) : base(message)
+        {
+            StatusCode = statusCode;
+        }
     }
 }

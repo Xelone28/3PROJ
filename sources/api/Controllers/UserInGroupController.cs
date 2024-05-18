@@ -3,7 +3,6 @@ using DotNetAPI.Helpers;
 using DotNetAPI.Models.UserInGroup;
 using DotNetAPI.Services.Interface;
 using DotNetAPI.Models.Group;
-using DotNetAPI.Models.Expense;
 using DotNetAPI.Models.User;
 
 [ApiController]
@@ -26,24 +25,21 @@ public class UserInGroupController : ControllerBase
         try
         {
             var memberships = await _userInGroupService.GetMembershipsByUserId(userId, true);
-            if (memberships == null)
+            if (memberships == null || memberships.Count == 0)
             {
                 return NotFound("Membership not found.");
             }
-            else
+
+            var membershipsDtos = new List<Group>();
+            foreach (UserInGroup membership in memberships)
             {
-                var membershipsDtos = new List<Group>();
-                foreach (UserInGroup membership in memberships)
-                {
-                    membershipsDtos.Add(membership.Group);
-                }
-                return Ok(membershipsDtos);
+                membershipsDtos.Add(membership.Group);
             }
-            
+            return Ok(membershipsDtos);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "An error occurred while retrieving the membership: "+ex);
+            return StatusCode(500, "An error occurred while retrieving the memberships: " + ex.Message);
         }
     }
 
@@ -54,66 +50,58 @@ public class UserInGroupController : ControllerBase
         try
         {
             var memberships = await _userInGroupService.GetMembershipsByUserId(userId, false);
-            if (memberships == null)
+            if (memberships == null || memberships.Count == 0)
             {
                 return NotFound("Membership not found.");
-            } else
-            {
-                IList<UserInGroupInvitationDTO> membershipsDtos = new List<UserInGroupInvitationDTO>();
-                foreach (UserInGroup membership in memberships)
-                {
-                    var invitation = new UserInGroupInvitationDTO
-                    {
-                        Group = membership.Group,
-                        IsGroupAdmin = membership.IsGroupAdmin
-                    };
-                    membershipsDtos.Add(invitation);
-                }
-                return Ok(membershipsDtos);
             }
-            
+
+            var membershipsDtos = new List<UserInGroupInvitationDTO>();
+            foreach (UserInGroup membership in memberships)
+            {
+                var invitation = new UserInGroupInvitationDTO
+                {
+                    Group = membership.Group,
+                    IsGroupAdmin = membership.IsGroupAdmin
+                };
+                membershipsDtos.Add(invitation);
+            }
+            return Ok(membershipsDtos);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "An error occurred while retrieving the membership: "+ex);
+            return StatusCode(500, "An error occurred while retrieving the invitations: " + ex.Message);
         }
     }
-    
+
     [HttpGet("users/{groupId}")]
     [Authorize]
     public async Task<IActionResult> GetUsersFromGroup(int groupId)
     {
         try
         {
-            List<UserInGroup>? usersFromGroup = await _userInGroupService.GetUsersFromGroup(groupId);
-            
-            if (usersFromGroup == null)
+            var usersFromGroup = await _userInGroupService.GetUsersFromGroup(groupId);
+            if (usersFromGroup == null || usersFromGroup.Count == 0)
             {
                 return NotFound("Membership not found.");
-            } else
-            {
-                var usersFromGroupDtos = new List<UserInGroupMinimalDTO>();
-                foreach (UserInGroup membership in usersFromGroup)
-                {
-                    usersFromGroupDtos.Add(
-                        new UserInGroupMinimalDTO
-                        {
-                            UserId = membership.User.Id,
-                            Username = membership.User.Username,
-                            Email = membership.User.Email,
-                            IsActive = membership.IsActive,
-                            IsGroupAdmin = membership.IsGroupAdmin
-
-                        }
-                    );
-                }
-                return Ok(usersFromGroupDtos);
             }
-            
+
+            var usersFromGroupDtos = new List<UserInGroupMinimalDTO>();
+            foreach (UserInGroup membership in usersFromGroup)
+            {
+                usersFromGroupDtos.Add(new UserInGroupMinimalDTO
+                {
+                    UserId = membership.User.Id,
+                    Username = membership.User.Username,
+                    Email = membership.User.Email,
+                    IsActive = membership.IsActive,
+                    IsGroupAdmin = membership.IsGroupAdmin
+                });
+            }
+            return Ok(usersFromGroupDtos);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "An error occurred while retrieving the membership: "+ex);
+            return StatusCode(500, "An error occurred while retrieving the users from group: " + ex.Message);
         }
     }
 
@@ -121,24 +109,34 @@ public class UserInGroupController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetUsersInUserGroups(int userId)
     {
-        var users = await _userInGroupService.GetUsersInUserGroups(userId);
-
-        List<UserDTO> usersDto = new List<UserDTO>();
-        foreach (var user in users)
+        try
         {
-            var userDto = new UserDTO
+            var users = await _userInGroupService.GetUsersInUserGroups(userId);
+            if (users == null || users.Count == 0)
             {
-                Email = user.Email,
-                PaypalUsername = user.PaypalUsername,
-                Rib = user.Rib,
-                Username = user.Username,
-                Id = user.Id
-            };
-            usersDto.Add(userDto);
-        }
-        return Ok(usersDto);
-    }
+                return NotFound("No users found in user's groups.");
+            }
 
+            var usersDto = new List<UserDTO>();
+            foreach (var user in users)
+            {
+                var userDto = new UserDTO
+                {
+                    Email = user.Email,
+                    PaypalUsername = user.PaypalUsername,
+                    Rib = user.Rib,
+                    Username = user.Username,
+                    Id = user.Id
+                };
+                usersDto.Add(userDto);
+            }
+            return Ok(usersDto);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "An error occurred while retrieving the users in user groups: " + ex.Message);
+        }
+    }
 
     [HttpPost]
     [Authorize]
@@ -152,12 +150,13 @@ public class UserInGroupController : ControllerBase
         try
         {
             var user = await _userService.GetUserById(userInGroupDto.UserId);
-            if (user == null) {
-                return BadRequest("The user does not exist");
-            } else {
-                var invitation = await _userInGroupService.CreateMembership(userInGroupDto, user);
-                return Created();
+            if (user == null)
+            {
+                return BadRequest("The user does not exist.");
             }
+
+            var invitation = await _userInGroupService.CreateMembership(userInGroupDto, user);
+            return CreatedAtAction(nameof(GetMemberShipsByUserId), new { userId = userInGroupDto.UserId }, invitation);
         }
         catch (HttpException httpEx)
         {
@@ -165,7 +164,7 @@ public class UserInGroupController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "An error occurred while creating the membership.: " + ex.Message);
+            return StatusCode(500, "An error occurred while creating the membership: " + ex.Message);
         }
     }
 
@@ -190,12 +189,13 @@ public class UserInGroupController : ControllerBase
             {
                 userInGroup.IsActive = dto.IsActive.Value;
             }
+
             await _userInGroupService.UpdateMembership(userInGroup);
             return NoContent();
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "An error occurred while updating the membership: "+ex);
+            return StatusCode(500, "An error occurred while updating the membership: " + ex.Message);
         }
     }
 
@@ -210,7 +210,7 @@ public class UserInGroupController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "An error occurred while deleting the membership: "+ex);
+            return StatusCode(500, "An error occurred while deleting the membership: " + ex.Message);
         }
     }
 }

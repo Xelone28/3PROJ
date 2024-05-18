@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using DotNetAPI.Models.Debt;
 using DotNetAPI.Services.Interfaces;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using DotNetAPI.Helpers;
+using Microsoft.AspNetCore.Http;
 
 namespace DotNetAPI.Controllers
 {
@@ -20,33 +20,77 @@ namespace DotNetAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DebtAdjustmentDTO>>> GetAllDebtAdjustments()
         {
-            var debtAdjustments = await _debtAdjustmentService.GetAllDebtAdjustments();
-            return Ok(debtAdjustments);
+            try
+            {
+                var debtAdjustments = await _debtAdjustmentService.GetAllDebtAdjustments();
+                return Ok(debtAdjustments);
+            }
+            catch (HttpException ex)
+            {
+                return StatusCode(ex.StatusCode, ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<DebtAdjustmentDTO>> GetDebtAdjustmentById(int id)
         {
-            var debtAdjustment = await _debtAdjustmentService.GetDebtAdjustmentById(id);
-            if (debtAdjustment == null)
+            try
             {
-                return NotFound();
+                var debtAdjustment = await _debtAdjustmentService.GetDebtAdjustmentById(id);
+                if (debtAdjustment == null)
+                {
+                    return NotFound();
+                }
+                return Ok(debtAdjustment);
             }
-            return Ok(debtAdjustment);
+            catch (HttpException ex)
+            {
+                return StatusCode(ex.StatusCode, ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            }
         }
 
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<IEnumerable<DebtAdjustmentDTO>>> GetDebtAdjustmentsByUserId(int userId)
         {
-            var debtAdjustments = await _debtAdjustmentService.GetDebtAdjustmentsByUserId(userId);
-            return Ok(debtAdjustments);
+            try
+            {
+                var debtAdjustments = await _debtAdjustmentService.GetDebtAdjustmentsByUserId(userId);
+                return Ok(debtAdjustments);
+            }
+            catch (HttpException ex)
+            {
+                return StatusCode(ex.StatusCode, ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            }
         }
 
         [HttpGet("group/{groupId}")]
         public async Task<ActionResult<IEnumerable<DebtAdjustmentDTO>>> GetDebtAdjustmentsByGroupId(int groupId)
         {
-            var debtAdjustments = await _debtAdjustmentService.GetDebtAdjustmentsByGroupId(groupId);
-            return Ok(debtAdjustments);
+            try
+            {
+                var debtAdjustments = await _debtAdjustmentService.GetDebtAdjustmentsByGroupId(groupId);
+                return Ok(debtAdjustments);
+            }
+            catch (HttpException ex)
+            {
+                return StatusCode(ex.StatusCode, ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            }
         }
     }
 }

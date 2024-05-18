@@ -4,6 +4,7 @@ using DotNetAPI.Models.Group;
 using DotNetAPI.Models.User;
 using DotNetAPI.Models.UserInGroup;
 using DotNetAPI.Services.Interface;
+using Microsoft.AspNetCore.Http;
 
 [ApiController]
 [Route("[controller]")]
@@ -24,48 +25,82 @@ public class GroupController : ControllerBase
     [Authorize]
     public async Task<ActionResult<IEnumerable<Group>>> Get()
     {
-        var groups = await _groupService.GetAllGroups();
-        return Ok(groups);
+        try
+        {
+            var groups = await _groupService.GetAllGroups();
+            return Ok(groups);
+        }
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
     [HttpGet("{id}")]
     [Authorize]
     public async Task<ActionResult<Group>> Get(int id)
     {
-        var group = await _groupService.GetGroupById(id);
-        if (group == null)
+        try
         {
-            return NotFound();
+            var group = await _groupService.GetGroupById(id);
+            if (group == null)
+            {
+                return NotFound();
+            }
+            return Ok(group);
         }
-        return Ok(group);
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
     [HttpPost]
     [Authorize]
     public async Task<ActionResult> Post([FromBody] Group userGroup)
     {
-        var newGroup = await _groupService.CreateGroup(userGroup);
-        var userId = (HttpContext.Items["User"] as User)?.Id ?? null;
-        
-        if (userId is int) {
-            var loggedInUser = await _userService.GetUserById((int)userId);
-            if (loggedInUser is User)
-            {
-                var acceptedInvitation = new UserInGroupCreateDTO
-                {
-                    UserId = (int)userId,
-                    GroupId = newGroup.Id,
-                    IsGroupAdmin = true
-                };
+        try
+        {
+            var newGroup = await _groupService.CreateGroup(userGroup);
+            var userId = (HttpContext.Items["User"] as User)?.Id ?? null;
 
-                var invitation = await _userInGroupService.CreateMembership(acceptedInvitation, loggedInUser);
-                invitation.IsActive = true;
-                invitation.IsGroupAdmin = true;
-                await _userInGroupService.UpdateMembership(invitation);
-                return Created();
+            if (userId is int)
+            {
+                var loggedInUser = await _userService.GetUserById((int)userId);
+                if (loggedInUser is User)
+                {
+                    var acceptedInvitation = new UserInGroupCreateDTO
+                    {
+                        UserId = (int)userId,
+                        GroupId = newGroup.Id,
+                        IsGroupAdmin = true
+                    };
+
+                    var invitation = await _userInGroupService.CreateMembership(acceptedInvitation, loggedInUser);
+                    invitation.IsActive = true;
+                    invitation.IsGroupAdmin = true;
+                    await _userInGroupService.UpdateMembership(invitation);
+                    return CreatedAtAction(nameof(Get), new { id = newGroup.Id }, newGroup);
+                }
             }
+            return Unauthorized("You are not logged in.");
         }
-        return Unauthorized("You are not logged in.");
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
     [HttpPatch("{id}")]
@@ -77,41 +112,64 @@ public class GroupController : ControllerBase
             return BadRequest("Invalid patch data");
         }
 
-        var userGroup = await _groupService.GetGroupById(id);
-        if (userGroup == null)
+        try
         {
-            return NotFound();
+            var userGroup = await _groupService.GetGroupById(id);
+            if (userGroup == null)
+            {
+                return NotFound();
+            }
+
+            userGroup.GroupName = groupUpdateDto.GroupName ?? userGroup.GroupName;
+            userGroup.GroupDesc = groupUpdateDto.GroupDesc ?? userGroup.GroupDesc;
+
+            await _groupService.UpdateGroup(userGroup);
+            return NoContent();
         }
-
-        userGroup.GroupName = groupUpdateDto.GroupName ?? userGroup.GroupName;
-        userGroup.GroupDesc = groupUpdateDto.GroupDesc ?? userGroup.GroupDesc;
-
-        await _groupService.UpdateGroup(userGroup);
-        return NoContent();
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
     [HttpDelete("{groupId}")]
     [Authorize]
     public async Task<IActionResult> Delete(int groupId)
     {
-        var userId = (HttpContext.Items["User"] as User)?.Id ?? null;
-
-        if (userId is int)
+        try
         {
-            var loggedInUser = await _userService.GetUserById((int)userId);
-            if (loggedInUser is User)
+            var userId = (HttpContext.Items["User"] as User)?.Id ?? null;
+
+            if (userId is int)
             {
-                var membership = await _userInGroupService.GetMembership((int)userId, groupId);
-                if (membership is UserInGroup && membership.IsActive == true && membership.IsGroupAdmin == true)
+                var loggedInUser = await _userService.GetUserById((int)userId);
+                if (loggedInUser is User)
                 {
-                    await _groupService.DeleteGroup(groupId);
-                    return NoContent();
+                    var membership = await _userInGroupService.GetMembership((int)userId, groupId);
+                    if (membership is UserInGroup && membership.IsActive && membership.IsGroupAdmin)
+                    {
+                        await _groupService.DeleteGroup(groupId);
+                        return NoContent();
+                    }
+                    else
+                    {
+                        return Unauthorized("You don't have the right to delete the group id: " + groupId);
+                    }
                 }
-                else {
-                    return Unauthorized("You don't have the right to delete the group id : " + groupId);
-                }      
             }
+            return Unauthorized("To delete a group you must be logged in.");
         }
-        return Unauthorized("To delete a group you must be logged in");
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 }
