@@ -1,4 +1,4 @@
-﻿using DotNetAPI.Helpers;
+using DotNetAPI.Helpers;
 using DotNetAPI.Models.Debt;
 using DotNetAPI.Models.Expense;
 using DotNetAPI.Models.User;
@@ -166,80 +166,4 @@ public class DebtController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
         }
     }
-
-    // These methods are not used in the project but they are here for future use if needed
-
-    /*    [HttpPost]
-        [Authorize]
-        public async Task<ActionResult<Debt>> Post([FromBody] Debt debt)
-        {
-            try
-            {
-                var newDebt = await _debtService.CreateDebt(debt);
-                return CreatedAtAction(nameof(Get), new { id = newDebt.Id }, newDebt);
-            }
-            catch (HttpException ex)
-            {
-                return StatusCode(ex.StatusCode, ex.Message);
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
-            }
-        }
-
-        [HttpPatch("{id}")]
-        [Authorize]
-        public async Task<IActionResult> Patch(int id, [FromBody] Debt debt)
-        {
-            if (debt == null)
-            {
-                return BadRequest("Invalid patch data");
-            }
-
-            try
-            {
-                var debtToUpdate = await _debtService.GetDebtById(id);
-                if (debtToUpdate == null)
-                {
-                    return NotFound();
-                }
-
-                await _debtService.UpdateDebt(debtToUpdate);
-                return Ok(debtToUpdate);
-            }
-            catch (HttpException ex)
-            {
-                return StatusCode(ex.StatusCode, ex.Message);
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
-            }
-        }
-
-        [HttpDelete("{id}")]
-        [Authorize]
-        public async Task<IActionResult> Delete(int id)
-        {
-            try
-            {
-                var debt = await _debtService.GetDebtById(id);
-                if (debt == null)
-                {
-                    return NotFound();
-                }
-
-                await _debtService.DeleteDebt(id);
-                return NoContent();
-            }
-            catch (HttpException ex)
-            {
-                return StatusCode(ex.StatusCode, ex.Message);
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
-            }
-        }*/
 }

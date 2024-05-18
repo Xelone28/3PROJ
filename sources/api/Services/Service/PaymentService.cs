@@ -1,4 +1,4 @@
-﻿using DotNetAPI.Models.Payment;
+using DotNetAPI.Models.Payment;
 using DotNetAPI.Models.Debt;
 using DotNetAPI.Services.Interfaces;
 using DotNetAPI.Helpers;
@@ -7,12 +7,16 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using DotNetAPI.Services.Interface;
 
 namespace DotNetAPI.Services
 {
     public class PaymentService : IPaymentService
     {
         private readonly UserDbContext _context;
+        private readonly IDebtBalancingService _debtBalancingService;
+
 
         public PaymentService(UserDbContext context)
         {
@@ -46,11 +50,18 @@ namespace DotNetAPI.Services
                     throw new HttpException(StatusCodes.Status404NotFound, "User not found.");
                 }
 
+            foreach (var debtAdjustmentOriginalDebt in debtAdjustment.OriginalDebts)
+            {
+                var originalDebt = debtAdjustmentOriginalDebt.OriginalDebt;
+                originalDebt.IsPaid = true;
+            }
                 if (group == null)
                 {
                     throw new HttpException(StatusCodes.Status404NotFound, "Group not found.");
                 }
 
+            await _debtBalancingService.BalanceDebts(groupId);
+            await _context.SaveChangesAsync();
                 var payment = new Payment
                 {
                     UserId = userId,
