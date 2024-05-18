@@ -53,6 +53,7 @@ services.AddCors(options =>
         services.AddScoped<IExpenseService, ExpenseService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IDebtAdjustmentService, DebtAdjustmentService>();
+        services.AddScoped<IUserInvolvedExpense, UserInvolvedExpenseService>();
 
         services.AddSingleton<IUtils>(sp =>
         {
@@ -121,7 +122,7 @@ services.AddCors(options =>
     {
         // Migration done here
         app.UseDeveloperExceptionPage();
-        dbContext.Database.Migrate();
+        //dbContext.Database.Migrate();
         
         app.UseCors("AllowMyOrigin");
         app.UseRouting();

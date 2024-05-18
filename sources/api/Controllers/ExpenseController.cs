@@ -5,10 +5,6 @@ using DotNetAPI.Models.Expense;
 using DotNetAPI.Services.Interface;
 using Microsoft.Extensions.Configuration;
 using DotNetAPI.Models.User;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.IO;
-using System.Linq;
 using DotNetAPI.Models.Category;
 using DotNetAPI.Models.UserInvolvedExpense;
 
@@ -91,6 +87,8 @@ public class ExpenseController : ControllerBase
         };
 
         IList<UserDTO> usersInvolved = new List<UserDTO>();
+        IList<float> usersInvolvedWeight = new List<float>();
+
         if (usersInvolvedExpense is List<UserInvolvedExpense>)
         {
             foreach (var userInvolvedExpense in usersInvolvedExpense)
@@ -104,6 +102,7 @@ public class ExpenseController : ControllerBase
                     Rib = userInvolvedExpense.User.Rib
                     
                 });
+                usersInvolvedWeight.Add(userInvolvedExpense.Weight);
             }
         }
 
@@ -116,7 +115,7 @@ public class ExpenseController : ControllerBase
             Place = expense.Place,
             User = userDTO,
             UsersInvolved = usersInvolved,
-            Weights = expense.Weights,
+            Weights = usersInvolvedWeight,
             Description = expense.Description,
             Id = expense.Id,
             Image = string.IsNullOrEmpty(imageUrl) ? null : cdnUrl + imageUrl
@@ -159,27 +158,34 @@ public class ExpenseController : ControllerBase
             Place = expenseModel.Place,
             Description = expenseModel.Description,
             Category = category,
-            Weights = expenseModel.Weights, // Add this line
             User = user,
         };
 
         var newExpense = await _expenseService.CreateExpense(expense);
-
-        foreach (int userId in expenseModel.UserIdsInvolved)
+        for (int i = 0; i < expenseModel.UserIdsInvolved.Count; i++)
         {
+            int userId = expenseModel.UserIdsInvolved[i];
+            float weight = expenseModel.Weights[i];
+
             User? userInvolved = await _userService.GetUserById(userId);
             if (userInvolved is User)
             {
                 usersInvolved.Add(userInvolved);
 
-                var userInvolvedExpense = new UserInvolvedExpense { Expense = expense, User = userInvolved };
+                var userInvolvedExpense = new UserInvolvedExpense
+                {
+                    Expense = newExpense,
+                    User = userInvolved,
+                    Weight = weight
+                };
                 await _userInvolvedExpense.AddUserInExpense(userInvolvedExpense);
-            } else
-            {
-                return NotFound($"The user {userId} does not exists");
             }
-
+            else
+            {
+                return NotFound($"The user {userId} does not exist");
+            }
         }
+
         await _debtService.CreateDebtsFromExpense(expense, usersInvolved, expenseModel.Weights);
 
         // Balance debts
@@ -190,7 +196,6 @@ public class ExpenseController : ControllerBase
         var s3Paths = _configuration.GetSection("S3Paths");
         string expensePath = s3Paths["Expense"];
         string s3ImagePath = expensePath + expense.Id + "/" + fileName;
-        string cdnUrl = s3Paths["CDNURL"];
 
         using (var memoryStream = new MemoryStream())
         {
@@ -218,13 +223,23 @@ public class ExpenseController : ControllerBase
         }
 
         IList<User> usersInvolved = new List<User>();
-        if (expense.UserIdInvolved != null)
+        IList<float> usersInvolvedWeights = new List<float>();
+        if (expense.UserIdsInvolved != null && expense.Weights != null)
         {
-            //Delete the old relation between expense and user
-            await _userInvolvedExpense.DeleteFromExpenseId(expenseToUpdate.Id); 
-
-            foreach (int userId in expense.UserIdInvolved)
+            // Ensure the lists have the same length
+            if (expense.UserIdsInvolved.Count != expense.Weights.Count)
             {
+                return BadRequest("The number of weights must match the number of users involved.");
+            }
+
+            // Delete the old relation between expense and user
+            await _userInvolvedExpense.DeleteFromExpenseId(expenseToUpdate.Id);
+
+            for (int i = 0; i < expense.UserIdsInvolved.Count; i++)
+            {
+                int userId = expense.UserIdsInvolved[i];
+                float weight = expense.Weights[i];
+
                 User? user = await _userService.GetUserById(userId);
                 if (user == null)
                 {
@@ -232,12 +247,19 @@ public class ExpenseController : ControllerBase
                 }
                 else
                 {
-                    var userInvolvedExpense = new UserInvolvedExpense { Expense = expenseToUpdate, User = user };
+                    var userInvolvedExpense = new UserInvolvedExpense
+                    {
+                        Expense = expenseToUpdate,
+                        User = user,
+                        Weight = weight
+                    };
                     await _userInvolvedExpense.AddUserInExpense(userInvolvedExpense);
                     usersInvolved.Add(user);
+                    usersInvolvedWeights.Add(weight);
                 }
             }
         }
+
 
         Category? category = null;
         if (expense.CategoryId is int)
@@ -249,7 +271,6 @@ public class ExpenseController : ControllerBase
         expenseToUpdate.Amount = expense.Amount ?? expenseToUpdate.Amount;
         expenseToUpdate.Date = expense.Date ?? expenseToUpdate.Date;
         expenseToUpdate.Description = expense.Description ?? expenseToUpdate.Description;
-        expenseToUpdate.Weights = expense.Weights ?? expenseToUpdate.Weights;
         expenseToUpdate.Place = expense.Place ?? expenseToUpdate.Place;
 
         if (expense.Image != null)
@@ -283,7 +304,7 @@ public class ExpenseController : ControllerBase
         }
 
         await _expenseService.UpdateExpense(expenseToUpdate);
-        await _debtService.UpdateDebtsFromExpense(expenseToUpdate, usersInvolved, expenseToUpdate.Weights);
+        await _debtService.UpdateDebtsFromExpense(expenseToUpdate, usersInvolved, usersInvolvedWeights);
 
         // Balance debts
         await _debtBalancingService.BalanceDebts(expenseToUpdate.GroupId);

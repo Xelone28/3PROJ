@@ -12,13 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-<<<<<<<< HEAD:sources/api/Migrations/20240518022422_InitialCreate.Designer.cs
-    [Migration("20240518022422_InitialCreate")]
-    partial class InitialCreate
-========
-    [Migration("20240518010546_makeMigration")]
+    [Migration("20240518032159_makeMigration")]
     partial class makeMigration
->>>>>>>> 04ee11e (Create join table userInvolvedExpense (#122)):sources/api/Migrations/20240518010546_makeMigration.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -170,17 +165,6 @@ namespace DotNetAPI.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
-<<<<<<<< HEAD:sources/api/Migrations/20240518022422_InitialCreate.Designer.cs
-                    b.Property<int[]>("UserIdsInvolved")
-                        .IsRequired()
-                        .HasColumnType("integer[]");
-
-                    b.Property<float[]>("Weights")
-                        .IsRequired()
-                        .HasColumnType("real[]");
-
-========
->>>>>>>> 04ee11e (Create join table userInvolvedExpense (#122)):sources/api/Migrations/20240518010546_makeMigration.Designer.cs
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
@@ -332,6 +316,9 @@ namespace DotNetAPI.Migrations
 
                     b.Property<int>("ExpenseId")
                         .HasColumnType("integer");
+
+                    b.Property<float>("Weight")
+                        .HasColumnType("real");
 
                     b.HasKey("UserId", "ExpenseId");
 
@@ -497,11 +484,6 @@ namespace DotNetAPI.Migrations
                     b.Navigation("User");
                 });
 
-<<<<<<<< HEAD:sources/api/Migrations/20240518022422_InitialCreate.Designer.cs
-            modelBuilder.Entity("DotNetAPI.Models.Debt.DebtAdjustment", b =>
-                {
-                    b.Navigation("OriginalDebts");
-========
             modelBuilder.Entity("DotNetAPI.Models.UserInvolvedExpense.UserInvolvedExpense", b =>
                 {
                     b.HasOne("DotNetAPI.Models.Expense.Expense", "Expense")
@@ -519,7 +501,11 @@ namespace DotNetAPI.Migrations
                     b.Navigation("Expense");
 
                     b.Navigation("User");
->>>>>>>> 04ee11e (Create join table userInvolvedExpense (#122)):sources/api/Migrations/20240518010546_makeMigration.Designer.cs
+                });
+
+            modelBuilder.Entity("DotNetAPI.Models.Debt.DebtAdjustment", b =>
+                {
+                    b.Navigation("OriginalDebts");
                 });
 #pragma warning restore 612, 618
         }

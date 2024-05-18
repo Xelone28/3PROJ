@@ -162,17 +162,6 @@ namespace DotNetAPI.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
-<<<<<<< HEAD
-                    b.Property<int[]>("UserIdsInvolved")
-                        .IsRequired()
-                        .HasColumnType("integer[]");
-
-                    b.Property<float[]>("Weights")
-                        .IsRequired()
-                        .HasColumnType("real[]");
-
-=======
->>>>>>> 04ee11e (Create join table userInvolvedExpense (#122))
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
@@ -324,6 +313,9 @@ namespace DotNetAPI.Migrations
 
                     b.Property<int>("ExpenseId")
                         .HasColumnType("integer");
+
+                    b.Property<float>("Weight")
+                        .HasColumnType("real");
 
                     b.HasKey("UserId", "ExpenseId");
 
@@ -489,11 +481,6 @@ namespace DotNetAPI.Migrations
                     b.Navigation("User");
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("DotNetAPI.Models.Debt.DebtAdjustment", b =>
-                {
-                    b.Navigation("OriginalDebts");
-=======
             modelBuilder.Entity("DotNetAPI.Models.UserInvolvedExpense.UserInvolvedExpense", b =>
                 {
                     b.HasOne("DotNetAPI.Models.Expense.Expense", "Expense")
@@ -511,7 +498,11 @@ namespace DotNetAPI.Migrations
                     b.Navigation("Expense");
 
                     b.Navigation("User");
->>>>>>> 04ee11e (Create join table userInvolvedExpense (#122))
+                });
+
+            modelBuilder.Entity("DotNetAPI.Models.Debt.DebtAdjustment", b =>
+                {
+                    b.Navigation("OriginalDebts");
                 });
 #pragma warning restore 612, 618
         }

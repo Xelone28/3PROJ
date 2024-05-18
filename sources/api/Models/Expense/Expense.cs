@@ -1,6 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace DotNetAPI.Models.Expense
 {
     public class Expense
@@ -9,7 +6,6 @@ namespace DotNetAPI.Models.Expense
         public required User.User User { get; set; }
         public required int GroupId { get; set; }
         public required Category.Category Category { get; set; }
-        public required IList<float> Weights { get; set; }
         public required float Amount { get; set; }
         public required int Date { get; set; }
         public required string Place { get; set; }

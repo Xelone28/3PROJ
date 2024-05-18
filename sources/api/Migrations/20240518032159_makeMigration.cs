@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class makeMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -147,7 +147,6 @@ namespace DotNetAPI.Migrations
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     GroupId = table.Column<int>(type: "integer", nullable: false),
                     CategoryId = table.Column<int>(type: "integer", nullable: false),
-                    Weights = table.Column<float[]>(type: "real[]", nullable: false),
                     Amount = table.Column<float>(type: "real", nullable: false),
                     Date = table.Column<int>(type: "integer", nullable: false),
                     Place = table.Column<string>(type: "text", nullable: false),
@@ -254,14 +253,12 @@ namespace DotNetAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-<<<<<<<< HEAD:sources/api/Migrations/20240518022422_InitialCreate.cs
-                name: "DebtAdjustmentOriginalDebt",
-========
                 name: "UserInvolvedExpense",
                 columns: table => new
                 {
                     ExpenseId = table.Column<int>(type: "integer", nullable: false),
-                    UserId = table.Column<int>(type: "integer", nullable: false)
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    Weight = table.Column<float>(type: "real", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -281,8 +278,7 @@ namespace DotNetAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Payment",
->>>>>>>> 04ee11e (Create join table userInvolvedExpense (#122)):sources/api/Migrations/20240518010546_makeMigration.cs
+                name: "DebtAdjustmentOriginalDebt",
                 columns: table => new
                 {
                     DebtAdjustmentId = table.Column<int>(type: "integer", nullable: false),
