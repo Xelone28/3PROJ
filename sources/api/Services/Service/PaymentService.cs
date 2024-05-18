@@ -15,16 +15,16 @@ namespace DotNetAPI.Services
     public class PaymentService : IPaymentService
     {
         private readonly UserDbContext _context;
-        private readonly IDebtBalancingService _debtBalancingService;
+        private readonly IDebtAdjustmentService _debtAdjustmentService;
 
 
         public PaymentService(
-            UserDbContext context, 
-            IDebtBalancingService debtBalancingService
-        )
+            UserDbContext context,
+            IDebtAdjustmentService debtAdjustmentService
+            )
         {
             _context = context;
-            _debtBalancingService = debtBalancingService;
+            _debtAdjustmentService = debtAdjustmentService;
         }
 
         public async Task<PaymentDTO> CreatePayment(int userId, int groupId, float amount, int debtAdjustmentId)
@@ -64,7 +64,6 @@ namespace DotNetAPI.Services
                     throw new HttpException(StatusCodes.Status404NotFound, "Group not found.");
                 }
 
-            await _debtBalancingService.BalanceDebts(groupId);
             await _context.SaveChangesAsync();
                 var payment = new Payment
                 {
@@ -77,8 +76,8 @@ namespace DotNetAPI.Services
                     Group = group,
                     DebtAdjustment = debtAdjustment
                 };
-
                 _context.Payment.Add(payment);
+                
                 await _context.SaveChangesAsync();
 
                 // Mark all related original debts as paid
@@ -89,6 +88,8 @@ namespace DotNetAPI.Services
                 }
 
                 await _context.SaveChangesAsync();
+                
+                await _debtAdjustmentService.DeleteDebtAdjustment(debtAdjustment);
 
                 return new PaymentDTO
                 {

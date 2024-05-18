@@ -12,11 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     [DbContext(typeof(UserDbContext))]
+<<<<<<< HEAD:sources/api/Migrations/20240518200141_InitialCreate.Designer.cs
 <<<<<<<< HEAD:sources/api/Migrations/20240518223758_makeMigration.Designer.cs
     [Migration("20240518223758_makeMigration")]
     partial class makeMigration
 ========
     [Migration("20240518200141_InitialCreate")]
+=======
+    [Migration("20240518230523_InitialCreate")]
+>>>>>>> b368eab (create DeleteDebtAdjustment function):sources/api/Migrations/20240518230523_InitialCreate.Designer.cs
     partial class InitialCreate
 >>>>>>>> 3a13734 (Add BalanceDebts after a payment / remove commented code DebtController):sources/api/Migrations/20240518200141_InitialCreate.Designer.cs
     {
