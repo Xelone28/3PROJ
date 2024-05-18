@@ -18,9 +18,13 @@ namespace DotNetAPI.Services
         private readonly IDebtBalancingService _debtBalancingService;
 
 
-        public PaymentService(UserDbContext context)
+        public PaymentService(
+            UserDbContext context, 
+            IDebtBalancingService debtBalancingService
+        )
         {
             _context = context;
+            _debtBalancingService = debtBalancingService;
         }
 
         public async Task<PaymentDTO> CreatePayment(int userId, int groupId, float amount, int debtAdjustmentId)
