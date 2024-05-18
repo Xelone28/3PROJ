@@ -3,16 +3,15 @@ using DotNetAPI.Models.Category;
 using DotNetAPI.Models.Debt;
 using DotNetAPI.Models.Expense;
 using DotNetAPI.Models.Group;
-using DotNetAPI.Models.Payement;
 using DotNetAPI.Models.Taxe;
 using DotNetAPI.Models.User;
 using DotNetAPI.Models.UserInGroup;
+using DotNetAPI.Models.Payment;
 
 namespace DotNetAPI
 {
-    public class UserDbContext : DbContext
+    public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(options)
     {
-        public UserDbContext(DbContextOptions<UserDbContext> options) : base(options) { }
         public DbSet<User> User { get; set; }
         public DbSet<Group> Group { get; set; }
         public DbSet<UserInGroup> UserInGroup { get; set; }
@@ -21,6 +20,10 @@ namespace DotNetAPI
         public DbSet<Payment> Payment { get; set; }
         public DbSet<Debt> Debt { get; set; }
         public DbSet<Taxe> Taxe { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<DebtAdjustment> DebtAdjustments { get; set; }
+        public DbSet<DebtAdjustmentOriginalDebt> DebtAdjustmentOriginalDebt { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -87,20 +90,50 @@ namespace DotNetAPI
                       .HasForeignKey(p => p.UserId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(p => p.UserGroup)
+                entity.HasOne<Group>(p => p.Group)
                       .WithMany()
                       .HasForeignKey(p => p.GroupId)
                       .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(p => p.Debt)
+                
+                entity.HasOne< DebtAdjustment>(p => p.DebtAdjustment)
                       .WithMany()
-                      .HasForeignKey(p => p.DebtId)
+                      .HasForeignKey(p => p.DebtAdjustmentId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<DebtAdjustment>(entity =>
+            {
+                entity.HasKey(da => da.Id);
+
+                entity.HasOne(da => da.UserInCredit)
+                      .WithMany()
+                      .HasForeignKey(da => da.UserInCreditId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(p => p.Taxe)
+                entity.HasOne(da => da.UserInDebt)
                       .WithMany()
-                      .HasForeignKey(p => p.TaxeId)
+                      .HasForeignKey(da => da.UserInDebtId)
                       .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne<Group>(da => da.Group)
+                     .WithMany()
+                     .HasForeignKey(p => p.GroupId)
+                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<DebtAdjustmentOriginalDebt>(entity =>
+            {
+                entity.HasKey(d => new { d.DebtAdjustmentId, d.OriginalDebtId });
+
+                entity.HasOne<DebtAdjustment>(d => d.DebtAdjustment)
+                      .WithMany(da => da.OriginalDebts)
+                      .HasForeignKey(d => d.DebtAdjustmentId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne<Debt>(d => d.OriginalDebt)
+                      .WithMany()
+                      .HasForeignKey(d => d.OriginalDebtId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             base.OnModelCreating(modelBuilder);

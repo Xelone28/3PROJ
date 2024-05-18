@@ -9,6 +9,5 @@
         public required User.User UserInDebt { get; set; }
         public required float Amount { get; set; }
         public required bool IsPaid { get; set; }
-        public required bool IsCanceled { get; set; }
     }
 }

@@ -14,6 +14,7 @@ using DotNetAPI.Services.Service;
 using DotNetAPI.Services.Interface;
 using DotNetAPI.Services;
 using Microsoft.Extensions.Logging;
+using DotNetAPI.Services.Interfaces;
 
 public class Startup
 {
@@ -38,14 +39,21 @@ services.AddCors(options =>
 
         services.AddScoped<AuthenticationService>();
         services.AddScoped<DebtService>();
-        
+        services.AddScoped<IDebtService,DebtService >();
+
+        services.AddScoped<DebtBalancingService>();
+        services.AddScoped<IDebtBalancingService, DebtBalancingService>();
+
+        services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IUserService, UserService>();
-        services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<IUserInGroupService, UserInGroupService>();
+        services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<ITaxeService, TaxeService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IExpenseService, ExpenseService>();
-        services.AddScoped<IDebtService,DebtService >();
+        services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IDebtAdjustmentService, DebtAdjustmentService>();
+
         services.AddSingleton<IUtils>(sp =>
         {
             var configuration = sp.GetRequiredService<IConfiguration>();

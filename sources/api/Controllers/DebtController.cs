@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authentication;
-using DotNetAPI.Helpers;
+﻿using DotNetAPI.Helpers;
 using DotNetAPI.Models.Debt;
-using DotNetAPI.Services.Interface;
-using DotNetAPI.Models.User;
-using System.Collections.Generic;
 using DotNetAPI.Models.Expense;
+using DotNetAPI.Models.User;
+using DotNetAPI.Services.Interface;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("[controller]")]
@@ -46,13 +45,15 @@ public class DebtController : ControllerBase
         if (expense == null)
         {
             return NotFound();
-        } else
+        }
+        else
         {
             var userId = (HttpContext.Items["User"] as User)?.Id ?? null;
             if (userId != null)
             {
                 var users = await _userInGroupService.GetUsersFromGroup(expense.GroupId);
-                if (users != null) {
+                if (users != null)
+                {
                     foreach (var user in users)
                     {
                         if (user.User.Id == userId)
@@ -82,7 +83,6 @@ public class DebtController : ControllerBase
                                 debtsDto.Add(new DebtMinimal
                                 {
                                     Amount = debt.Amount,
-                                    IsCanceled = debt.IsCanceled,
                                     IsPaid = debt.IsPaid,
                                     UserInCredit = userInCredit,
                                     UserInDebt = userInDebt,
@@ -129,7 +129,6 @@ public class DebtController : ControllerBase
         return Ok(new DebtMinimal
         {
             Amount = debt.Amount,
-            IsCanceled = debt.IsCanceled,
             IsPaid = debt.IsPaid,
             UserInCredit = userInCredit,
             UserInDebt = userInDebt,
@@ -137,7 +136,11 @@ public class DebtController : ControllerBase
         });
     }
 
-    [HttpPost]
+    //HERE
+    // thoses methods are not used in the project
+    // but they are here for future use if needed
+
+/*    [HttpPost]
     [Authorize]
     public async Task<ActionResult<Debt>> Post([FromBody] Debt debt)
     {
@@ -175,5 +178,5 @@ public class DebtController : ControllerBase
         }
         await _debtService.DeleteDebt(id);
         return NoContent();
-    }
+    }*/
 }

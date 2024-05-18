@@ -10,7 +10,7 @@ namespace DotNetAPI.Models.User
         public required string Password { get; set; }
         public required string Rib { get; set; }
         public required string PaypalUsername { get; set; }
-        public IFormFile? Image { get; set; }
+        public required IFormFile? Image { get; set; }
 
     }
 }

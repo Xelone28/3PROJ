@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
@@ -6,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class makeMigration : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -77,6 +78,41 @@ namespace DotNetAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DebtAdjustments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    GroupId = table.Column<int>(type: "integer", nullable: false),
+                    UserInCreditId = table.Column<int>(type: "integer", nullable: false),
+                    UserInDebtId = table.Column<int>(type: "integer", nullable: false),
+                    AdjustmentAmount = table.Column<float>(type: "real", nullable: false),
+                    AdjustmentDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DebtAdjustments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DebtAdjustments_Group_GroupId",
+                        column: x => x.GroupId,
+                        principalTable: "Group",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_DebtAdjustments_User_UserInCreditId",
+                        column: x => x.UserInCreditId,
+                        principalTable: "User",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_DebtAdjustments_User_UserInDebtId",
+                        column: x => x.UserInDebtId,
+                        principalTable: "User",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserInGroup",
                 columns: table => new
                 {
@@ -112,6 +148,7 @@ namespace DotNetAPI.Migrations
                     GroupId = table.Column<int>(type: "integer", nullable: false),
                     UserIdsInvolved = table.Column<int[]>(type: "integer[]", nullable: false),
                     CategoryId = table.Column<int>(type: "integer", nullable: false),
+                    Weights = table.Column<float[]>(type: "real[]", nullable: false),
                     Amount = table.Column<float>(type: "real", nullable: false),
                     Date = table.Column<int>(type: "integer", nullable: false),
                     Place = table.Column<string>(type: "text", nullable: false),
@@ -141,6 +178,41 @@ namespace DotNetAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Payment",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    GroupId = table.Column<int>(type: "integer", nullable: false),
+                    Amount = table.Column<float>(type: "real", nullable: false),
+                    PaymentDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DebtAdjustmentId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payment", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Payment_DebtAdjustments_DebtAdjustmentId",
+                        column: x => x.DebtAdjustmentId,
+                        principalTable: "DebtAdjustments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Payment_Group_GroupId",
+                        column: x => x.GroupId,
+                        principalTable: "Group",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Payment_User_UserId",
+                        column: x => x.UserId,
+                        principalTable: "User",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Debt",
                 columns: table => new
                 {
@@ -151,8 +223,7 @@ namespace DotNetAPI.Migrations
                     UserInCreditId = table.Column<int>(type: "integer", nullable: false),
                     UserInDebtId = table.Column<int>(type: "integer", nullable: false),
                     Amount = table.Column<float>(type: "real", nullable: false),
-                    IsPaid = table.Column<bool>(type: "boolean", nullable: false),
-                    IsCanceled = table.Column<bool>(type: "boolean", nullable: false)
+                    IsPaid = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -184,47 +255,27 @@ namespace DotNetAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Payment",
+                name: "DebtAdjustmentOriginalDebt",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    GroupId = table.Column<int>(type: "integer", nullable: false),
-                    DebtId = table.Column<int>(type: "integer", nullable: false),
-                    Date = table.Column<int>(type: "integer", nullable: false),
-                    Amount = table.Column<int>(type: "integer", nullable: false),
-                    Type = table.Column<string>(type: "text", nullable: false),
-                    TaxeId = table.Column<int>(type: "integer", nullable: false),
-                    TaxeValue = table.Column<int>(type: "integer", nullable: false)
+                    DebtAdjustmentId = table.Column<int>(type: "integer", nullable: false),
+                    OriginalDebtId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Payment", x => x.Id);
+                    table.PrimaryKey("PK_DebtAdjustmentOriginalDebt", x => new { x.DebtAdjustmentId, x.OriginalDebtId });
                     table.ForeignKey(
-                        name: "FK_Payment_Debt_DebtId",
-                        column: x => x.DebtId,
+                        name: "FK_DebtAdjustmentOriginalDebt_DebtAdjustments_DebtAdjustmentId",
+                        column: x => x.DebtAdjustmentId,
+                        principalTable: "DebtAdjustments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DebtAdjustmentOriginalDebt_Debt_OriginalDebtId",
+                        column: x => x.OriginalDebtId,
                         principalTable: "Debt",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Payment_Group_GroupId",
-                        column: x => x.GroupId,
-                        principalTable: "Group",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Payment_Taxe_TaxeId",
-                        column: x => x.TaxeId,
-                        principalTable: "Taxe",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Payment_User_UserId",
-                        column: x => x.UserId,
-                        principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -253,6 +304,26 @@ namespace DotNetAPI.Migrations
                 column: "UserInDebtId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DebtAdjustmentOriginalDebt_OriginalDebtId",
+                table: "DebtAdjustmentOriginalDebt",
+                column: "OriginalDebtId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DebtAdjustments_GroupId",
+                table: "DebtAdjustments",
+                column: "GroupId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DebtAdjustments_UserInCreditId",
+                table: "DebtAdjustments",
+                column: "UserInCreditId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DebtAdjustments_UserInDebtId",
+                table: "DebtAdjustments",
+                column: "UserInDebtId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Expense_CategoryId",
                 table: "Expense",
                 column: "CategoryId");
@@ -268,19 +339,14 @@ namespace DotNetAPI.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Payment_DebtId",
+                name: "IX_Payment_DebtAdjustmentId",
                 table: "Payment",
-                column: "DebtId");
+                column: "DebtAdjustmentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payment_GroupId",
                 table: "Payment",
                 column: "GroupId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Payment_TaxeId",
-                table: "Payment",
-                column: "TaxeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payment_UserId",
@@ -303,7 +369,13 @@ namespace DotNetAPI.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "DebtAdjustmentOriginalDebt");
+
+            migrationBuilder.DropTable(
                 name: "Payment");
+
+            migrationBuilder.DropTable(
+                name: "Taxe");
 
             migrationBuilder.DropTable(
                 name: "UserInGroup");
@@ -312,7 +384,7 @@ namespace DotNetAPI.Migrations
                 name: "Debt");
 
             migrationBuilder.DropTable(
-                name: "Taxe");
+                name: "DebtAdjustments");
 
             migrationBuilder.DropTable(
                 name: "Expense");
