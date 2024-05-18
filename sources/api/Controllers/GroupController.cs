@@ -90,11 +90,28 @@ public class GroupController : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{groupId}")]
     [Authorize]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int groupId)
     {
-        await _groupService.DeleteGroup(id);
-        return NoContent();
+        var userId = (HttpContext.Items["User"] as User)?.Id ?? null;
+
+        if (userId is int)
+        {
+            var loggedInUser = await _userService.GetUserById((int)userId);
+            if (loggedInUser is User)
+            {
+                var membership = await _userInGroupService.GetMembership((int)userId, groupId);
+                if (membership is UserInGroup && membership.IsActive == true && membership.IsGroupAdmin == true)
+                {
+                    await _groupService.DeleteGroup(groupId);
+                    return NoContent();
+                }
+                else {
+                    return Unauthorized("You don't have the right to delete the group id : " + groupId);
+                }      
+            }
+        }
+        return Unauthorized("To delete a group you must be logged in");
     }
 }

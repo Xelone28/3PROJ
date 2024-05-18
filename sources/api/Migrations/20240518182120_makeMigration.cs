@@ -74,7 +74,7 @@ namespace DotNetAPI.Migrations
                         column: x => x.GroupId,
                         principalTable: "Group",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -97,7 +97,7 @@ namespace DotNetAPI.Migrations
                         column: x => x.GroupId,
                         principalTable: "Group",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_DebtAdjustments_User_UserInCreditId",
                         column: x => x.UserInCreditId,
@@ -166,7 +166,7 @@ namespace DotNetAPI.Migrations
                         column: x => x.GroupId,
                         principalTable: "Group",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Expense_User_UserId",
                         column: x => x.UserId,
@@ -195,13 +195,13 @@ namespace DotNetAPI.Migrations
                         column: x => x.DebtAdjustmentId,
                         principalTable: "DebtAdjustments",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Payment_Group_GroupId",
                         column: x => x.GroupId,
                         principalTable: "Group",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Payment_User_UserId",
                         column: x => x.UserId,
@@ -237,7 +237,7 @@ namespace DotNetAPI.Migrations
                         column: x => x.GroupId,
                         principalTable: "Group",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Debt_User_UserInCreditId",
                         column: x => x.UserInCreditId,

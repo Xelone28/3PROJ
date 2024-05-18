@@ -55,7 +55,7 @@ namespace DotNetAPI
                 entity.HasOne<Group>()
                       .WithMany()
                       .HasForeignKey(p => p.GroupId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Expense>(entity =>
@@ -65,7 +65,7 @@ namespace DotNetAPI
                 entity.HasOne<Group>()
                       .WithMany()
                       .HasForeignKey(p => p.GroupId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Debt>(entity =>
@@ -75,7 +75,7 @@ namespace DotNetAPI
                 entity.HasOne<Group>()
                       .WithMany()
                       .HasForeignKey(d => d.GroupId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne<Expense>()
                       .WithMany()
@@ -95,12 +95,12 @@ namespace DotNetAPI
                 entity.HasOne<Group>(p => p.Group)
                       .WithMany()
                       .HasForeignKey(p => p.GroupId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .OnDelete(DeleteBehavior.Cascade);
                 
-                entity.HasOne< DebtAdjustment>(p => p.DebtAdjustment)
+                entity.HasOne<DebtAdjustment>(p => p.DebtAdjustment)
                       .WithMany()
                       .HasForeignKey(p => p.DebtAdjustmentId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<DebtAdjustment>(entity =>
@@ -120,7 +120,7 @@ namespace DotNetAPI
                 entity.HasOne<Group>(da => da.Group)
                      .WithMany()
                      .HasForeignKey(p => p.GroupId)
-                     .OnDelete(DeleteBehavior.Restrict);
+                     .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<UserInvolvedExpense>()
