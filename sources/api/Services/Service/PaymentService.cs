@@ -1,10 +1,10 @@
 ﻿using DotNetAPI.Models.Payment;
 using DotNetAPI.Models.Debt;
+using DotNetAPI.Services.Interfaces;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using DotNetAPI.Services.Interface;
 
 namespace DotNetAPI.Services
 {
@@ -17,7 +17,7 @@ namespace DotNetAPI.Services
             _context = context;
         }
 
-        public async Task<Payment> CreatePayment(int userId, int groupId, float amount, int debtAdjustmentId)
+        public async Task<PaymentDTO> CreatePayment(int userId, int groupId, float amount, int debtAdjustmentId)
         {
             var debtAdjustment = await _context.DebtAdjustments
                 .Include(da => da.OriginalDebts)
@@ -34,13 +34,19 @@ namespace DotNetAPI.Services
                 throw new InvalidOperationException("Payment amount must match the debt adjustment amount.");
             }
 
+            var user = await _context.User.FindAsync(userId);
+            var group = await _context.Group.FindAsync(groupId);
+
             var payment = new Payment
             {
                 UserId = userId,
                 GroupId = groupId,
                 Amount = amount,
                 PaymentDate = DateTime.UtcNow,
-                DebtAdjustmentId = debtAdjustmentId
+                DebtAdjustmentId = debtAdjustmentId,
+                User = user,
+                Group = group,
+                DebtAdjustment = debtAdjustment
             };
 
             _context.Payments.Add(payment);
@@ -55,7 +61,14 @@ namespace DotNetAPI.Services
 
             await _context.SaveChangesAsync();
 
-            return payment;
+            return new PaymentDTO
+            {
+                UserId = payment.UserId,
+                GroupId = payment.GroupId,
+                Amount = payment.Amount,
+                DebtAdjustmentId = payment.DebtAdjustmentId,
+                PaymentDate = payment.PaymentDate
+            };
         }
     }
 }

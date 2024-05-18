@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using DotNetAPI.Models.Payment;
+using DotNetAPI.Services.Interfaces;
 using System.Threading.Tasks;
-using DotNetAPI.Services.Interface;
 
 namespace DotNetAPI.Controllers
 {
@@ -17,16 +17,16 @@ namespace DotNetAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreatePayment([FromBody] Payment payment)
+        public async Task<IActionResult> CreatePayment([FromBody] PaymentDTO paymentDto)
         {
-            if (payment == null)
+            if (paymentDto == null)
             {
                 return BadRequest("Payment request is null.");
             }
 
             try
             {
-                var createdPayment = await _paymentService.CreatePayment(payment.UserId, payment.GroupId, payment.Amount, payment.DebtAdjustmentId);
+                var createdPayment = await _paymentService.CreatePayment(paymentDto.UserId, paymentDto.GroupId, paymentDto.Amount, paymentDto.DebtAdjustmentId);
                 return Ok(createdPayment);
             }
             catch (InvalidOperationException ex)

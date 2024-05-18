@@ -1,9 +1,10 @@
 ﻿using DotNetAPI.Models.Payment;
+using System.Threading.Tasks;
 
-namespace DotNetAPI.Services.Interface
+namespace DotNetAPI.Services.Interfaces
 {
     public interface IPaymentService
     {
-        Task<Payment> CreatePayment(int userId, int groupId, float amount, int debtAdjustmentId);
+        Task<PaymentDTO> CreatePayment(int userId, int groupId, float amount, int debtAdjustmentId);
     }
 }

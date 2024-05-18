@@ -10,9 +10,8 @@ using DotNetAPI.Models.Payment;
 
 namespace DotNetAPI
 {
-    public class UserDbContext : DbContext
+    public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(options)
     {
-        public UserDbContext(DbContextOptions<UserDbContext> options) : base(options) { }
         public DbSet<User> User { get; set; }
         public DbSet<Group> Group { get; set; }
         public DbSet<UserInGroup> UserInGroup { get; set; }
@@ -86,7 +85,7 @@ namespace DotNetAPI
             {
                 entity.HasKey(p => p.Id);
 
-                entity.HasOne<User>(p => p.User)
+                entity.HasOne(p => p.User)
                       .WithMany()
                       .HasForeignKey(p => p.UserId)
                       .OnDelete(DeleteBehavior.Restrict);
@@ -106,12 +105,12 @@ namespace DotNetAPI
             {
                 entity.HasKey(da => da.Id);
 
-                entity.HasOne<User>(da => da.UserInCredit)
+                entity.HasOne(da => da.UserInCredit)
                       .WithMany()
                       .HasForeignKey(da => da.UserInCreditId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne<User>(da => da.UserInDebt)
+                entity.HasOne(da => da.UserInDebt)
                       .WithMany()
                       .HasForeignKey(da => da.UserInDebtId)
                       .OnDelete(DeleteBehavior.Restrict);

@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using DotNetAPI.Models.Expense;
 using DotNetAPI.Models.Debt;
-using DotNetAPI.Services.Interface;
+using DotNetAPI.Models.Expense;
 using DotNetAPI.Models.User;
+using DotNetAPI.Services.Interface;
+using Microsoft.EntityFrameworkCore;
 
 namespace DotNetAPI.Services.Service
 {

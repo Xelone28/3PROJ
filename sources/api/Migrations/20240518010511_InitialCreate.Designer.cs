@@ -12,11 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     [DbContext(typeof(UserDbContext))]
+<<<<<<< HEAD:sources/api/Migrations/20240517090551_InitialCreate.Designer.cs
 <<<<<<<< HEAD:sources/api/Migrations/20240517135759_makeMigration.Designer.cs
     [Migration("20240517135759_makeMigration")]
     partial class makeMigration
 ========
     [Migration("20240517090551_InitialCreate")]
+=======
+    [Migration("20240518010511_InitialCreate")]
+>>>>>>> 17bcff6 (working debtBalancingService / DebtAdjustmentService / PaymentService):sources/api/Migrations/20240518010511_InitialCreate.Designer.cs
     partial class InitialCreate
 >>>>>>>> 44eaf63 (working debtBalancingService):sources/api/Migrations/20240517090551_InitialCreate.Designer.cs
     {

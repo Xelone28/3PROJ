@@ -17,6 +17,8 @@ namespace DotNetAPI.Services
         public async Task BalanceDebts(int groupId)
         {
             var debts = await _context.Debt
+                .Include(d => d.UserInCredit)
+                .Include(d => d.UserInDebt)
                 .Where(d => d.GroupId == groupId && !d.IsPaid && !d.IsCanceled)
                 .ToListAsync();
 
@@ -86,37 +88,6 @@ namespace DotNetAPI.Services
 
             _context.DebtAdjustments.AddRange(adjustments);
             await _context.SaveChangesAsync();
-        }
-
-        public async Task HandleNewExpense(Expense expense)
-        {
-            // Create debts based on the new expense
-            var userCount = expense.UserIdInvolved.Count;
-            var individualShare = expense.Amount / userCount;
-
-            foreach (var userId in expense.UserIdInvolved)
-            {
-                if (userId != expense.User.Id)
-                {
-                    var debt = new Debt
-                    {
-                        GroupId = expense.GroupId,
-                        ExpenseId = expense.Id,
-                        UserInCredit = expense.User,
-                        UserInDebt = await _context.User.FindAsync(userId),
-                        Amount = individualShare,
-                        IsPaid = false,
-                        IsCanceled = false
-                    };
-
-                    _context.Debt.Add(debt);
-                }
-            }
-
-            await _context.SaveChangesAsync();
-
-            // Rebalance all debts in the group
-            await BalanceDebts(expense.GroupId);
         }
     }
 }
