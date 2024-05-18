@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using DotNetAPI.Models.Category;
 using DotNetAPI.Models.Debt;
 using DotNetAPI.Models.Expense;
@@ -7,6 +7,7 @@ using DotNetAPI.Models.Taxe;
 using DotNetAPI.Models.User;
 using DotNetAPI.Models.UserInGroup;
 using DotNetAPI.Models.Payment;
+using DotNetAPI.Models.UserInvolvedExpense;
 
 namespace DotNetAPI
 {
@@ -20,6 +21,7 @@ namespace DotNetAPI
         public DbSet<Payment> Payment { get; set; }
         public DbSet<Debt> Debt { get; set; }
         public DbSet<Taxe> Taxe { get; set; }
+        public DbSet<UserInvolvedExpense> UserInvolvedExpense{ get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<DebtAdjustment> DebtAdjustments { get; set; }
         public DbSet<DebtAdjustmentOriginalDebt> DebtAdjustmentOriginalDebt { get; set; }
@@ -120,6 +122,19 @@ namespace DotNetAPI
                      .HasForeignKey(p => p.GroupId)
                      .OnDelete(DeleteBehavior.Restrict);
             });
+
+            modelBuilder.Entity<UserInvolvedExpense>()
+           .HasKey(uie => new { uie.UserId, uie.ExpenseId });
+
+            modelBuilder.Entity<UserInvolvedExpense>()
+                .HasOne(uie => uie.User)
+                .WithMany()
+                .HasForeignKey(uie => uie.UserId);
+
+            modelBuilder.Entity<UserInvolvedExpense>()
+                .HasOne(uie => uie.Expense)
+                .WithMany()
+                .HasForeignKey(uie => uie.ExpenseId);
 
             modelBuilder.Entity<DebtAdjustmentOriginalDebt>(entity =>
             {

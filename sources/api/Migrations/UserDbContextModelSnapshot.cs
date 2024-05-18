@@ -162,6 +162,7 @@ namespace DotNetAPI.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
+<<<<<<< HEAD
                     b.Property<int[]>("UserIdsInvolved")
                         .IsRequired()
                         .HasColumnType("integer[]");
@@ -170,6 +171,8 @@ namespace DotNetAPI.Migrations
                         .IsRequired()
                         .HasColumnType("real[]");
 
+=======
+>>>>>>> 04ee11e (Create join table userInvolvedExpense (#122))
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
@@ -312,6 +315,21 @@ namespace DotNetAPI.Migrations
                     b.HasIndex("GroupId");
 
                     b.ToTable("UserInGroup");
+                });
+
+            modelBuilder.Entity("DotNetAPI.Models.UserInvolvedExpense.UserInvolvedExpense", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ExpenseId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId", "ExpenseId");
+
+                    b.HasIndex("ExpenseId");
+
+                    b.ToTable("UserInvolvedExpense");
                 });
 
             modelBuilder.Entity("DotNetAPI.Models.Category.Category", b =>
@@ -471,9 +489,29 @@ namespace DotNetAPI.Migrations
                     b.Navigation("User");
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("DotNetAPI.Models.Debt.DebtAdjustment", b =>
                 {
                     b.Navigation("OriginalDebts");
+=======
+            modelBuilder.Entity("DotNetAPI.Models.UserInvolvedExpense.UserInvolvedExpense", b =>
+                {
+                    b.HasOne("DotNetAPI.Models.Expense.Expense", "Expense")
+                        .WithMany()
+                        .HasForeignKey("ExpenseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DotNetAPI.Models.User.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Expense");
+
+                    b.Navigation("User");
+>>>>>>> 04ee11e (Create join table userInvolvedExpense (#122))
                 });
 #pragma warning restore 612, 618
         }
