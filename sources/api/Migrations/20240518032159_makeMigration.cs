@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class makeMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -146,9 +146,7 @@ namespace DotNetAPI.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     GroupId = table.Column<int>(type: "integer", nullable: false),
-                    UserIdsInvolved = table.Column<int[]>(type: "integer[]", nullable: false),
                     CategoryId = table.Column<int>(type: "integer", nullable: false),
-                    Weights = table.Column<float[]>(type: "real[]", nullable: false),
                     Amount = table.Column<float>(type: "real", nullable: false),
                     Date = table.Column<int>(type: "integer", nullable: false),
                     Place = table.Column<string>(type: "text", nullable: false),
@@ -249,6 +247,31 @@ namespace DotNetAPI.Migrations
                     table.ForeignKey(
                         name: "FK_Debt_User_UserInDebtId",
                         column: x => x.UserInDebtId,
+                        principalTable: "User",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserInvolvedExpense",
+                columns: table => new
+                {
+                    ExpenseId = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    Weight = table.Column<float>(type: "real", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserInvolvedExpense", x => new { x.UserId, x.ExpenseId });
+                    table.ForeignKey(
+                        name: "FK_UserInvolvedExpense_Expense_ExpenseId",
+                        column: x => x.ExpenseId,
+                        principalTable: "Expense",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserInvolvedExpense_User_UserId",
+                        column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -363,6 +386,11 @@ namespace DotNetAPI.Migrations
                 name: "IX_UserInGroup_GroupId",
                 table: "UserInGroup",
                 column: "GroupId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserInvolvedExpense_ExpenseId",
+                table: "UserInvolvedExpense",
+                column: "ExpenseId");
         }
 
         /// <inheritdoc />
@@ -379,6 +407,9 @@ namespace DotNetAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserInGroup");
+
+            migrationBuilder.DropTable(
+                name: "UserInvolvedExpense");
 
             migrationBuilder.DropTable(
                 name: "Debt");

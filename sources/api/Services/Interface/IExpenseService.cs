@@ -11,8 +11,8 @@ namespace DotNetAPI.Services.Interface
         Task<Expense> CreateExpense(Expense expense);
         Task UpdateExpense(Expense expense);
         Task DeleteExpense(int id);
-        Task<IEnumerable<Expense>> GetExpensesByGroupId(int groupId);
-        Task<IEnumerable<Expense>> GetExpensesByUserId(int userId);
-        Task<IEnumerable<Expense>> GetExpensesByUserIdAndGroupId(int userId, int groupId);
+        Task<IEnumerable<Expense>?> GetExpensesByGroupId(int groupId);
+        Task<IEnumerable<Expense>?> GetExpensesByUserId(int userId);
+        Task<IEnumerable<Expense>?> GetExpensesByUserIdAndGroupId(int userId, int groupId);
     }
 }

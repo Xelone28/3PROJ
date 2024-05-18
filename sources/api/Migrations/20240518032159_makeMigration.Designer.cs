@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20240518022422_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240518032159_makeMigration")]
+    partial class makeMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -165,14 +165,6 @@ namespace DotNetAPI.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
-                    b.Property<int[]>("UserIdsInvolved")
-                        .IsRequired()
-                        .HasColumnType("integer[]");
-
-                    b.Property<float[]>("Weights")
-                        .IsRequired()
-                        .HasColumnType("real[]");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
@@ -315,6 +307,24 @@ namespace DotNetAPI.Migrations
                     b.HasIndex("GroupId");
 
                     b.ToTable("UserInGroup");
+                });
+
+            modelBuilder.Entity("DotNetAPI.Models.UserInvolvedExpense.UserInvolvedExpense", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ExpenseId")
+                        .HasColumnType("integer");
+
+                    b.Property<float>("Weight")
+                        .HasColumnType("real");
+
+                    b.HasKey("UserId", "ExpenseId");
+
+                    b.HasIndex("ExpenseId");
+
+                    b.ToTable("UserInvolvedExpense");
                 });
 
             modelBuilder.Entity("DotNetAPI.Models.Category.Category", b =>
@@ -470,6 +480,25 @@ namespace DotNetAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("Group");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DotNetAPI.Models.UserInvolvedExpense.UserInvolvedExpense", b =>
+                {
+                    b.HasOne("DotNetAPI.Models.Expense.Expense", "Expense")
+                        .WithMany()
+                        .HasForeignKey("ExpenseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DotNetAPI.Models.User.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Expense");
 
                     b.Navigation("User");
                 });

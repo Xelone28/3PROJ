@@ -6,7 +6,7 @@ namespace DotNetAPI.Models.Expense
     public class ExpenseUpdateDTO
     {
         public int? GroupId { get; set; }
-        public IList<int>? UserIdInvolved { get; set; }
+        public IList<int>? UserIdsInvolved { get; set; }
         public IList<float>? Weights { get; set; }
         public int? CategoryId { get; set; }
         public float? Amount { get; set; }
