@@ -6,6 +6,7 @@ using DotNetAPI.Models.Authenticate;
 using DotNetAPI.Services.Interface;
 using Microsoft.Extensions.Configuration;
 using DotNetAPI.Models.Expense;
+using Microsoft.AspNetCore.Http;
 
 namespace DotNetAPI.Controllers
 {
@@ -82,19 +83,23 @@ namespace DotNetAPI.Controllers
 
                 var createdUser = await _userService.AddUser(newUser);
 
-                string fileName = "userPP" + Path.GetExtension(userWithImage.Image.FileName);
-
-                var s3Paths = _configuration.GetSection("S3Paths");
-                string userPath = s3Paths["User"];
-
-                string s3ImagePath = userPath + createdUser.Id + "/" + fileName;
-
-                using (var memoryStream = new MemoryStream())
+                if (userWithImage.Image is IFormFile)
                 {
-                    await userWithImage.Image.CopyToAsync(memoryStream);
-                    memoryStream.Position = 0;
-                    await _utils.UploadFileAsync(memoryStream, s3ImagePath, userWithImage.Image.ContentType);
+                    string fileName = "userPP" + Path.GetExtension(userWithImage.Image.FileName);
+
+                    var s3Paths = _configuration.GetSection("S3Paths");
+                    string userPath = s3Paths["User"];
+
+                    string s3ImagePath = userPath + createdUser.Id + "/" + fileName;
+
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await userWithImage.Image.CopyToAsync(memoryStream);
+                        memoryStream.Position = 0;
+                        await _utils.UploadFileAsync(memoryStream, s3ImagePath, userWithImage.Image.ContentType);
+                    }
                 }
+
                 return CreatedAtAction(
                     nameof(GetUser),
                     new { id = createdUser.Id },
