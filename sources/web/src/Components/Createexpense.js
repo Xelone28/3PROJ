@@ -5,7 +5,9 @@ import '../assets/css/Groupepage.css';
 function CreateExpense() {
   const { groupId } = useParams();
   const user = JSON.parse(localStorage.getItem('user'));
-  const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1];
+  const token = document
+  .cookie.split('; ').find(row => row.startsWith('token='))
+  .split('=')[1];
   const navigate = useNavigate();
   const [categoryName, setCategoryName] = useState('');
   const [users, setUsers] = useState([]);

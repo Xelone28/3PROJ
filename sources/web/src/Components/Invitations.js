@@ -9,11 +9,13 @@ function Creategroup() {
 //   const navigate = useNavigate();
   const [invitations, setInvitations] = useState([]);
   const userId = user.id;
-  const token = document.cookie
-    .split('; ')
-    .find(row => row.startsWith('token='))
-    .split('=')[1];
-
+  let token;
+  const tokenRow = document.cookie.split('; ').find(row => row.startsWith('token='));
+  if (tokenRow) {
+    token = tokenRow.split('=')[1];
+  }
+  // console.log(token);
+  
   useEffect(() => {
     const fetchInvitations = async () => {
       const response = await fetch(`http://localhost:5000/useringroup/invitation/${userId}`, {
