@@ -184,6 +184,9 @@ public class ExpenseController : ControllerBase
                 Description = expenseModel.Description,
                 Category = category,
                 User = user,
+                CategoryId = category.Id,
+                UserId = user.Id
+                
             };
 
             var newExpense = await _expenseService.CreateExpense(expense);

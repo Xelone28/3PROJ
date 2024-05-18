@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20240518182120_makeMigration")]
+    [Migration("20240518223758_makeMigration")]
     partial class makeMigration
     {
         /// <inheritdoc />
@@ -418,7 +418,7 @@ namespace DotNetAPI.Migrations
                     b.HasOne("DotNetAPI.Models.Category.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("DotNetAPI.Models.Group.Group", null)
@@ -430,7 +430,7 @@ namespace DotNetAPI.Migrations
                     b.HasOne("DotNetAPI.Models.User.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
