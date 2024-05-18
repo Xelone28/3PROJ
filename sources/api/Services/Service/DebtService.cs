@@ -43,7 +43,6 @@ namespace DotNetAPI.Services.Service
                         ExpenseId = expense.Id,
                         Amount = (float)Math.Round(userAmount, 2),
                         IsPaid = false,
-                        IsCanceled = false,
                         UserInCredit = expense.User,
                         UserInDebt = user
                     };
@@ -64,9 +63,9 @@ namespace DotNetAPI.Services.Service
             try
             {
                 return await _context.Debt
-                             .Include(d => d.UserInCredit)
-                             .Include(d => d.UserInDebt)
-                             .FirstOrDefaultAsync(d => d.Id == id);
+                    .Include(d => d.UserInCredit)
+                    .Include(d => d.UserInDebt)
+                    .FirstOrDefaultAsync(d => d.Id == id);
             }
             catch (Exception ex)
             {

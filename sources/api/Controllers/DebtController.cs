@@ -83,7 +83,6 @@ public class DebtController : ControllerBase
                                 debtsDto.Add(new DebtMinimal
                                 {
                                     Amount = debt.Amount,
-                                    IsCanceled = debt.IsCanceled,
                                     IsPaid = debt.IsPaid,
                                     UserInCredit = userInCredit,
                                     UserInDebt = userInDebt,
@@ -130,7 +129,6 @@ public class DebtController : ControllerBase
         return Ok(new DebtMinimal
         {
             Amount = debt.Amount,
-            IsCanceled = debt.IsCanceled,
             IsPaid = debt.IsPaid,
             UserInCredit = userInCredit,
             UserInDebt = userInDebt,

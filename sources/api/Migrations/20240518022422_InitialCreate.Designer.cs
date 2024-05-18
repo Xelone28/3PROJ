@@ -12,13 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-<<<<<<<< HEAD:sources/api/Migrations/20240517135759_makeMigration.Designer.cs
-    [Migration("20240517135759_makeMigration")]
-    partial class makeMigration
-========
-    [Migration("20240517090551_InitialCreate")]
+    [Migration("20240518022422_InitialCreate")]
     partial class InitialCreate
->>>>>>>> 44eaf63 (working debtBalancingService):sources/api/Migrations/20240517090551_InitialCreate.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -68,9 +63,6 @@ namespace DotNetAPI.Migrations
 
                     b.Property<int>("GroupId")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("IsCanceled")
-                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsPaid")
                         .HasColumnType("boolean");
@@ -176,6 +168,10 @@ namespace DotNetAPI.Migrations
                     b.Property<int[]>("UserIdsInvolved")
                         .IsRequired()
                         .HasColumnType("integer[]");
+
+                    b.Property<float[]>("Weights")
+                        .IsRequired()
+                        .HasColumnType("real[]");
 
                     b.HasKey("Id");
 

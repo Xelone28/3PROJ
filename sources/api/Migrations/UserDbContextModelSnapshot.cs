@@ -61,9 +61,6 @@ namespace DotNetAPI.Migrations
                     b.Property<int>("GroupId")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsCanceled")
-                        .HasColumnType("boolean");
-
                     b.Property<bool>("IsPaid")
                         .HasColumnType("boolean");
 

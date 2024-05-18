@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO;
 using System.Linq;
+using DotNetAPI.Models.Category;
 
 [ApiController]
 [Route("[controller]")]
@@ -160,7 +161,7 @@ public class ExpenseController : ControllerBase
             return NotFound($"The user {expenseModel.UserId} does not exist");
         }
 
-        if (expenseModel.UserIdInvolved.Count != expenseModel.Weights.Count)
+        if (expenseModel.UserIdsInvolved.Count != expenseModel.Weights.Count)
         {
             return BadRequest("The number of weights must match the number of users involved.");
         }
@@ -175,7 +176,7 @@ public class ExpenseController : ControllerBase
             Category = category,
             Id = expenseModel.Id,
             User = user,
-            Weights = expenseModel.Weights // Add this line
+            Weights = expenseModel.Weights, // Add this line
             UserIdsInvolved = expenseModel.UserIdsInvolved
         };
 

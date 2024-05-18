@@ -19,7 +19,7 @@ namespace DotNetAPI.Services
             var debts = await _context.Debt
                 .Include(d => d.UserInCredit)
                 .Include(d => d.UserInDebt)
-                .Where(d => d.GroupId == groupId && !d.IsPaid && !d.IsCanceled)
+                .Where(d => d.GroupId == groupId && !d.IsPaid)
                 .ToListAsync();
 
             var balanceMatrix = new Dictionary<(int, int), float>();
