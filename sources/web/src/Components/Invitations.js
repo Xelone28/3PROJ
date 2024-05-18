@@ -10,10 +10,9 @@ function Creategroup() {
   const [invitations, setInvitations] = useState([]);
   const userId = user.id;
   const token = document.cookie
-  .split('; ')
-  .find(row => row.startsWith('token='))
-  .split('=')[1];
-
+    .split('; ')
+    .find(row => row.startsWith('token='))
+    .split('=')[1];
 
   useEffect(() => {
     const fetchInvitations = async () => {
@@ -22,37 +21,40 @@ function Creategroup() {
           'Authorization': `Bearer ${token}`,
         },
       });
-  
+
       if (response.ok) {
         const data = await response.json();
-  
+        // console.log('Received invitations:', data);
+
         const invitationsWithGroupInfo = await Promise.all(data.map(async (invitation) => {
-            const groupResponse = await fetch(`http://localhost:5000/group/${invitation.groupId}`, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-              },
-            });
-          
-            const groupData = await groupResponse.json();
-          
-            if (groupResponse.ok) {
-              return { ...invitation, groupName: groupData.groupName, groupDescription: groupData.groupDesc };
-            } else {
-              console.error('Failed to fetch group info:', groupData);
-              return invitation;
-            }
-          }));
-  
+          const groupResponse = await fetch(`http://localhost:5000/group/${invitation.group.id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          const groupData = await groupResponse.json();
+
+          if (groupResponse.ok) {
+            return { ...invitation, groupName: groupData.groupName, groupDescription: groupData.groupDesc };
+          } else {
+            console.error('Failed to fetch group info:', groupData);
+            return invitation;
+          }
+        }));
+
         setInvitations(invitationsWithGroupInfo);
       } else {
         console.error('Failed to fetch invitations:', await response.json());
       }
     };
-  
+
     fetchInvitations();
   }, [userId, token]);
 
-  const acceptInvitation = async (userId, groupId) => {
+  const acceptInvitation = async (groupId) => {
+    console.log(userId, groupId); // Log userId and groupId
+
     const response = await fetch(`http://localhost:5000/useringroup/${userId}/${groupId}`, {
       method: 'PATCH',
       headers: {
@@ -61,7 +63,7 @@ function Creategroup() {
       },
       body: JSON.stringify({ IsActive: true }),
     });
-  
+
     if (response.ok) {
       // Refresh the invitations after accepting an invitation
       window.location.reload();
@@ -69,15 +71,15 @@ function Creategroup() {
       console.error('Failed to accept invitation');
     }
   };
-  
-  const refuseInvitation = async (userId, groupId) => {
+
+  const refuseInvitation = async (groupId) => {
     const response = await fetch(`http://localhost:5000/useringroup/${userId}/${groupId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
-  
+
     if (response.ok) {
       // Refresh the invitations after refusing an invitation
       window.location.reload();
@@ -85,20 +87,30 @@ function Creategroup() {
       console.error('Failed to refuse invitation');
     }
   };
-  
 
   return (
     <div>
       <h2>Invitations</h2>
-      {invitations.map((invitation, index) => (
-        <div key={index} style={{ border: '1px solid black', margin: '10px', padding: '10px' }}>
-          <p>Group: {invitation.groupName}</p>
-          <p>Description: {invitation.groupDescription}</p>
-          <p>Admin: {invitation.isGroupAdmin ? 'Yes' : 'No'}</p>
-          <button onClick={() => acceptInvitation(invitation.userId, invitation.groupId)}>Accept</button>
-          <button onClick={() => refuseInvitation(invitation.userId, invitation.groupId)}>Refuse</button>
-        </div>
-      ))}
+      {invitations.map((invitation, index) => {
+        // Log the structure of the invitation object
+        console.log('Invitation:', invitation);
+
+        // Ensure invitation.group exists before rendering
+        if (!invitation.group || !invitation.group.id) {
+          console.error('Invalid invitation structure:', invitation);
+          return null;
+        }
+
+        return (
+          <div key={index} style={{ border: '1px solid black', margin: '10px', padding: '10px' }}>
+            <p>Group: {invitation.groupName}</p>
+            <p>Description: {invitation.groupDescription}</p>
+            <p>Admin: {invitation.isGroupAdmin ? 'Yes' : 'No'}</p>
+            <button onClick={() => acceptInvitation(invitation.group.id)}>Accept</button>
+            <button onClick={() => refuseInvitation(invitation.group.id)}>Refuse</button>
+          </div>
+        );
+      })}
     </div>
   );
 }
