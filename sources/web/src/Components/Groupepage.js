@@ -19,7 +19,7 @@ function GroupPage() {
   const [isInviteUserAdmin, setIsInviteUserAdmin] = useState(false);
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
-  
+
   useEffect(() => {
     const fetchExpenses = async () => {
       const response = await fetch(`http://localhost:5000/expense/group/${Id}`, {
@@ -288,6 +288,9 @@ function GroupPage() {
     }
   };
 
+  // Calculate total expense
+  const totalExpense = expenses.reduce((total, expense) => total + expense.amount, 0);
+
   return (
     <div>
       <h1>{group.groupName}</h1>
@@ -356,7 +359,7 @@ function GroupPage() {
         );
       })}
 
-
+      <h3>Total Expense: {totalExpense}</h3>
     </div>
   );
 }
