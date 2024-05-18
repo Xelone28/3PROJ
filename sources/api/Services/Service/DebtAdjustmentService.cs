@@ -1,9 +1,8 @@
 ﻿using DotNetAPI.Models.Debt;
 using DotNetAPI.Services.Interfaces;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using DotNetAPI.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
 namespace DotNetAPI.Services
 {
@@ -18,65 +17,104 @@ namespace DotNetAPI.Services
 
         public async Task<IEnumerable<DebtAdjustmentDTO>> GetAllDebtAdjustments()
         {
-            return await _context.DebtAdjustments
-                .Select(da => new DebtAdjustmentDTO
-                {
-                    Id = da.Id,
-                    GroupId = da.GroupId,
-                    UserInCreditId = da.UserInCreditId,
-                    UserInDebtId = da.UserInDebtId,
-                    AdjustmentAmount = da.AdjustmentAmount,
-                    AdjustmentDate = da.AdjustmentDate
-                })
-                .ToListAsync();
+            try
+            {
+                return await _context.DebtAdjustments
+                    .Select(da => new DebtAdjustmentDTO
+                    {
+                        Id = da.Id,
+                        GroupId = da.GroupId,
+                        UserInCreditId = da.UserInCreditId,
+                        UserInDebtId = da.UserInDebtId,
+                        AdjustmentAmount = da.AdjustmentAmount,
+                        AdjustmentDate = da.AdjustmentDate
+                    })
+                    .ToListAsync();
+            }
+            catch (Exception)
+            {
+                throw new HttpException(StatusCodes.Status500InternalServerError, "Error getting all debt adjustments.");
+            }
         }
 
         public async Task<DebtAdjustmentDTO> GetDebtAdjustmentById(int id)
         {
-            return await _context.DebtAdjustments
-                .Where(da => da.Id == id)
-                .Select(da => new DebtAdjustmentDTO
+            try
+            {
+                var debtAdjustment = await _context.DebtAdjustments
+                    .Where(da => da.Id == id)
+                    .Select(da => new DebtAdjustmentDTO
+                    {
+                        Id = da.Id,
+                        GroupId = da.GroupId,
+                        UserInCreditId = da.UserInCreditId,
+                        UserInDebtId = da.UserInDebtId,
+                        AdjustmentAmount = da.AdjustmentAmount,
+                        AdjustmentDate = da.AdjustmentDate
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (debtAdjustment == null)
                 {
-                    Id = da.Id,
-                    GroupId = da.GroupId,
-                    UserInCreditId = da.UserInCreditId,
-                    UserInDebtId = da.UserInDebtId,
-                    AdjustmentAmount = da.AdjustmentAmount,
-                    AdjustmentDate = da.AdjustmentDate
-                })
-                .FirstOrDefaultAsync();
+                    throw new HttpException(StatusCodes.Status404NotFound, "Debt adjustment not found.");
+                }
+
+                return debtAdjustment;
+            }
+            catch (HttpException)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                throw new HttpException(StatusCodes.Status500InternalServerError, "Error getting debt adjustment by id.");
+            }
         }
 
         public async Task<IEnumerable<DebtAdjustmentDTO>> GetDebtAdjustmentsByUserId(int userId)
         {
-            return await _context.DebtAdjustments
-                .Where(da => da.UserInCreditId == userId || da.UserInDebtId == userId)
-                .Select(da => new DebtAdjustmentDTO
-                {
-                    Id = da.Id,
-                    GroupId = da.GroupId,
-                    UserInCreditId = da.UserInCreditId,
-                    UserInDebtId = da.UserInDebtId,
-                    AdjustmentAmount = da.AdjustmentAmount,
-                    AdjustmentDate = da.AdjustmentDate
-                })
-                .ToListAsync();
+            try
+            {
+                return await _context.DebtAdjustments
+                    .Where(da => da.UserInCreditId == userId || da.UserInDebtId == userId)
+                    .Select(da => new DebtAdjustmentDTO
+                    {
+                        Id = da.Id,
+                        GroupId = da.GroupId,
+                        UserInCreditId = da.UserInCreditId,
+                        UserInDebtId = da.UserInDebtId,
+                        AdjustmentAmount = da.AdjustmentAmount,
+                        AdjustmentDate = da.AdjustmentDate
+                    })
+                    .ToListAsync();
+            }
+            catch (Exception)
+            {
+                throw new HttpException(StatusCodes.Status500InternalServerError, "Error getting debt adjustments by user id.");
+            }
         }
 
         public async Task<IEnumerable<DebtAdjustmentDTO>> GetDebtAdjustmentsByGroupId(int groupId)
         {
-            return await _context.DebtAdjustments
-                .Where(da => da.GroupId == groupId)
-                .Select(da => new DebtAdjustmentDTO
-                {
-                    Id = da.Id,
-                    GroupId = da.GroupId,
-                    UserInCreditId = da.UserInCreditId,
-                    UserInDebtId = da.UserInDebtId,
-                    AdjustmentAmount = da.AdjustmentAmount,
-                    AdjustmentDate = da.AdjustmentDate
-                })
-                .ToListAsync();
+            try
+            {
+                return await _context.DebtAdjustments
+                    .Where(da => da.GroupId == groupId)
+                    .Select(da => new DebtAdjustmentDTO
+                    {
+                        Id = da.Id,
+                        GroupId = da.GroupId,
+                        UserInCreditId = da.UserInCreditId,
+                        UserInDebtId = da.UserInDebtId,
+                        AdjustmentAmount = da.AdjustmentAmount,
+                        AdjustmentDate = da.AdjustmentDate
+                    })
+                    .ToListAsync();
+            }
+            catch (Exception)
+            {
+                throw new HttpException(StatusCodes.Status500InternalServerError, "Error getting debt adjustments by group id.");
+            }
         }
     }
 }

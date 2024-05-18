@@ -5,7 +5,6 @@ using DotNetAPI.Models.User;
 using DotNetAPI.Models.Authenticate;
 using DotNetAPI.Services.Interface;
 using Microsoft.Extensions.Configuration;
-using DotNetAPI.Models.Expense;
 using Microsoft.AspNetCore.Http;
 
 namespace DotNetAPI.Controllers
@@ -35,35 +34,42 @@ namespace DotNetAPI.Controllers
         [Authorize]
         public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
-            var user = await _userService.GetUserById(id);
-            if (user == null)
+            try
             {
-                return NotFound();
+                var user = await _userService.GetUserById(id);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                var s3Paths = _configuration.GetSection("S3Paths");
+                string userPath = s3Paths["User"];
+                string cdnUrl = s3Paths["CDNURL"];
+
+                string s3ImagePath = $"{userPath}{id}";
+                var attachmentFromUser = await _utils.ListFiles(s3ImagePath);
+                var imageUrl = "";
+                if (attachmentFromUser.Count > 0)
+                {
+                    //Permits to make the use of attachment evolutive
+                    imageUrl = attachmentFromUser[0];
+                }
+
+                var userDto = new UserWithImageURLDTO
+                {
+                    Id = user.Id,
+                    Username = user.Username,
+                    Email = user.Email,
+                    Rib = user.Rib,
+                    PaypalUsername = user.PaypalUsername,
+                    Image = string.IsNullOrEmpty(imageUrl) ? null : cdnUrl + imageUrl
+                };
+
+                return Ok(userDto);
             }
-            var s3Paths = _configuration.GetSection("S3Paths");
-            string userPath = s3Paths["User"];
-            string cdnUrl = s3Paths["CDNURL"];
-
-            string s3ImagePath = $"{userPath}{id}";
-            var attachmentFromUser = await _utils.ListFiles(s3ImagePath);
-            var imageUrl = "";
-            if (attachmentFromUser.Count > 0)
+            catch (Exception ex)
             {
-                //Permits to make the use of attachment evolutive
-                imageUrl = attachmentFromUser[0];
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
-
-            var userDto = new UserWithImageURLDTO
-            {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email,
-                Rib = user.Rib,
-                PaypalUsername = user.PaypalUsername,
-                Image = string.IsNullOrEmpty(imageUrl) ? null : cdnUrl + imageUrl
-            };
-
-            return Ok(userDto);
         }
 
         [HttpPost]
@@ -78,7 +84,7 @@ namespace DotNetAPI.Controllers
                     Email = userWithImage.Email,
                     Password = userWithImage.Password,
                     PaypalUsername = userWithImage.PaypalUsername,
-                    Rib = userWithImage.Rib       
+                    Rib = userWithImage.Rib
                 };
 
                 var createdUser = await _userService.AddUser(newUser);
@@ -127,73 +133,80 @@ namespace DotNetAPI.Controllers
                 return BadRequest("Invalid user data");
             }
 
-            var userFromDb = await _userService.GetUserById(id);
-            if (userFromDb == null)
+            try
             {
-                return NotFound($"User with ID {id} not found.");
-            }
-
-            var currentUser = (User)HttpContext.Items["User"];
-
-            if (currentUser.Id != userFromDb.Id)
-            {
-                return Unauthorized("You do not have permission to modify this user.");
-            }
-
-            if (!string.IsNullOrEmpty(user.Username))
-            {
-                userFromDb.Username = user.Username;
-            }
-
-            if (!string.IsNullOrEmpty(user.Email))
-            {
-                userFromDb.Email = user.Email;
-            }
-
-            if (!string.IsNullOrEmpty(user.Password))
-            {
-                userFromDb.Password = user.Password;
-            }
-
-            if (user.Image != null)
-            {
-                string fileName = "userPP" + Path.GetExtension(user.Image.FileName);
-
-                var s3Paths = _configuration.GetSection("S3Paths");
-                string userPath = s3Paths["User"];
-
-                string s3ImagePath = $"{userPath}{id}";
-
-                var filesToDelete = await _utils.ListFiles(s3ImagePath);
-                try
+                var userFromDb = await _userService.GetUserById(id);
+                if (userFromDb == null)
                 {
-                    using (var memoryStream = new MemoryStream())
+                    return NotFound($"User with ID {id} not found.");
+                }
+
+                var currentUser = (User)HttpContext.Items["User"];
+
+                if (currentUser.Id != userFromDb.Id)
+                {
+                    return Unauthorized("You do not have permission to modify this user.");
+                }
+
+                if (!string.IsNullOrEmpty(user.Username))
+                {
+                    userFromDb.Username = user.Username;
+                }
+
+                if (!string.IsNullOrEmpty(user.Email))
+                {
+                    userFromDb.Email = user.Email;
+                }
+
+                if (!string.IsNullOrEmpty(user.Password))
+                {
+                    userFromDb.Password = user.Password;
+                }
+
+                if (user.Image != null)
+                {
+                    string fileName = "userPP" + Path.GetExtension(user.Image.FileName);
+
+                    var s3Paths = _configuration.GetSection("S3Paths");
+                    string userPath = s3Paths["User"];
+
+                    string s3ImagePath = $"{userPath}{id}";
+
+                    var filesToDelete = await _utils.ListFiles(s3ImagePath);
+                    try
                     {
-                        await user.Image.CopyToAsync(memoryStream);
-                        memoryStream.Position = 0;
-                        string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
-                        await _utils.UploadFileAsync(memoryStream, $"{s3ImagePath}/{timestamp}-{fileName}", user.Image.ContentType);
+                        using (var memoryStream = new MemoryStream())
+                        {
+                            await user.Image.CopyToAsync(memoryStream);
+                            memoryStream.Position = 0;
+                            string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
+                            await _utils.UploadFileAsync(memoryStream, $"{s3ImagePath}/{timestamp}-{fileName}", user.Image.ContentType);
+                        }
+                        foreach (var file in filesToDelete)
+                        {
+                            await _utils.DeleteFile(file);
+                        }
                     }
-                    foreach (var file in filesToDelete)
+                    catch (Exception ex)
                     {
-                        await _utils.DeleteFile(file);
+                        Console.WriteLine("Something went wrong" + ex.Message);
                     }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Something went wrong" + ex.Message);
 
+                if (await _userService.UpdateUser(userFromDb, string.IsNullOrEmpty(user.Password) ? null : user.Password) == null)
+                {
+                    return NotFound("The user does not exist.");
+                }
+                else
+                {
+                    return NoContent();
                 }
             }
-            if (await _userService.UpdateUser(userFromDb, string.IsNullOrEmpty(user.Password) ? null: user.Password) == null)
+            catch (Exception ex)
             {
-                return NotFound("The user does not exists");
-            } else
-            {
-                return NoContent();
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
-
 
         [HttpDelete("{id}")]
         [Authorize]
@@ -220,12 +233,19 @@ namespace DotNetAPI.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> login(AuthenticateRequest model)
         {
-            var response = await _userService.Authenticate(model);
+            try
+            {
+                var response = await _userService.Authenticate(model);
 
-            if (response == null)
-                return BadRequest(new { message = "Email or password is incorrect" });
+                if (response == null)
+                    return BadRequest(new { message = "Email or password is incorrect" });
 
-            return Ok(response);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
         }
 
         [HttpGet("email/{email}")]
@@ -237,22 +257,29 @@ namespace DotNetAPI.Controllers
                 return BadRequest("Email is required in the request body.");
             }
 
-            var user = await _userService.GetUserByEmail(email);
-            if (user == null)
+            try
             {
-                return NotFound($"User with email {email} not found.");
+                var user = await _userService.GetUserByEmail(email);
+                if (user == null)
+                {
+                    return NotFound($"User with email {email} not found.");
+                }
+
+                var userDto = new UserDTO
+                {
+                    Id = user.Id,
+                    Username = user.Username,
+                    Email = user.Email,
+                    Rib = user.Rib,
+                    PaypalUsername = user.PaypalUsername
+                };
+
+                return Ok(userDto);
             }
-
-            var userDto = new UserDTO
+            catch (Exception ex)
             {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email,
-                Rib = user.Rib,
-                PaypalUsername = user.PaypalUsername
-            };
-
-            return Ok(userDto);
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
         }
     }
 }

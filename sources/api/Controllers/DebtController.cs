@@ -5,10 +5,11 @@ using DotNetAPI.Models.User;
 using DotNetAPI.Services.Interface;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+
 
 [ApiController]
 [Route("[controller]")]
-
 public class DebtController : ControllerBase
 {
     private readonly IDebtService _debtService;
@@ -20,8 +21,7 @@ public class DebtController : ControllerBase
         IDebtService debtService,
         IExpenseService expenseService,
         IUserInGroupService userInGroupService,
-        AuthenticationService authenticationService
-        )
+        AuthenticationService authenticationService)
     {
         _debtService = debtService;
         _expenseService = expenseService;
@@ -33,21 +33,33 @@ public class DebtController : ControllerBase
     [Authorize]
     public async Task<ActionResult<IEnumerable<Debt>>> Get()
     {
-        var debts = await _debtService.GetAllDebts();
-        return Ok(debts);
+        try
+        {
+            var debts = await _debtService.GetAllDebts();
+            return Ok(debts);
+        }
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
     [HttpGet("expense/{id}")]
     [Authorize]
     public async Task<ActionResult<IList<DebtMinimal>>> GetByExpenseId(int id)
     {
-        var expense = await _expenseService.GetExpenseById(id);
-        if (expense == null)
+        try
         {
-            return NotFound();
-        }
-        else
-        {
+            var expense = await _expenseService.GetExpenseById(id);
+            if (expense == null)
+            {
+                return NotFound();
+            }
+
             var userId = (HttpContext.Items["User"] as User)?.Id ?? null;
             if (userId != null)
             {
@@ -94,89 +106,140 @@ public class DebtController : ControllerBase
                     }
                 }
             }
+            return Unauthorized("You do not have access to this expense");
         }
-        return Unauthorized("You do not have access to this expense");
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
     [HttpGet("{id}")]
     [Authorize]
     public async Task<ActionResult<DebtMinimal>> Get(int id)
     {
-        var debt = await _debtService.GetDebtById(id);
-        if (debt == null)
+        try
         {
-            return NotFound();
+            var debt = await _debtService.GetDebtById(id);
+            if (debt == null)
+            {
+                return NotFound();
+            }
+
+            var userInCredit = new UserDTO
+            {
+                Id = debt.UserInCredit.Id,
+                Email = debt.UserInCredit.Email,
+                PaypalUsername = debt.UserInCredit.PaypalUsername,
+                Rib = debt.UserInCredit.Rib,
+                Username = debt.UserInCredit.Username
+            };
+
+            var userInDebt = new UserDTO
+            {
+                Id = debt.UserInDebt.Id,
+                Email = debt.UserInDebt.Email,
+                PaypalUsername = debt.UserInDebt.PaypalUsername,
+                Rib = debt.UserInDebt.Rib,
+                Username = debt.UserInDebt.Username
+            };
+
+            return Ok(new DebtMinimal
+            {
+                Amount = debt.Amount,
+                IsPaid = debt.IsPaid,
+                UserInCredit = userInCredit,
+                UserInDebt = userInDebt,
+                Id = debt.Id
+            });
         }
-
-        var userInCredit = new UserDTO
+        catch (HttpException ex)
         {
-            Id = debt.UserInCredit.Id,
-            Email = debt.UserInCredit.Email,
-            PaypalUsername = debt.UserInCredit.PaypalUsername,
-            Rib = debt.UserInCredit.Rib,
-            Username = debt.UserInCredit.Username
-        };
-
-        var userInDebt = new UserDTO
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
         {
-            Id = debt.UserInDebt.Id,
-            Email = debt.UserInDebt.Email,
-            PaypalUsername = debt.UserInDebt.PaypalUsername,
-            Rib = debt.UserInDebt.Rib,
-            Username = debt.UserInDebt.Username
-        };
-
-        return Ok(new DebtMinimal
-        {
-            Amount = debt.Amount,
-            IsPaid = debt.IsPaid,
-            UserInCredit = userInCredit,
-            UserInDebt = userInDebt,
-            Id = debt.Id
-        });
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
-    //HERE
-    // thoses methods are not used in the project
-    // but they are here for future use if needed
+    // These methods are not used in the project but they are here for future use if needed
 
-/*    [HttpPost]
-    [Authorize]
-    public async Task<ActionResult<Debt>> Post([FromBody] Debt debt)
-    {
-        var newDebt = await _debtService.CreateDebt(debt);
-        return CreatedAtAction(nameof(Get), new { id = newDebt.Id }, newDebt);
-    }
-
-    [HttpPatch("{id}")]
-    [Authorize]
-    public async Task<IActionResult> Patch(int id, [FromBody] Debt debt)
-    {
-        if (debt == null)
+    /*    [HttpPost]
+        [Authorize]
+        public async Task<ActionResult<Debt>> Post([FromBody] Debt debt)
         {
-            return BadRequest("Invalid patch data");
+            try
+            {
+                var newDebt = await _debtService.CreateDebt(debt);
+                return CreatedAtAction(nameof(Get), new { id = newDebt.Id }, newDebt);
+            }
+            catch (HttpException ex)
+            {
+                return StatusCode(ex.StatusCode, ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            }
         }
 
-        var debtToUpdate = await _debtService.GetDebtById(id);
-        if (debtToUpdate == null)
+        [HttpPatch("{id}")]
+        [Authorize]
+        public async Task<IActionResult> Patch(int id, [FromBody] Debt debt)
         {
-            return NotFound();
+            if (debt == null)
+            {
+                return BadRequest("Invalid patch data");
+            }
+
+            try
+            {
+                var debtToUpdate = await _debtService.GetDebtById(id);
+                if (debtToUpdate == null)
+                {
+                    return NotFound();
+                }
+
+                await _debtService.UpdateDebt(debtToUpdate);
+                return Ok(debtToUpdate);
+            }
+            catch (HttpException ex)
+            {
+                return StatusCode(ex.StatusCode, ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            }
         }
 
-        await _debtService.UpdateDebt(debtToUpdate);
-        return Ok(debtToUpdate);
-    }
-
-    [HttpDelete("{id}")]
-    [Authorize]
-    public async Task<IActionResult> Delete(int id)
-    {
-        var debt = await _debtService.GetDebtById(id);
-        if (debt == null)
+        [HttpDelete("{id}")]
+        [Authorize]
+        public async Task<IActionResult> Delete(int id)
         {
-            return NotFound();
-        }
-        await _debtService.DeleteDebt(id);
-        return NoContent();
-    }*/
+            try
+            {
+                var debt = await _debtService.GetDebtById(id);
+                if (debt == null)
+                {
+                    return NotFound();
+                }
+
+                await _debtService.DeleteDebt(id);
+                return NoContent();
+            }
+            catch (HttpException ex)
+            {
+                return StatusCode(ex.StatusCode, ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            }
+        }*/
 }

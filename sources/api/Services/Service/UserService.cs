@@ -9,6 +9,11 @@ using DotNetAPI.Models.Authenticate;
 using DotNetAPI.Models.User;
 using DotNetAPI.Services.Interface;
 using System.Security.Cryptography;
+using DotNetAPI.Helpers;
+using Microsoft.AspNetCore.Http;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace DotNetAPI.Services.Service
 {
@@ -17,12 +22,10 @@ namespace DotNetAPI.Services.Service
         private readonly UserDbContext _dbContext;
         private readonly AppSettings _appSettings;
 
-
         public UserService(UserDbContext dbContext, IOptions<AppSettings> appSettings)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _appSettings = appSettings.Value;
-
         }
 
         private byte[] GenerateSalt()
@@ -69,18 +72,24 @@ namespace DotNetAPI.Services.Service
             try
             {
                 return await _dbContext.User.FindAsync(id);
-            } catch (Exception ex)
-            {
-                throw new ApplicationException("User cannot be retrieve: " + ex);
-
             }
-
+            catch (Exception ex)
+            {
+                throw new HttpException(StatusCodes.Status500InternalServerError, "User cannot be retrieved: " + ex.Message);
+            }
         }
 
         public async Task<User?> GetUserByEmail(string email)
         {
-            var user = await _dbContext.User.FirstOrDefaultAsync(u => u.Email == email);
-            return user;
+            try
+            {
+                var user = await _dbContext.User.FirstOrDefaultAsync(u => u.Email == email);
+                return user;
+            }
+            catch (Exception ex)
+            {
+                throw new HttpException(StatusCodes.Status500InternalServerError, "Error retrieving user by email: " + ex.Message);
+            }
         }
 
         public async Task<User> GetUserByEmailAndPassword(string email, string password)
@@ -88,19 +97,17 @@ namespace DotNetAPI.Services.Service
             try
             {
                 var user = await _dbContext.User
-                .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
+                    .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
                 if (user == null)
                 {
-                    throw new ApplicationException($"User with Email: {email} not found.");
+                    throw new HttpException(StatusCodes.Status404NotFound, $"User with Email: {email} not found.");
                 }
                 return user;
             }
             catch (Exception ex)
             {
-                throw new ApplicationException("User cannot be retrieve: "+ex);
+                throw new HttpException(StatusCodes.Status500InternalServerError, "User cannot be retrieved: " + ex.Message);
             }
-            
-
         }
 
         public async Task<User> AddUser(User user)
@@ -113,9 +120,13 @@ namespace DotNetAPI.Services.Service
                 await _dbContext.SaveChangesAsync();
                 return user;
             }
+            catch (DbUpdateException ex)
+            {
+                throw new HttpException(StatusCodes.Status409Conflict, "Error adding user. Possible constraint violation: " + ex.Message);
+            }
             catch (Exception ex)
             {
-                throw new ApplicationException("Error adding user.", ex);
+                throw new HttpException(StatusCodes.Status500InternalServerError, "Error adding user: " + ex.Message);
             }
         }
 
@@ -133,15 +144,15 @@ namespace DotNetAPI.Services.Service
 
                     await _dbContext.SaveChangesAsync();
                     return user;
-                } else
+                }
+                else
                 {
                     return null;
                 }
-                
             }
             catch (Exception ex)
             {
-                throw new ApplicationException("Error updating user.", ex);
+                throw new HttpException(StatusCodes.Status500InternalServerError, "Error updating user: " + ex.Message);
             }
         }
 
@@ -157,14 +168,13 @@ namespace DotNetAPI.Services.Service
                 }
                 catch (Exception ex)
                 {
-                    throw new ApplicationException("Error deleting user.", ex);
+                    throw new HttpException(StatusCodes.Status500InternalServerError, "Error deleting user: " + ex.Message);
                 }
             }
             else
             {
-                throw new ApplicationException("The user does not exists");
+                throw new HttpException(StatusCodes.Status404NotFound, "The user does not exist.");
             }
-
         }
 
         public async Task<AuthenticateResponse?> Authenticate(AuthenticateRequest model)
@@ -175,20 +185,19 @@ namespace DotNetAPI.Services.Service
 
                 if (user != null && VerifyPassword(model.Password, user.Password))
                 {
-                    var token = await generateJwtToken(user);
+                    var token = await GenerateJwtToken(user);
                     return new AuthenticateResponse(user, token);
                 }
 
                 return null;
-            } catch(Exception ex)
-            {
-                throw new ApplicationException("Error loggin in user.", ex);
-
             }
-
+            catch (Exception ex)
+            {
+                throw new HttpException(StatusCodes.Status500InternalServerError, "Error logging in user: " + ex.Message);
+            }
         }
 
-        private async Task<string> generateJwtToken(User user)
+        private async Task<string> GenerateJwtToken(User user)
         {
             try
             {
@@ -218,7 +227,7 @@ namespace DotNetAPI.Services.Service
             }
             catch (Exception ex)
             {
-                throw new ApplicationException($"Error generating JWT token: {ex.Message}");
+                throw new HttpException(StatusCodes.Status500InternalServerError, "Error generating JWT token: " + ex.Message);
             }
         }
     }

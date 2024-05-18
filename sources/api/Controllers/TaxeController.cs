@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Authentication;
 using DotNetAPI.Helpers;
 using DotNetAPI.Models.Taxe;
 using DotNetAPI.Services.Interface;
+using Microsoft.AspNetCore.Http;
 
 [ApiController]
 [Route("[controller]")]
-
 public class TaxeController : ControllerBase
 {
     private readonly ITaxeService _taxeService;
@@ -22,28 +22,61 @@ public class TaxeController : ControllerBase
     [Authorize]
     public async Task<ActionResult<IEnumerable<Taxe>>> Get()
     {
-        var taxes = await _taxeService.GetAllTaxes();
-        return Ok(taxes);
+        try
+        {
+            var taxes = await _taxeService.GetAllTaxes();
+            return Ok(taxes);
+        }
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
     [HttpGet("{id}")]
     [Authorize]
     public async Task<ActionResult<Taxe>> Get(int id)
     {
-        var taxe = await _taxeService.GetTaxeById(id);
-        if (taxe == null)
+        try
         {
-            return NotFound();
+            var taxe = await _taxeService.GetTaxeById(id);
+            if (taxe == null)
+            {
+                return NotFound();
+            }
+            return Ok(taxe);
         }
-        return Ok(taxe);
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
     [HttpPost]
     [Authorize]
     public async Task<ActionResult<Taxe>> Post([FromBody] Taxe taxe)
     {
-        var newTaxe = await _taxeService.CreateTaxe(taxe);
-        return CreatedAtAction(nameof(Get), new { id = newTaxe.Id }, newTaxe);
+        try
+        {
+            var newTaxe = await _taxeService.CreateTaxe(taxe);
+            return CreatedAtAction(nameof(Get), new { id = newTaxe.Id }, newTaxe);
+        }
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
     [HttpPatch("{id}")]
@@ -55,25 +88,46 @@ public class TaxeController : ControllerBase
             return BadRequest("Invalid patch data");
         }
 
-        var taxeToUpdate = await _taxeService.GetTaxeById(id);
-        if (taxeToUpdate == null)
+        try
         {
-            return NotFound();
+            var taxeToUpdate = await _taxeService.GetTaxeById(id);
+            if (taxeToUpdate == null)
+            {
+                return NotFound();
+            }
+
+            taxeToUpdate.Name = taxe.Name;
+            taxeToUpdate.Rate = taxe.Rate;
+
+            await _taxeService.UpdateTaxe(taxeToUpdate);
+            return NoContent();
         }
-
-        taxeToUpdate.Name = taxe.Name;
-        taxeToUpdate.Rate = taxe.Rate;
-
-
-        await _taxeService.UpdateTaxe(taxeToUpdate);
-        return NoContent();
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
     [HttpDelete("{id}")]
     [Authorize]
     public async Task<IActionResult> Delete(int id)
     {
-        await _taxeService.DeleteTaxe(id);
-        return NoContent();
+        try
+        {
+            await _taxeService.DeleteTaxe(id);
+            return NoContent();
+        }
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 }

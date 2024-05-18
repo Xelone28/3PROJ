@@ -3,18 +3,22 @@ using Microsoft.AspNetCore.Authentication;
 using DotNetAPI.Helpers;
 using DotNetAPI.Models.Category;
 using DotNetAPI.Services.Interface;
+using Microsoft.AspNetCore.Http;
+using DotNetAPI.Services.Service;
+using DotNetAPI.Models.Group;
 
 [ApiController]
 [Route("[controller]")]
-
 public class CategoryController : ControllerBase
 {
+    private readonly IGroupService _groupService;
     private readonly ICategoryService _categoryService;
     private readonly AuthenticationService _authenticationService;
 
-    public CategoryController(ICategoryService categoryService, AuthenticationService authenticationService)
+    public CategoryController(ICategoryService categoryService, AuthenticationService authenticationService, IGroupService groupService)
     {
         _categoryService = categoryService;
+        _groupService = groupService;
         _authenticationService = authenticationService;
     }
 
@@ -22,27 +26,61 @@ public class CategoryController : ControllerBase
     [Authorize]
     public async Task<ActionResult<IEnumerable<Category>>> Get()
     {
-        var categories = await _categoryService.GetAllCategories();
-        return Ok(categories);
+        try
+        {
+            var categories = await _categoryService.GetAllCategories();
+            return Ok(categories);
+        }
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
     [HttpGet("{id}")]
     [Authorize]
     public async Task<ActionResult<Category>> Get(int id)
     {
-        var category = await _categoryService.GetCategoryById(id);
-        if (category == null)
+        try
         {
-            return NotFound();
+            var category = await _categoryService.GetCategoryById(id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+            return Ok(category);
         }
-        return Ok(category);
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<ActionResult<Category>> Post([FromBody] Category category)
     {
-        var newCategory = await _categoryService.CreateCategory(category);
-        return CreatedAtAction(nameof(Get), new { id = newCategory.Id }, newCategory);
+        try
+        {
+            var newCategory = await _categoryService.CreateCategory(category);
+            return CreatedAtAction(nameof(Get), new { id = newCategory.Id }, newCategory);
+        }
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
     [HttpPatch("{id}")]
@@ -54,37 +92,75 @@ public class CategoryController : ControllerBase
             return BadRequest("Invalid patch data");
         }
 
-        var categoryToUpdate = await _categoryService.GetCategoryById(id);
-        if (categoryToUpdate == null)
+        try
         {
-            return NotFound();
+            var categoryToUpdate = await _categoryService.GetCategoryById(id);
+            if (categoryToUpdate == null)
+            {
+                return NotFound();
+            }
+
+            categoryToUpdate.Name = category.Name;
+
+            await _categoryService.UpdateCategory(categoryToUpdate);
+            return Ok(categoryToUpdate);
         }
-
-        category.Name = category.Name;
-
-        await _categoryService.UpdateCategory(category);
-        return Ok(category);
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 
     [HttpDelete("{id}")]
     [Authorize]
     public async Task<IActionResult> Delete(int id)
     {
-        var category = await _categoryService.GetCategoryById(id);
-        if (category == null)
+        try
         {
-            return NotFound();
-        }
+            var category = await _categoryService.GetCategoryById(id);
+            if (category == null)
+            {
+                return NotFound();
+            }
 
-        await _categoryService.DeleteCategory(id);
-        return NoContent();
+            await _categoryService.DeleteCategory(id);
+            return NoContent();
+        }
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
-    //category by group id
+
     [HttpGet("group/{groupId}")]
     [Authorize]
     public async Task<ActionResult<IEnumerable<Category>>> GetCategoriesByGroupId(int groupId)
     {
-        var categories = await _categoryService.GetCategoriesByGroupId(groupId);
-        return Ok(categories);
+        try
+        {
+            var group = await _groupService.GetGroupById(groupId);
+            if (group is null)
+            {
+                return NotFound("The group does not exists");
+            }
+            var categories = await _categoryService.GetCategoriesByGroupId(groupId);
+            return Ok(categories);
+        }
+        catch (HttpException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+        }
     }
 }
