@@ -70,7 +70,7 @@ fun GroupDetails(groupService: GroupService, userInGroupService: UserInGroupServ
             CircularProgressIndicator()
         } else {
             if (groupId != null && groupDetails != null && usersInGroup != null) {
-                Utils.getNavigation().TopNavigationBar(navController, groupId)
+                Utils.getNavigation().TopNavigationBar(navController, groupId, groupDetails!!.groupName)
                 IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,

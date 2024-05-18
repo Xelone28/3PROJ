@@ -93,5 +93,17 @@ namespace DotNetAPI.Services.Service
                 await _dbContext.SaveChangesAsync();
             }
         }
+        public async Task<List<User>> GetUsersInUserGroups(int userId)
+        {
+            var usersInGroup = await _dbContext.UserInGroup
+                .Where(ug => ug.UserId == userId)
+                .SelectMany(ug => _dbContext.UserInGroup
+                    .Where(u => u.GroupId == ug.GroupId && u.UserId != userId)
+                    .Select(u => u.User))
+                .Distinct()
+                .ToListAsync();
+
+            return usersInGroup;
+        }
     }
 }

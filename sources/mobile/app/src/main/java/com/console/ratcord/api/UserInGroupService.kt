@@ -3,6 +3,7 @@ package com.console.ratcord.api
 import android.content.Context
 import com.console.ratcord.domain.entity.group.Group
 import com.console.ratcord.domain.entity.exception.AuthorizationException
+import com.console.ratcord.domain.entity.user.UserExtraMinimal
 import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
 import com.console.ratcord.domain.entity.userInGroup.UserInGroup
 import com.console.ratcord.domain.entity.userInGroup.UserInGroupInvitation
@@ -114,6 +115,33 @@ class UserInGroupService() {
             HttpStatusCode.OK -> {
                 val body: String = response.bodyAsText()
                 return Json.decodeFromString<List<UserInGroupInvitation>>(body)
+            }
+            else -> {
+                println("Received unexpected status: ${response.status}")
+                return null
+            }
+        }
+    }
+
+    suspend fun getUsersInUserGroups(context: Context, userId: Int): List<UserExtraMinimal>? {
+        val response: HttpResponse = try {
+            client.get("http://10.0.2.2:5000/useringroup/$userId/groupusers") {
+                headers {
+                    append("Authorization", "Bearer ${Utils.getItem(context = context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                }
+            }
+        } catch (e: Exception) {
+            println("Network error occurred: ${e.localizedMessage}")
+            return null
+        }
+
+        when (response.status) {
+            HttpStatusCode.Unauthorized -> {
+                throw AuthorizationException("Unauthorized access to data.")
+            }
+            HttpStatusCode.OK -> {
+                val body: String = response.bodyAsText()
+                return Json.decodeFromString<List<UserExtraMinimal>>(body)
             }
             else -> {
                 println("Received unexpected status: ${response.status}")
