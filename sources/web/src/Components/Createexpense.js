@@ -30,7 +30,7 @@ function CreateExpense() {
     if (showBanner) {
       const timer = setTimeout(() => {
         setShowBanner(false);
-      }, 5000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [showBanner]);
@@ -168,19 +168,19 @@ function CreateExpense() {
           showSuccessBanner('Expense created successfully!');
           setTimeout(() => {
             navigate(`/group/${groupId}`);
-          }, 5000);
+          }, 2000);
         } catch (err) {
           console.error('Failed to parse JSON:', err);
           showSuccessBanner('Expense created successfully!');
           setTimeout(() => {
             navigate(`/group/${groupId}`);
-          }, 5000);
+          }, 2000);
         }
       } else {
         showSuccessBanner('Expense created successfully!');
         setTimeout(() => {
           navigate(`/group/${groupId}`);
-        }, 5000);
+        }, 2000);
       }
     })
     .catch(error => {
