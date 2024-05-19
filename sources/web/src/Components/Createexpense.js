@@ -5,9 +5,7 @@ import '../assets/css/Groupepage.css';
 function CreateExpense() {
   const { groupId } = useParams();
   const user = JSON.parse(localStorage.getItem('user'));
-  const token = document
-  .cookie.split('; ').find(row => row.startsWith('token='))
-  .split('=')[1];
+  const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1];
   const navigate = useNavigate();
   const [categoryName, setCategoryName] = useState('');
   const [users, setUsers] = useState([]);
@@ -24,6 +22,18 @@ function CreateExpense() {
     place: '',
     description: ''
   });
+  const [message, setMessage] = useState(null); // State variable for banner message
+  const [bannerClass, setBannerClass] = useState(''); // State variable for banner class
+  const [showBanner, setShowBanner] = useState(false); // State variable for showing banner
+
+  useEffect(() => {
+    if (showBanner) {
+      const timer = setTimeout(() => {
+        setShowBanner(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showBanner]);
 
   useEffect(() => {
     fetch(`http://localhost:5000/useringroup/users/${groupId}`, {
@@ -34,16 +44,33 @@ function CreateExpense() {
     })
       .then(response => response.ok ? response.json() : Promise.reject('Failed to fetch users'))
       .then(data => setUsers(data))
-      .catch(err => console.error('Error fetching users:', err));
+      .catch(err => {
+        console.error('Error fetching users:', err);
+        showErrorBanner('Failed to fetch users');
+      });
   
     fetch(`http://localhost:5000/category/group/${groupId}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(response => response.ok ? response.json() : Promise.reject('Failed to fetch categories'))
       .then(data => setCategories(data))
-      .catch(err => console.error('Error fetching categories:', err));
+      .catch(err => {
+        console.error('Error fetching categories:', err);
+        showErrorBanner('Failed to fetch categories');
+      });
   }, [groupId, token]);
   
+  const showErrorBanner = (message) => {
+    setMessage(message);
+    setBannerClass('error-banner');
+    setShowBanner(true);
+  };
+
+  const showSuccessBanner = (message) => {
+    setMessage(message);
+    setBannerClass('success-banner');
+    setShowBanner(true);
+  };
 
   const handleInputChange = event => {
     const { name, value } = event.target;
@@ -86,11 +113,11 @@ function CreateExpense() {
     };
   
     if (!Array.isArray(expenseData.UserIdsInvolved) || expenseData.UserIdsInvolved.length === 0) {
-      alert('Please select at least one user involved in the expense.');
+      showErrorBanner('Please select at least one user involved in the expense.');
       return;
     }
     if (!expenseData.place || expenseData.place.trim() === '') {
-      alert('Please provide a place for the expense.');
+      showErrorBanner('Please provide a place for the expense.');
       return;
     }
   
@@ -127,6 +154,7 @@ function CreateExpense() {
       if (!response.ok) {
         return response.text().then(text => {
           console.error('Response:', text);
+          showErrorBanner('Network response was not ok');
           throw new Error('Network response was not ok');
         });
       }
@@ -137,22 +165,29 @@ function CreateExpense() {
       if (text) {
         try {
           const data = JSON.parse(text);
-          alert('Expense created successfully!');
-          navigate(`/group/${groupId}`);
+          showSuccessBanner('Expense created successfully!');
+          setTimeout(() => {
+            navigate(`/group/${groupId}`);
+          }, 5000);
         } catch (err) {
           console.error('Failed to parse JSON:', err);
-          alert('Expense created successfully!');
-          navigate(`/group/${groupId}`);
+          showSuccessBanner('Expense created successfully!');
+          setTimeout(() => {
+            navigate(`/group/${groupId}`);
+          }, 5000);
         }
       } else {
-        alert('Expense created successfully!');
-        navigate(`/group/${groupId}`);
+        showSuccessBanner('Expense created successfully!');
+        setTimeout(() => {
+          navigate(`/group/${groupId}`);
+        }, 5000);
       }
     })
-    .catch(error => console.error('There has been a problem with your fetch operation:', error));
+    .catch(error => {
+      console.error('There has been a problem with your fetch operation:', error);
+      showErrorBanner('There has been a problem with your fetch operation');
+    });
   };
-  
-  
 
   const handleCategoryNameChange = event => {
     setCategoryName(event.target.value);
@@ -186,7 +221,7 @@ function CreateExpense() {
       if (!response.ok) {
         return response.json().then(data => {
           console.error('Server response:', data);
-          alert('An error occurred while creating the category.');
+          showErrorBanner('An error occurred while creating the category.');
         }).catch(() => {
           throw new Error('Received an empty response from the server');
         });
@@ -195,22 +230,28 @@ function CreateExpense() {
     })
     .then(data => {
       if (data.id) {
-        alert('Category created successfully!');
+        showSuccessBanner('Category created successfully!');
         window.location.reload();
         setCategories([...categories, data]);
       } else {
         console.error('Server response:', data);
-        alert('An error occurred while creating the category.');
+        showErrorBanner('An error occurred while creating the category.');
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      alert('An error occurred while creating the category.');
+      showErrorBanner('An error occurred while creating the category.');
     });
   };
 
   return (
     <div>
+      <h2>Create Expense</h2>
+      {message && (
+        <div className={`banner ${bannerClass} ${showBanner ? 'show-banner' : ''}`}>
+          {message}
+        </div>
+      )}
       <form onSubmit={handleCategoryFormSubmit}>
         <input type="text" value={categoryName} onChange={handleCategoryNameChange} placeholder="Category Name" required />
         <input type="submit" value="Create Category" />
