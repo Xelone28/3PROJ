@@ -18,7 +18,7 @@ function Creategroup() {
     if (showBanner) {
       const timer = setTimeout(() => {
         setShowBanner(false);
-      }, 5000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [showBanner]);
@@ -61,7 +61,7 @@ function Creategroup() {
       showSuccessBanner('Group created successfully!');
       setTimeout(() => {
         navigate('/groups');
-      }, 5000);
+      }, 2000);
     }
   };
 

@@ -16,7 +16,7 @@ const Signup = () => {
     if (showBanner) {
       const timer = setTimeout(() => {
         setShowBanner(false);
-      }, 5000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [showBanner]);
@@ -61,7 +61,7 @@ const Signup = () => {
             setShowBanner(true);
             setTimeout(() => {
               navigate('/login');
-            }, 5000);
+            }, 2000);
           } else {
             console.error('Server response:', data);
             setMessage('An error occurred while creating the user.');

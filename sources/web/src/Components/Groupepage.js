@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Bar } from 'react-chartjs-2';
 import '../assets/css/Groupepage.css';
 
@@ -12,13 +11,37 @@ function GroupPage() {
   const [debts, setDebts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [groupName, setGroupName] = useState(group ? group.name : '');
-  const [groupDesc, setGroupDesc] = useState(group ? group.description : '');
+  const [groupName, setGroupName] = useState('');
+  const [groupDesc, setGroupDesc] = useState('');
   const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1];
   const [inviteUserId, setInviteUserId] = useState('');
   const [isInviteUserAdmin, setIsInviteUserAdmin] = useState(false);
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [message, setMessage] = useState(null); // State variable for banner message
+  const [bannerClass, setBannerClass] = useState(''); // State variable for banner class
+  const [showBanner, setShowBanner] = useState(false); // State variable for showing banner
+
+  useEffect(() => {
+    if (showBanner) {
+      const timer = setTimeout(() => {
+        setShowBanner(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showBanner]);
+
+  const showErrorBanner = (message) => {
+    setMessage(message);
+    setBannerClass('error-banner');
+    setShowBanner(true);
+  };
+
+  const showSuccessBanner = (message) => {
+    setMessage(message);
+    setBannerClass('success-banner');
+    setShowBanner(true);
+  };
 
   useEffect(() => {
     const fetchExpenses = async () => {
@@ -34,7 +57,7 @@ function GroupPage() {
         setExpenses(data);
         console.log('expenses:', data);
       } else {
-        console.error(`Failed to fetch expenses: ${response.status}`);
+        showErrorBanner(`Failed to fetch expenses: ${response.status}`);
       }
     };
 
@@ -51,7 +74,10 @@ function GroupPage() {
         });
         const data = await response.json();
         setGroup(data);
+        setGroupName(data.name);
+        setGroupDesc(data.description);
       } catch (error) {
+        showErrorBanner('Failed to fetch group');
         console.error('Failed to fetch group:', error);
       }
     };
@@ -71,7 +97,7 @@ function GroupPage() {
         const data = await response.json();
         setCategories(data);
       } else {
-        console.error(`Failed to fetch categories: ${response.status}`);
+        showErrorBanner(`Failed to fetch categories: ${response.status}`);
       }
     };
 
@@ -109,7 +135,7 @@ function GroupPage() {
         const data = await response.json();
         setDebts(data);
       } else {
-        console.error(`Failed to fetch debts: ${response.status}`);
+        showErrorBanner(`Failed to fetch debts: ${response.status}`);
       }
     };
 
@@ -152,8 +178,12 @@ function GroupPage() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      navigate('/groups');
+      showSuccessBanner('Group deleted successfully!');
+      setTimeout(() => {
+        navigate('/groups');
+      }, 5000);
     } catch (error) {
+      showErrorBanner('Failed to delete group');
       console.error('Failed to delete group:', error);
     }
   };
@@ -178,13 +208,18 @@ function GroupPage() {
         if (text) {
           const data = JSON.parse(text);
           setGroup(data);
+          showSuccessBanner('Group updated successfully!');
         }
       } else {
+        showErrorBanner('Failed to update group');
         console.error('Failed to update group:', response.status);
       }
 
-      navigate('/groups');
+      setTimeout(() => {
+        navigate('/groups');
+      }, 5000);
     } catch (error) {
+      showErrorBanner('Failed to update group');
       console.error('Failed to update group:', error);
     }
   };
@@ -206,7 +241,7 @@ function GroupPage() {
       setSelectedUser(data);
       setShowModal(true);
     } else {
-      console.error(`Error: ${response.status}`);
+      showErrorBanner(`Error: ${response.status}`);
     }
   };
 
@@ -227,9 +262,12 @@ function GroupPage() {
     });
 
     if (response.ok) {
-      alert('User invited successfully!');
-      window.location.reload();
+      showSuccessBanner('User invited successfully!');
+      setTimeout(() => {
+        window.location.reload();
+      }, 5000);
     } else {
+      showErrorBanner('Failed to invite user');
       console.error('Failed to invite user:', await response.json());
     }
   };
@@ -243,10 +281,12 @@ function GroupPage() {
     });
 
     if (response.ok) {
-      alert('Expense deleted successfully!');
-      window.location.reload();
+      showSuccessBanner('Expense deleted successfully!');
+      setTimeout(() => {
+        window.location.reload();
+      }, 5000);
     } else {
-      console.error(`Error: ${response.status}`);
+      showErrorBanner(`Failed to delete expense: ${response.status}`);
     }
   };
 
@@ -293,6 +333,11 @@ function GroupPage() {
 
   return (
     <div>
+      {message && (
+        <div className={`banner ${bannerClass} ${showBanner ? 'show-banner' : ''}`}>
+          {message}
+        </div>
+      )}
       <h1>{group.groupName}</h1>
       <p>{group.groupDesc}</p>
 
@@ -343,6 +388,7 @@ function GroupPage() {
       )}
 
       <button onClick={() => navigate(`/createexpense/${group.id}`)}>Create Expense</button>
+
       {expenses.map(expense => {
         const category = categories.find(category => category.id === expense.categoryId);
         return (
@@ -360,6 +406,9 @@ function GroupPage() {
       })}
 
       <h3>Total Expense: {totalExpense}</h3>
+
+      <button onClick={() => navigate(`/message/${group.id}`)}>Group chat</button>
+
     </div>
   );
 }

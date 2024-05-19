@@ -16,6 +16,8 @@ import Invitations from './Components/Invitations';
 import CreateExpense from './Components/Createexpense';
 import EditExpense from './Components/Editexpense';
 import Expensepage from './Components/Expensepage';
+import InterfaceChat from './Components/InterfaceChat';
+import PrivateChat from './Components/Privatechat';
 
 
 
@@ -58,6 +60,8 @@ function App() {
           <Route path="/createexpense/:groupId" element={<CreateExpense />} />
           <Route path="/editexpense/:expenseId" element={<EditExpense/>} />
           <Route path="/expensepage/:expenseId" element={<Expensepage />} />
+          <Route path="/message/:groupId" element={<InterfaceChat/>} />
+          <Route path="/privatemessaging/" element={<PrivateChat/>} />
         </Routes>
       </div>
     </Router>

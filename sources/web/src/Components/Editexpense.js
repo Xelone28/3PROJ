@@ -1,16 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import '../assets/css/Groupepage.css';
 
 function EditExpense({ match }) {
   const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1]; // Get the auth token from cookies
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const { expenseId } = useParams();
   const [expenseData, setExpenseData] = useState({});
   const [selectedFile, setSelectedFile] = useState(null);
   const [categories, setCategories] = useState([]);
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [message, setMessage] = useState(null); // State variable for banner message
+  const [bannerClass, setBannerClass] = useState(''); // State variable for banner class
+  const [showBanner, setShowBanner] = useState(false); // State variable for showing banner
+
+  useEffect(() => {
+    if (showBanner) {
+      const timer = setTimeout(() => {
+        setShowBanner(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showBanner]);
+
+  const showErrorBanner = (message) => {
+    setMessage(message);
+    setBannerClass('error-banner');
+    setShowBanner(true);
+  };
+
+  const showSuccessBanner = (message) => {
+    setMessage(message);
+    setBannerClass('success-banner');
+    setShowBanner(true);
+  };
 
   useEffect(() => {
     // Fetch the current expense data when the component mounts
@@ -20,8 +44,12 @@ function EditExpense({ match }) {
           'Authorization': `Bearer ${token}`,
         },
       });
-      const data = await response.json();
-      setExpenseData(data);
+      if (response.ok) {
+        const data = await response.json();
+        setExpenseData(data);
+      } else {
+        showErrorBanner('Failed to fetch expense data');
+      }
     };
 
     fetchExpense();
@@ -35,8 +63,12 @@ function EditExpense({ match }) {
           'Authorization': `Bearer ${token}`,
         },
       });
-      const data = await response.json();
-      setCategories(data);
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data);
+      } else {
+        showErrorBanner('Failed to fetch categories');
+      }
     };
 
     if (expenseData.groupId) {
@@ -52,8 +84,12 @@ function EditExpense({ match }) {
           'Authorization': `Bearer ${token}`,
         },
       });
-      const data = await response.json();
-      setUsers(data);
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      } else {
+        showErrorBanner('Failed to fetch users');
+      }
     };
 
     if (expenseData.groupId) {
@@ -70,7 +106,6 @@ function EditExpense({ match }) {
   if (isLoading) {
     return <div>Loading...</div>;
   }
-  
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -79,7 +114,9 @@ function EditExpense({ match }) {
     Object.keys(expenseData).forEach(key => {
       formData.append(key, expenseData[key]);
     });
-    formData.append('image', selectedFile);
+    if (selectedFile) {
+      formData.append('image', selectedFile);
+    }
 
     const response = await fetch(`http://localhost:5000/expense/${expenseId}`, {
       method: 'PATCH',
@@ -90,10 +127,13 @@ function EditExpense({ match }) {
     });
 
     if (response.ok) {
-      alert('Expense updated successfully!');
-      navigate(`/group/${expenseData.groupId}`);
+      showSuccessBanner('Expense updated successfully!');
+      setTimeout(() => {
+        navigate(`/group/${expenseData.groupId}`);
+      }, 5000);
     } else {
       console.error(`Error: ${response.status}`);
+      showErrorBanner(`Failed to update expense. Status code: ${response.status}`);
     }
   };
 
@@ -111,7 +151,6 @@ function EditExpense({ match }) {
   const handleCheckboxChange = (event) => {
     const users = Array.isArray(expenseData.users) ? expenseData.users : [];
     const userId = Number(event.target.value);
-    console.log(`Checkbox clicked: User ID = ${userId}`);
     if (event.target.checked) {
       // If the checkbox is checked, add the user's ID to the array
       setExpenseData({
@@ -134,27 +173,33 @@ function EditExpense({ match }) {
     });
   };
 
-  
-    return (
-        <form onSubmit={handleSubmit}>
-          {users.map(user => (
-            <label key={user.userId}>
-<input type="checkbox" value={user.userId} checked={expenseData.users ? expenseData.users.includes(user.userId) : false} onChange={handleCheckboxChange} />              {user.username}
-            </label>
+  return (
+    <div>
+      {message && (
+        <div className={`banner ${bannerClass} ${showBanner ? 'show-banner' : ''}`}>
+          {message}
+        </div>
+      )}
+      <form onSubmit={handleSubmit}>
+        {users.map(user => (
+          <label key={user.userId}>
+            <input type="checkbox" value={user.userId} checked={expenseData.users ? expenseData.users.includes(user.userId) : false} onChange={handleCheckboxChange} />
+            {user.username}
+          </label>
+        ))}
+        <select name="categoryId" value={expenseData.categoryId} onChange={handleInputChange} required>
+          {categories.map(category => (
+            <option key={category.id} value={category.id}>{category.name}</option>
           ))}
-          <select name="categoryId" value={expenseData.categoryId} onChange={handleInputChange} required>
-            {categories.map(category => (
-              <option key={category.id} value={category.id}>{category.name}</option>
-            ))}
-          </select>
-          <input type="number" name="amount" value={expenseData.amount} onChange={handleChange} />
-          <input type="date" name="date" value={expenseData.date ? new Date(expenseData.date * 1000).toISOString().substr(0, 10) : ''} onChange={handleChange} />
-          <input name="place" value={expenseData.place} onChange={handleChange} />
-          <input name="description" value={expenseData.description} onChange={handleChange} />
-          <input type="file" onChange={handleFileChange} />
-          <button type="submit">Update Expense</button>
-        </form>
-      
+        </select>
+        <input type="number" name="amount" value={expenseData.amount} onChange={handleChange} />
+        <input type="date" name="date" value={expenseData.date ? new Date(expenseData.date * 1000).toISOString().substr(0, 10) : ''} onChange={handleChange} />
+        <input name="place" value={expenseData.place} onChange={handleChange} />
+        <input name="description" value={expenseData.description} onChange={handleChange} />
+        <input type="file" onChange={handleFileChange} />
+        <button type="submit">Update Expense</button>
+      </form>
+    </div>
   );
 }
 
