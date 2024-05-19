@@ -102,6 +102,11 @@ namespace DotNetAPI
                       .HasForeignKey(p => p.UserId)
                       .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(p => p.UserInCredit)
+                      .WithMany()
+                      .HasForeignKey(p => p.UserInCreditId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
                 entity.HasOne<Group>(p => p.Group)
                       .WithMany()
                       .HasForeignKey(p => p.GroupId)

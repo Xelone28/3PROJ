@@ -72,7 +72,8 @@ namespace DotNetAPI.Services
                     User = user,
                     Group = group,
                     DebtAdjustment = debtAdjustment,
-                    type = (int)type
+                    type = (int)type,
+                    UserInCredit = debtAdjustment.UserInCredit
                 };
 
                 var paymentInserted = _context.Set<Payment>().Add(payment);
@@ -117,6 +118,7 @@ namespace DotNetAPI.Services
                     .Where(p => p.GroupId == groupId)
                     .Include(d => d.User)
                     .Include(d => d.Group)
+                    .Include(d => d.UserInCredit)
                     .OrderByDescending(p => p.PaymentDate)
                     .ToListAsync();
 
