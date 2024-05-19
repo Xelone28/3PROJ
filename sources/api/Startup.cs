@@ -30,7 +30,7 @@ public class Startup
 services.AddCors(options =>
 {
     options.AddPolicy("AllowMyOrigin",
-    builder => builder.WithOrigins("http://localhost:3001")
+    builder => builder.WithOrigins("http://localhost:3000")
                       .AllowAnyHeader()
                       .AllowAnyMethod());
 });
