@@ -388,6 +388,7 @@ function GroupPage() {
       )}
 
       <button onClick={() => navigate(`/createexpense/${group.id}`)}>Create Expense</button>
+
       {expenses.map(expense => {
         const category = categories.find(category => category.id === expense.categoryId);
         return (
@@ -405,6 +406,9 @@ function GroupPage() {
       })}
 
       <h3>Total Expense: {totalExpense}</h3>
+
+      <button onClick={() => navigate(`/message/${group.id}`)}>Group chat</button>
+
     </div>
   );
 }
