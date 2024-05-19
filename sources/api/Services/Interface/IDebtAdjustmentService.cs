@@ -10,5 +10,6 @@ namespace DotNetAPI.Services.Interfaces
         Task<DebtAdjustmentDTO> GetDebtAdjustmentById(int id);
         Task<IEnumerable<DebtAdjustmentDTO>> GetDebtAdjustmentsByUserId(int userId);
         Task<IEnumerable<DebtAdjustmentDTO>> GetDebtAdjustmentsByGroupId(int groupId);
+        Task DeleteDebtAdjustment(DebtAdjustment debtAdjustment);
     }
 }

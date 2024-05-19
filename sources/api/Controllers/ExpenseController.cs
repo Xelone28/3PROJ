@@ -82,14 +82,13 @@ public class ExpenseController : ControllerBase
             string expensePath = s3Paths["Expense"];
             string cdnUrl = s3Paths["CDNURL"];
 
-            string s3ImagePath = $"{expensePath}{id}";
-            var attachmentFromExpense = await _utils.ListFiles(s3ImagePath);
-            var imageUrl = "";
-            if (attachmentFromExpense.Count > 0)
-            {
-                // Permits to make the use of attachment evolutive
-                imageUrl = attachmentFromExpense[0];
-            }
+        string s3ImagePath = $"{expensePath}{id}";
+        var attachmentFromExpense = await _utils.ListFiles(s3ImagePath);
+        var imageUrl = "";
+        if (attachmentFromExpense.Count > 0)
+        {
+            imageUrl = attachmentFromExpense[0];
+        }
 
             var userDTO = new UserDTO
             {
@@ -216,14 +215,12 @@ public class ExpenseController : ControllerBase
 
             await _debtService.CreateDebtsFromExpense(expense, usersInvolved, expenseModel.Weights);
 
-            // Balance debts
-            await _debtBalancingService.BalanceDebts(expenseModel.GroupId);
+        await _debtBalancingService.BalanceDebts(expenseModel.GroupId);
 
-            // Upload image to S3
-            string fileName = "expense" + Path.GetExtension(expenseModel.Image.FileName);
-            var s3Paths = _configuration.GetSection("S3Paths");
-            string expensePath = s3Paths["Expense"];
-            string s3ImagePath = expensePath + expense.Id + "/" + fileName;
+        string fileName = "expense" + Path.GetExtension(expenseModel.Image.FileName);
+        var s3Paths = _configuration.GetSection("S3Paths");
+        string expensePath = s3Paths["Expense"];
+        string s3ImagePath = expensePath + expense.Id + "/" + fileName;
 
             using (var memoryStream = new MemoryStream())
             {
@@ -341,11 +338,9 @@ public class ExpenseController : ControllerBase
                 }
             }
 
-            await _expenseService.UpdateExpense(expenseToUpdate);
-            await _debtService.UpdateDebtsFromExpense(expenseToUpdate, usersInvolved, usersInvolvedWeights);
-
-            // Balance debts
-            await _debtBalancingService.BalanceDebts(expenseToUpdate.GroupId);
+        await _expenseService.UpdateExpense(expenseToUpdate);
+        await _debtService.UpdateDebtsFromExpense(expenseToUpdate, usersInvolved, usersInvolvedWeights);
+        await _debtBalancingService.BalanceDebts(expenseToUpdate.GroupId);
 
             return NoContent();
         }
@@ -476,7 +471,6 @@ public class ExpenseController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
         }
     }
-
     [HttpGet("user/{userId}/group/{groupId}")]
     [Authorize]
     public async Task<ActionResult<IEnumerable<Expense>>> GetExpensesByUserIdAndGroupId(int userId, int groupId)

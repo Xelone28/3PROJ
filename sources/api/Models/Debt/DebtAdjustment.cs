@@ -11,6 +11,6 @@
         public User.User UserInDebt { get; set; }
         public float AdjustmentAmount { get; set; }
         public DateTime AdjustmentDate { get; set; }
-        public ICollection<DebtAdjustmentOriginalDebt> OriginalDebts { get; set; }  // Many-to-many relationship
+        public ICollection<DebtAdjustmentOriginalDebt> OriginalDebts { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using DotNetAPI.Models.Expense;
 using DotNetAPI.Services.Interface;
 using DotNetAPI.Helpers;
@@ -112,7 +112,6 @@ namespace DotNetAPI.Services.Service
                 throw new HttpException(StatusCodes.Status500InternalServerError, "An unexpected error occurred while deleting the expense.");
             }
         }
-
         public async Task<IEnumerable<Expense>?> GetExpensesByGroupId(int groupId)
         {
             try
@@ -128,7 +127,6 @@ namespace DotNetAPI.Services.Service
                 throw new HttpException(StatusCodes.Status500InternalServerError, "An unexpected error occurred while getting expenses by group ID.");
             }
         }
-
         public async Task<IEnumerable<Expense>?> GetExpensesByUserId(int userId)
         {
             try
@@ -142,7 +140,6 @@ namespace DotNetAPI.Services.Service
                 throw new HttpException(StatusCodes.Status500InternalServerError, "An unexpected error occurred while getting expenses by user ID.");
             }
         }
-
         public async Task<IEnumerable<Expense>?> GetExpensesByUserIdAndGroupId(int userId, int groupId)
         {
             try

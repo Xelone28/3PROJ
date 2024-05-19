@@ -1,4 +1,4 @@
-﻿using DotNetAPI.Models.Payment;
+using DotNetAPI.Models.Payment;
 using DotNetAPI.Models.Debt;
 using DotNetAPI.Services.Interfaces;
 using DotNetAPI.Helpers;
@@ -7,16 +7,24 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using DotNetAPI.Services.Interface;
 
 namespace DotNetAPI.Services
 {
     public class PaymentService : IPaymentService
     {
         private readonly UserDbContext _context;
+        private readonly IDebtAdjustmentService _debtAdjustmentService;
 
-        public PaymentService(UserDbContext context)
+
+        public PaymentService(
+            UserDbContext context,
+            IDebtAdjustmentService debtAdjustmentService
+            )
         {
             _context = context;
+            _debtAdjustmentService = debtAdjustmentService;
         }
 
         public async Task<PaymentDTO> CreatePayment(int userId, int groupId, float amount, int debtAdjustmentId)
@@ -46,11 +54,17 @@ namespace DotNetAPI.Services
                     throw new HttpException(StatusCodes.Status404NotFound, "User not found.");
                 }
 
+            foreach (var debtAdjustmentOriginalDebt in debtAdjustment.OriginalDebts)
+            {
+                var originalDebt = debtAdjustmentOriginalDebt.OriginalDebt;
+                originalDebt.IsPaid = true;
+            }
                 if (group == null)
                 {
                     throw new HttpException(StatusCodes.Status404NotFound, "Group not found.");
                 }
 
+            await _context.SaveChangesAsync();
                 var payment = new Payment
                 {
                     UserId = userId,
@@ -62,8 +76,8 @@ namespace DotNetAPI.Services
                     Group = group,
                     DebtAdjustment = debtAdjustment
                 };
-
                 _context.Payment.Add(payment);
+                
                 await _context.SaveChangesAsync();
 
                 // Mark all related original debts as paid
@@ -74,6 +88,8 @@ namespace DotNetAPI.Services
                 }
 
                 await _context.SaveChangesAsync();
+                
+                await _debtAdjustmentService.DeleteDebtAdjustment(debtAdjustment);
 
                 return new PaymentDTO
                 {

@@ -63,10 +63,8 @@ services.AddCors(options =>
             var secretKey = awsSettings["SecretKey"];
             var bucketName = awsSettings["BucketName"];
 
-            // Create logger instance
             var logger = sp.GetRequiredService<ILogger<S3Service>>();
 
-            // Create and return an instance of S3Service with logger
             return new S3Service(accessKey, secretKey, bucketName, logger, configuration);
         });
 
@@ -120,7 +118,6 @@ services.AddCors(options =>
 
     public void Configure(IApplicationBuilder app, UserDbContext dbContext)
     {
-        // Migration done here
         app.UseDeveloperExceptionPage();
         dbContext.Database.Migrate();
         

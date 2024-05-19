@@ -1,4 +1,4 @@
-﻿using DotNetAPI.Models.Debt;
+using DotNetAPI.Models.Debt;
 using DotNetAPI.Services.Interface;
 using DotNetAPI.Helpers;
 using Microsoft.EntityFrameworkCore;
@@ -46,18 +46,16 @@ namespace DotNetAPI.Services
                     }
                 }
 
-                // Remove previous DebtAdjustments for the group
-                var previousAdjustments = await _context.DebtAdjustments
-                    .Where(da => da.GroupId == groupId)
-                    .ToListAsync();
-                _context.DebtAdjustments.RemoveRange(previousAdjustments);
+            var previousAdjustments = await _context.DebtAdjustments
+                .Where(da => da.GroupId == groupId)
+                .ToListAsync();
+            _context.DebtAdjustments.RemoveRange(previousAdjustments);
 
-                var adjustments = new List<DebtAdjustment>();
-
-                foreach (var entry in balanceMatrix)
-                {
-                    var (userInCreditId, userInDebtId) = entry.Key;
-                    var amount = entry.Value;
+            var adjustments = new List<DebtAdjustment>();
+            foreach (var entry in balanceMatrix)
+            {
+                var (userInCreditId, userInDebtId) = entry.Key;
+                var amount = entry.Value;
 
                     if (amount != 0)
                     {
@@ -67,14 +65,13 @@ namespace DotNetAPI.Services
                             UserInCreditId = userInCreditId,
                             UserInDebtId = userInDebtId,
                             AdjustmentAmount = amount,
-                            AdjustmentDate = DateTime.UtcNow,  // Ensure UTC
+                            AdjustmentDate = DateTime.UtcNow,
                             OriginalDebts = new List<DebtAdjustmentOriginalDebt>()
-                        };
+                    };
 
-                        // Find all relevant original debts for the adjustment
-                        var relevantDebts = debts.Where(d =>
-                            (d.UserInCredit.Id == userInCreditId && d.UserInDebt.Id == userInDebtId) ||
-                            (d.UserInCredit.Id == userInDebtId && d.UserInDebt.Id == userInCreditId)).ToList();
+                    var relevantDebts = debts.Where(d =>
+                        (d.UserInCredit.Id == userInCreditId && d.UserInDebt.Id == userInDebtId) ||
+                        (d.UserInCredit.Id == userInDebtId && d.UserInDebt.Id == userInCreditId)).ToList();
 
                         foreach (var debt in relevantDebts)
                         {

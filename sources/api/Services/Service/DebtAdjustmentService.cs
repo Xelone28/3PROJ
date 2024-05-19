@@ -116,5 +116,14 @@ namespace DotNetAPI.Services
                 throw new HttpException(StatusCodes.Status500InternalServerError, "Error getting debt adjustments by group id.");
             }
         }
+
+        public async Task DeleteDebtAdjustment(DebtAdjustment debtAdjustment)
+        {
+            if (debtAdjustment != null)
+            {
+                _context.DebtAdjustments.Remove(debtAdjustment);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }
