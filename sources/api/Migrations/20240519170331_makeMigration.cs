@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class makeMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -185,7 +185,8 @@ namespace DotNetAPI.Migrations
                     GroupId = table.Column<int>(type: "integer", nullable: false),
                     Amount = table.Column<float>(type: "real", nullable: false),
                     PaymentDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    DebtAdjustmentId = table.Column<int>(type: "integer", nullable: false)
+                    DebtAdjustmentId = table.Column<int>(type: "integer", nullable: true),
+                    type = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -195,7 +196,7 @@ namespace DotNetAPI.Migrations
                         column: x => x.DebtAdjustmentId,
                         principalTable: "DebtAdjustments",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Payment_Group_GroupId",
                         column: x => x.GroupId,

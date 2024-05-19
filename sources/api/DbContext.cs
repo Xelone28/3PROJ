@@ -110,7 +110,7 @@ namespace DotNetAPI
                 entity.HasOne<DebtAdjustment>(p => p.DebtAdjustment)
                       .WithMany()
                       .HasForeignKey(p => p.DebtAdjustmentId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<DebtAdjustment>(entity =>

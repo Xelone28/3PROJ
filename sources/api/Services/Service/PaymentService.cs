@@ -1,14 +1,11 @@
 using DotNetAPI.Models.Payment;
-using DotNetAPI.Models.Debt;
 using DotNetAPI.Services.Interfaces;
 using DotNetAPI.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using DotNetAPI.Services.Interface;
+using DotNetAPI.Models.Debt;
+using DotNetAPI.Models.User;
+using DotNetAPI.Models.Category;
 
 namespace DotNetAPI.Services
 {
@@ -18,17 +15,23 @@ namespace DotNetAPI.Services
         private readonly IDebtAdjustmentService _debtAdjustmentService;
 
 
-        public PaymentService(
-            UserDbContext context,
-            IDebtAdjustmentService debtAdjustmentService
-            )
+        public PaymentService(UserDbContext context, IDebtAdjustmentService debtAdjustmentService)
         {
             _context = context;
             _debtAdjustmentService = debtAdjustmentService;
         }
 
-        public async Task<PaymentDTO> CreatePayment(int userId, int groupId, float amount, int debtAdjustmentId)
+        public async Task<Payment> CreatePayment(int userId, int groupId, float amount, int? debtAdjustmentId, int? type)
         {
+            if (debtAdjustmentId == null)
+            {
+                throw new HttpException(StatusCodes.Status409Conflict, "Debt Already paid");
+            }
+
+            if(type == null)
+            {
+                throw new HttpException(StatusCodes.Status400BadRequest, "Type must be given");
+            }
             try
             {
                 var debtAdjustment = await _context.DebtAdjustments
@@ -54,17 +57,11 @@ namespace DotNetAPI.Services
                     throw new HttpException(StatusCodes.Status404NotFound, "User not found.");
                 }
 
-            foreach (var debtAdjustmentOriginalDebt in debtAdjustment.OriginalDebts)
-            {
-                var originalDebt = debtAdjustmentOriginalDebt.OriginalDebt;
-                originalDebt.IsPaid = true;
-            }
                 if (group == null)
                 {
                     throw new HttpException(StatusCodes.Status404NotFound, "Group not found.");
                 }
 
-            await _context.SaveChangesAsync();
                 var payment = new Payment
                 {
                     UserId = userId,
@@ -74,10 +71,12 @@ namespace DotNetAPI.Services
                     DebtAdjustmentId = debtAdjustmentId,
                     User = user,
                     Group = group,
-                    DebtAdjustment = debtAdjustment
+                    DebtAdjustment = debtAdjustment,
+                    type = (int)type
                 };
-                _context.Payment.Add(payment);
-                
+
+                var paymentInserted = _context.Set<Payment>().Add(payment);
+
                 await _context.SaveChangesAsync();
 
                 // Mark all related original debts as paid
@@ -88,29 +87,54 @@ namespace DotNetAPI.Services
                 }
 
                 await _context.SaveChangesAsync();
-                
+
+                // Remove the relationship before deleting DebtAdjustment
+                payment.DebtAdjustment = null;
+                payment.DebtAdjustmentId = null;
+                await _context.SaveChangesAsync();
+
                 await _debtAdjustmentService.DeleteDebtAdjustment(debtAdjustment);
 
-                return new PaymentDTO
-                {
-                    UserId = payment.UserId,
-                    GroupId = payment.GroupId,
-                    Amount = payment.Amount,
-                    DebtAdjustmentId = payment.DebtAdjustmentId,
-                    PaymentDate = payment.PaymentDate
-                };
+                return payment;
+                
             }
             catch (HttpException)
             {
                 throw;
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException ex)
             {
+                Console.WriteLine(ex.ToString()); // Log the exception details
                 throw new HttpException(StatusCodes.Status409Conflict, "Error creating payment. Possible constraint violation.");
+            }
+        }
+
+        public async Task<List<Payment>> GetPaymentByGroupId(int groupId)
+        {
+            try
+            {
+                var payments = await _context.Payment
+                    .Where(p => p.GroupId == groupId)
+                    .Include(d => d.User)
+                    .Include(d => d.Group)
+                    .OrderByDescending(p => p.PaymentDate)
+                    .ToListAsync();
+
+
+                if (payments == null)
+                {
+                    throw new HttpException(StatusCodes.Status404NotFound, "Payments not found.");
+                }
+
+                return payments;
+            }
+            catch (HttpException)
+            {
+                throw;
             }
             catch (Exception)
             {
-                throw new HttpException(StatusCodes.Status500InternalServerError, "An unexpected error occurred while creating the payment.");
+                throw new HttpException(StatusCodes.Status500InternalServerError, "An unexpected error occurred while getting the debt.");
             }
         }
     }

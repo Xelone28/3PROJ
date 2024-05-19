@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20240519001655_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240519170331_makeMigration")]
+    partial class makeMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -207,7 +207,7 @@ namespace DotNetAPI.Migrations
                     b.Property<float>("Amount")
                         .HasColumnType("real");
 
-                    b.Property<int>("DebtAdjustmentId")
+                    b.Property<int?>("DebtAdjustmentId")
                         .HasColumnType("integer");
 
                     b.Property<int>("GroupId")
@@ -217,6 +217,9 @@ namespace DotNetAPI.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("type")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -443,8 +446,7 @@ namespace DotNetAPI.Migrations
                     b.HasOne("DotNetAPI.Models.Debt.DebtAdjustment", "DebtAdjustment")
                         .WithMany()
                         .HasForeignKey("DebtAdjustmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("DotNetAPI.Models.Group.Group", "Group")
                         .WithMany()

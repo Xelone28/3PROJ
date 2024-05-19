@@ -1,15 +1,14 @@
-using Microsoft.AspNetCore.Http;
-
-namespace DotNetAPI.Models.Payment
+﻿namespace DotNetAPI.Models.Payment
 {
-    public class PaymentDTO
+    public class PaymentWithStatusDTO
     {
+        public int Id { get; set; }
         public int UserId { get; set; }
         public int GroupId { get; set; }
         public float Amount { get; set; }
         public int? DebtAdjustmentId { get; set; }
         public DateTime PaymentDate { get; set; }
-        public int? type { get; set; }
-        public IFormFile? Image { get; set; }
+        public string type { get; set; }
+        public string? Image { get; set; }
     }
 }
