@@ -18,8 +18,10 @@ import EditExpense from './Components/Editexpense';
 import Expensepage from './Components/Expensepage';
 import InterfaceChat from './Components/InterfaceChat';
 import PrivateChat from './Components/Privatechat';
-
-
+// import Footer from './Components/Footer'; 
+import EditGroup from './Components/Editgroup';
+import Reimburse from './Components/Reimburse';
+import Reimbursements from './Components/Reimbursements';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -51,18 +53,22 @@ function App() {
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/logout" element={<Logout onLogout={handleLogout} />} />
-          <Route path="/*" element={<Notfound/>} />
-          <Route path="/profile" element={<Profile/>} />
-          <Route path="/Groups" element={<Groups/>} />
-          <Route path="/Creategroup" element={<Creategroup/>} />
-          <Route path="/group/:Id" element={<Groupepage/>} />
-          <Route path="/invitations" element={<Invitations/>} />
+          <Route path="/*" element={<Notfound />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/groups" element={<Groups />} />
+          <Route path="/creategroup" element={<Creategroup />} />
+          <Route path="/group/:Id" element={<Groupepage />} />
+          <Route path="/invitations" element={<Invitations />} />
           <Route path="/createexpense/:groupId" element={<CreateExpense />} />
-          <Route path="/editexpense/:expenseId" element={<EditExpense/>} />
+          <Route path="/editexpense/:expenseId" element={<EditExpense />} />
           <Route path="/expensepage/:expenseId" element={<Expensepage />} />
-          <Route path="/message/:groupId" element={<InterfaceChat/>} />
-          <Route path="/privatemessaging/" element={<PrivateChat/>} />
+          <Route path="/message/:groupId" element={<InterfaceChat />} />
+          <Route path="/privatemessaging/" element={<PrivateChat />} />
+          <Route path="/editgroup/:groupId" element={<EditGroup />} />
+          <Route path="/reimburse/:DebtAdjustmentId/:adjustmentAmount/:groupId" element={<Reimburse />} />
+          <Route path="/reimbursements/:groupId" element={<Reimbursements />} />
         </Routes>
+        {/* <Footer /> */}
       </div>
     </Router>
   );

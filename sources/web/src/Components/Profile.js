@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../assets/css/App.css';
+import '../assets/css/Profile.css';
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -11,13 +13,15 @@ function Profile() {
 
   const navigate = useNavigate();
 
+  const getToken = () => {
+    const tokenRow = document.cookie.split('; ').find(row => row.startsWith('token='));
+    return tokenRow ? tokenRow.split('=')[1] : null;
+  };
 
   const deleteUser = async () => {
-    const token = document.cookie
-    .split('; ')
-    .find(row => row.startsWith('token='))
-    .split('=')[1];
+    const token = getToken();
     const storedUser = JSON.parse(localStorage.getItem('user'));
+
     const response = await fetch(`http://localhost:5000/api/users/${storedUser.id}`, {
       method: 'DELETE',
       headers: {
@@ -25,28 +29,23 @@ function Profile() {
         'Authorization': `Bearer ${token}`
       },
     });
-  
+
     if (!response.ok) {
-      // Handle error
       console.error('Failed to delete user');
       return;
     }
-  
-    // If the delete was successful, remove the user and token from localStorage
+
     localStorage.removeItem('user');
     document.cookie = "token=; Max-Age=0";
-        navigate('/');
+    navigate('/');
     window.location.reload();
-
   };
 
   useEffect(() => {
-    const token = document.cookie
-    .split('; ')
-    .find(row => row.startsWith('token='))
-    .split('=')[1];
     const fetchUser = async () => {
+      const token = getToken();
       const storedUser = JSON.parse(localStorage.getItem('user'));
+
       const response = await fetch(`http://localhost:5000/api/users/${storedUser.id}`, {
         method: 'GET',
         headers: {
@@ -54,6 +53,11 @@ function Profile() {
           'Authorization': `Bearer ${token}`
         },
       });
+
+      if (!response.ok) {
+        console.error('Failed to fetch user data');
+        return;
+      }
 
       const data = await response.json();
       setUser(data);
@@ -64,18 +68,10 @@ function Profile() {
 
   const handleUpdate = async (event) => {
     event.preventDefault();
-  
-    const token = document.cookie
-    .split('; ')
-    .find(row => row.startsWith('token='))
-    .split('=')[1];
-  
+    const token = getToken();
     const storedUser = JSON.parse(localStorage.getItem('user'));
-  
-    // Create a new FormData instance
     const formData = new FormData();
-  
-    // Append the fields to the form data
+
     formData.append('Username', username || user.username);
     formData.append('Password', password || user.password);
     formData.append('RIB', rib || user.rib);
@@ -83,22 +79,20 @@ function Profile() {
     if (image) {
       formData.append('Image', image, image.name);
     }
-  
+
     const response = await fetch(`http://localhost:5000/api/users/${storedUser.id}`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`
       },
-      body: formData, // Send the form data
+      body: formData,
     });
-  
+
     if (!response.ok) {
-      // Handle error
-      console.error('Failed to update username');
+      console.error('Failed to update user');
       return;
     }
-  
-    // Fetch the updated user data
+
     const updatedResponse = await fetch(`http://localhost:5000/api/users/${storedUser.id}`, {
       method: 'GET',
       headers: {
@@ -106,10 +100,15 @@ function Profile() {
         'Authorization': `Bearer ${token}`
       },
     });
-  
+
+    if (!updatedResponse.ok) {
+      console.error('Failed to fetch updated user data');
+      return;
+    }
+
     const updatedUser = await updatedResponse.json();
     setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser)); // Update the user in localStorage
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   if (!user) {
@@ -117,47 +116,50 @@ function Profile() {
   }
 
   return (
-    <div>
-      {user.image && <img src={user.image} style={{width: "300px"}} alt="User" />}
+    <div className="profile-container">
+      {user.image && <img src={user.image} className="profile-image" alt="User" />}
       <h1>Profile</h1>
-      <p>Username: {user.username}</p>
-      <p>Email: {user.email}</p>
-      <p>RIB: {user.rib}</p>
-      <p>PayPal Username: {user.paypalUsername}</p>
+      <div className="profile-info">
+        <p>Username: {user.username}</p>
+        <p>Email: {user.email}</p>
+        <p>RIB: {user.rib}</p>
+        <p>PayPal Username: {user.paypalUsername}</p>
+        <p>Ratcord ID : {user.id}</p>
+      </div>
 
-      <form onSubmit={handleUpdate}>
-  <input
-    type="text"
-    name="username"
-    defaultValue={user.username}
-    onChange={e => setUsername(e.target.value)}
-  />
-  <input
-    type="password"
-    name="password"
-    defaultValue={user.password}
-    onChange={e => setPassword(e.target.value)}
-  />
-  <input
-    type="text"
-    name="rib"
-    defaultValue={user.rib}
-    onChange={e => setRib(e.target.value)}
-  />
-  <input
-    type="text"
-    name="paypalUsername"
-    defaultValue={user.paypalUsername}
-    onChange={e => setPaypalUsername(e.target.value)}
-  />
-  <input
-    type="file"
-    name="image"
-    onChange={e => setImage(e.target.files[0])}
-  />
-  <button type="submit">Update</button>
-</form>
-      <button onClick={deleteUser}>Delete Account</button>
+      <form className="profile-form" onSubmit={handleUpdate}>
+        <input
+          type="text"
+          name="username"
+          defaultValue={user.username}
+          onChange={e => setUsername(e.target.value)}
+        />
+        <input
+          type="password"
+          name="password"
+          defaultValue={user.password}
+          onChange={e => setPassword(e.target.value)}
+        />
+        <input
+          type="text"
+          name="rib"
+          defaultValue={user.rib}
+          onChange={e => setRib(e.target.value)}
+        />
+        <input
+          type="text"
+          name="paypalUsername"
+          defaultValue={user.paypalUsername}
+          onChange={e => setPaypalUsername(e.target.value)}
+        />
+        <input
+          type="file"
+          name="image"
+          onChange={e => setImage(e.target.files[0])}
+        />
+        <button className="main-button" type="submit">Update</button>
+      </form>
+      <button className="delete-button" onClick={deleteUser}>Delete Account</button>
     </div>
   );
 }

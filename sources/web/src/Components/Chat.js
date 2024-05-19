@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
+import '../assets/css/App.css';
 
-const socket = io('http://localhost:4000'); // Change the URL to match your server
+
+const socket = io('http://localhost:4000'); 
 
 const Chat = ({ username, roomName = null, privateRecipient = null }) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
-  const isoDateFormat = new Date().toISOString();
+
   const displayDateFormat = (date) => new Date(date).toLocaleString('en-GB', { hour12: false });
 
   useEffect(() => {
@@ -61,9 +63,9 @@ const Chat = ({ username, roomName = null, privateRecipient = null }) => {
         room: roomName,
         sender: username,
       });
+      console.log(`Send Message: ${message} to Room: ${roomName}`);
+      setMessage('');
     }
-    console.log(`Send Message: ${message} to Room: ${roomName}`);
-    setMessage('');
   };
 
   return (
@@ -75,7 +77,7 @@ const Chat = ({ username, roomName = null, privateRecipient = null }) => {
         placeholder="Message"
         style={{ width: '100%', marginBottom: '8px' }}
       />
-      <button onClick={sendMessage} style={{ width: '100%', marginBottom: '16px' }}>
+      <button className="main-button" onClick={sendMessage} style={{ width: '100%', marginBottom: '16px' }}>
         Send
       </button>
       <div style={{ width: '100%', height: '60vh', overflowY: 'scroll' }}>

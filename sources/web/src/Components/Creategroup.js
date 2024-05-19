@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../assets/css/Creategroup.css';
+import '../assets/css/App.css';
 
 function Creategroup() {
   const [groupName, setGroupName] = useState('');
   const [groupDesc, setGroupDesc] = useState('');
-  const [message, setMessage] = useState(null); // State variable for banner message
-  const [bannerClass, setBannerClass] = useState(''); // State variable for banner class
-  const [showBanner, setShowBanner] = useState(false); // State variable for showing banner
+  const [message, setMessage] = useState(null);
+  const [bannerClass, setBannerClass] = useState('');
+  const [showBanner, setShowBanner] = useState(false);
   const navigate = useNavigate();
   const token = document.cookie
     .split('; ')

@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
+import '../assets/css/App.css';
 
-const socket = io('http://localhost:4000'); // Change the URL to match your server
+const socket = io('http://localhost:4000');
 
 const PrivateMessageHandler = ({ sender, recipient }) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
-  const messageRef = useRef(null);
+  // const messageRef = useRef(null);
 
   const displayDateFormat = (date) => new Date(date).toLocaleString('en-GB', { hour12: false });
 
@@ -39,7 +40,7 @@ const PrivateMessageHandler = ({ sender, recipient }) => {
       socket.off('privateConversation', handleOldPrivateMessages);
       socket.disconnect();
     };
-  }, [recipient]);
+  }, [recipient,sender]);
 
   const sendPrivateMessage = () => {
     socket.emit('sendPrivateMessage', {
@@ -60,7 +61,7 @@ const PrivateMessageHandler = ({ sender, recipient }) => {
         placeholder="Message"
         style={{ width: '100%', marginBottom: '8px' }}
       />
-      <button onClick={sendPrivateMessage} style={{ width: '100%', marginBottom: '16px' }}>
+      <button className="main-button" onClick={sendPrivateMessage} style={{ width: '100%', marginBottom: '16px' }}>
         Send
       </button>
       <div style={{ width: '100%', height: '60vh', overflowY: 'scroll' }}>

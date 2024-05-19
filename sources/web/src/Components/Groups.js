@@ -1,22 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import '../assets/css/App.css';
+import '../assets/css/Groupepage.css';
 
 function Groups() {
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
   const [groups, setGroups] = useState([]);
   const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1];
-  // console.log(token);
-  const Id = user.id;
+  const userId = user.id;
 
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/useringroup/user/${Id}`, {
+        const response = await fetch(`http://localhost:5000/useringroup/user/${userId}`, {
           headers: {
-            'Authorization': `Bearer ${token}`, 
+            'Authorization': `Bearer ${token}`,
           },
         });
-    
+
         if (response.ok) {
           const data = await response.json();
           setGroups(data);
@@ -29,21 +31,20 @@ function Groups() {
     };
 
     fetchGroups();
-  }, []);
+  }, [token, userId]);
 
   return (
-    <div>
-      <Link to="/Creategroup">
-        <button>Add Group</button>
-      </Link>
+    <div className="groups-container">
+      <div>
+        <button className="main-button" onClick={() => navigate('/Creategroup')}>Add Group</button>
+      </div>
       {groups.map(group => (
-      <Link to={`/group/${group.id}`} key={group.id}>
-        <div className="group-card">
+        <div key={group.id} className="group-card">
           <h2>{group.groupName}</h2>
           <p>{group.groupDesc}</p>
+          <button className="main-button" onClick={() => navigate(`/group/${group.id}`)}>View</button>
         </div>
-      </Link>
-    ))}
+      ))}
     </div>
   );
 }

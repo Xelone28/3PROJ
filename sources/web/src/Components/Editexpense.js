@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../assets/css/Groupepage.css';
+import '../assets/css/App.css';
 
 function EditExpense({ match }) {
-  const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1]; // Get the auth token from cookies
+  const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1];
   const navigate = useNavigate();
   const { expenseId } = useParams();
   const [expenseData, setExpenseData] = useState({});
@@ -11,9 +12,9 @@ function EditExpense({ match }) {
   const [categories, setCategories] = useState([]);
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [message, setMessage] = useState(null); // State variable for banner message
-  const [bannerClass, setBannerClass] = useState(''); // State variable for banner class
-  const [showBanner, setShowBanner] = useState(false); // State variable for showing banner
+  const [message, setMessage] = useState(null);
+  const [bannerClass, setBannerClass] = useState('');
+  const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
     if (showBanner) {
@@ -37,7 +38,6 @@ function EditExpense({ match }) {
   };
 
   useEffect(() => {
-    // Fetch the current expense data when the component mounts
     const fetchExpense = async () => {
       const response = await fetch(`http://localhost:5000/expense/${expenseId}`, {
         headers: {
@@ -56,7 +56,6 @@ function EditExpense({ match }) {
   }, [expenseId, token]);
 
   useEffect(() => {
-    // Fetch the categories for the group when the component mounts
     const fetchCategories = async () => {
       const response = await fetch(`http://localhost:5000/category/group/${expenseData.groupId}`, {
         headers: {
@@ -77,7 +76,6 @@ function EditExpense({ match }) {
   }, [expenseData.groupId, token]);
 
   useEffect(() => {
-    // Fetch the users in the group when the component mounts
     const fetchUsers = async () => {
       const response = await fetch(`http://localhost:5000/useringroup/users/${expenseData.groupId}`, {
         headers: {
@@ -132,7 +130,6 @@ function EditExpense({ match }) {
         navigate(`/group/${expenseData.groupId}`);
       }, 5000);
     } else {
-      console.error(`Error: ${response.status}`);
       showErrorBanner(`Failed to update expense. Status code: ${response.status}`);
     }
   };
@@ -152,13 +149,11 @@ function EditExpense({ match }) {
     const users = Array.isArray(expenseData.users) ? expenseData.users : [];
     const userId = Number(event.target.value);
     if (event.target.checked) {
-      // If the checkbox is checked, add the user's ID to the array
       setExpenseData({
         ...expenseData,
         users: [...users, userId],
       });
     } else {
-      // If the checkbox is unchecked, remove the user's ID from the array
       setExpenseData({
         ...expenseData,
         users: users.filter(user => user !== userId),
@@ -183,7 +178,12 @@ function EditExpense({ match }) {
       <form onSubmit={handleSubmit}>
         {users.map(user => (
           <label key={user.userId}>
-            <input type="checkbox" value={user.userId} checked={expenseData.users ? expenseData.users.includes(user.userId) : false} onChange={handleCheckboxChange} />
+            <input
+              type="checkbox"
+              value={user.userId}
+              checked={expenseData.users ? expenseData.users.includes(user.userId) : false}
+              onChange={handleCheckboxChange}
+            />
             {user.username}
           </label>
         ))}
@@ -192,12 +192,33 @@ function EditExpense({ match }) {
             <option key={category.id} value={category.id}>{category.name}</option>
           ))}
         </select>
-        <input type="number" name="amount" value={expenseData.amount} onChange={handleChange} />
-        <input type="date" name="date" value={expenseData.date ? new Date(expenseData.date * 1000).toISOString().substr(0, 10) : ''} onChange={handleChange} />
-        <input name="place" value={expenseData.place} onChange={handleChange} />
-        <input name="description" value={expenseData.description} onChange={handleChange} />
-        <input type="file" onChange={handleFileChange} />
-        <button type="submit">Update Expense</button>
+        <input
+          type="number"
+          name="amount"
+          value={expenseData.amount}
+          onChange={handleChange}
+        />
+        <input
+          type="date"
+          name="date"
+          value={expenseData.date ? new Date(expenseData.date * 1000).toISOString().substr(0, 10) : ''}
+          onChange={handleChange}
+        />
+        <input
+          name="place"
+          value={expenseData.place}
+          onChange={handleChange}
+        />
+        <input
+          name="description"
+          value={expenseData.description}
+          onChange={handleChange}
+        />
+        <input
+          type="file"
+          onChange={handleFileChange}
+        />
+        <button className="main-button" type="submit">Update Expense</button>
       </form>
     </div>
   );

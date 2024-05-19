@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../assets/css/Signup.css';
+import '../assets/css/App.css';
 
 function Login({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState(null); // State variable for banner message
-  const [bannerClass, setBannerClass] = useState(''); // State variable for banner class
-  const [showBanner, setShowBanner] = useState(false); // State variable for showing banner
+  const [message, setMessage] = useState(null);
+  const [bannerClass, setBannerClass] = useState('');
+  const [showBanner, setShowBanner] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,13 +44,13 @@ function Login({ onLogin }) {
     });
 
     const data = await response.json();
-    if (data.token) {
+    if (response.ok) {
       showSuccessBanner('Logged in successfully!');
       document.cookie = `token=${data.token}; path=/`;
       const newUser = { email: data.email, id: data.id };
       onLogin(newUser);
       setTimeout(() => {
-        navigate('/');
+        navigate('/groups');
       }, 2000);
     } else {
       showErrorBanner('Invalid username or password');
@@ -64,9 +65,9 @@ function Login({ onLogin }) {
         </div>
       )}
       <form onSubmit={handleSubmit}>
-        <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required />
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required />
-        <button type="submit">Log in</button>
+        <input type="text" style={{ maxWidth: '50vh' }} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required />
+        <input type="password" style={{ maxWidth: '50vh' }} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required />
+        <button className="main-button " type="submit">Log in</button>
       </form>
     </div>
   );

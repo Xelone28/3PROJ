@@ -1,50 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import '../assets/css/Header.css';
+import '../assets/css/App.css';
 
 function Header({ user }) {
   const [username, setUsername] = useState('');
-  let token = null;
+  const [menuOpen, setMenuOpen] = useState(false);
   const tokenCookie = document.cookie.split('; ').find(row => row.startsWith('token='));
-  if (tokenCookie) {
-    token = tokenCookie.split('=')[1];
-  }
-
+  const token = tokenCookie ? tokenCookie.split('=')[1] : null;
 
   useEffect(() => {
     const fetchUser = async () => {
       if (!user || !user.id) return;
       const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
-        headers: {'Authorization': `Bearer ${token}`}
-      });      const userData = await response.json();
-      setUsername(userData.username);
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const userData = await response.json();
+        setUsername(userData.username);
+      }
     };
-
-    // console.log('user prop:', user); // Check the value of the user prop
     fetchUser();
-  }, [user,token]);
+  }, [user, token]);
 
-  // console.log('username:', username); // Check the value of the username
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
 
   return (
     <header className="App-header">
-      <h1>My App {username && `- ${username}`}</h1>
-      <nav>
-        <Link to="/">Home</Link><br></br>
-        {user ? (
-          <>
-            <Link to="/Groups">View Groups</Link><br></br>
-            <Link to="/Privatemessaging">Messages</Link><br></br>
-            <Link to="/invitations">Invitations</Link><br></br>
-            <Link to="/profile">Profile</Link><br></br>
-            <Link to="/logout">Logout</Link><br></br>
-          </>
-        ) : (
-          <>
-            <Link to="/login">Log in</Link><br></br>
-            <Link to="/signup">Sign up</Link><br></br>
-          </>
-        )}
-      </nav>
+      <h1>RATCORD</h1>
+      {token && (
+        <div className={`header-nav ${menuOpen ? 'show' : ''}`}>
+          {token && (
+            <div className="menu-button" onClick={toggleMenu}>
+              <div></div>
+              <div></div>
+              <div></div>
+            </div>
+          )}
+          <div className="nav-links">
+
+            {user ? (
+              <>
+                <Link to="/profile">{username && `${username}`}</Link><br />
+                <Link to="/Groups">View Groups</Link><br />
+                <Link to="/Privatemessaging">Messages</Link><br />
+                <Link to="/invitations">Invitations</Link><br />
+                <Link to="/logout">Logout</Link><br />
+              </>
+            ) : (
+              <>
+                <Link to="/login">Log in</Link><br />
+                <Link to="/signup">Sign up</Link><br />
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

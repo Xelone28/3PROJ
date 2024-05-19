@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PrivateMessageHandler from './PrivateMessageHandler';
+import '../assets/css/App.css';
 
 const PrivateChat = () => {
   const [selectedUser, setSelectedUser] = useState(null);
@@ -7,14 +8,12 @@ const PrivateChat = () => {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [users, setUsers] = useState([]);
 
-  // Get the user and token from localStorage and cookies
-  const user = JSON.parse(localStorage.getItem('user'));
-  const tokenRow = document.cookie.split('; ').find(row => row.startsWith('token='));
-  const token = tokenRow ? tokenRow.split('=')[1] : null;
+  const user = JSON.parse(localStorage.getItem('user')) || {};
+  const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1] || null;
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
-      if (user && token) {
+      if (user.id && token) {
         try {
           const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
             method: 'GET',
@@ -60,7 +59,7 @@ const PrivateChat = () => {
 
     fetchCurrentUser();
     fetchGroupUsers();
-  }, [user, token]);
+  }, [user.id, token]);
 
   const generatePrivateChatId = (userId1, userId2) => {
     const sortedIds = [userId1, userId2].sort();
@@ -68,7 +67,7 @@ const PrivateChat = () => {
   };
 
   return (
-    <div>
+    <div className="private-chat-container">
       {selectedUser ? (
         <PrivateMessageHandler 
           sender={currentUsername} 
@@ -77,10 +76,14 @@ const PrivateChat = () => {
       ) : (
         <div>
           <h2>Select a user to chat with</h2>
-          <ul>
+          <ul className="user-list">
             {users.length > 0 ? (
               users.map((user) => (
-                <li key={user.id} onClick={() => setSelectedUser(user)}>
+                <li 
+                  key={user.id} 
+                  className={selectedUser && selectedUser.id === user.id ? 'selected' : ''}
+                  onClick={() => setSelectedUser(user)}
+                >
                   {user.username}
                 </li>
               ))
