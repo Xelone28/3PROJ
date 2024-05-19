@@ -37,6 +37,7 @@ import com.console.ratcord.api.DebtService
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.GroupService
 import com.console.ratcord.api.LocalStorage
+import com.console.ratcord.api.PaymentService
 import com.console.ratcord.api.UserInGroupService
 import com.console.ratcord.api.UserService
 import com.console.ratcord.api.Utils
@@ -85,6 +86,7 @@ class Navigation() {
         val categoryService = CategoryService()
         val debtService = DebtService()
         val debtAdjustmentService = DebtAdjustmentService()
+        val paymentService = PaymentService()
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -193,6 +195,21 @@ class Navigation() {
                             navController = navController,
                             debtAdjustmentService = debtAdjustmentService,
                             userService = userService
+                        )
+                    }
+                }
+                composable(
+                    "${Screen.SendPaymentPage}/{debtAdjustmentId}",
+                    arguments = listOf(navArgument("debtAdjustmentId") { type = NavType.IntType })
+                ) { navBackStackEntry ->
+                    val debtAdjustmentId = navBackStackEntry.arguments?.getInt("debtAdjustmentId")
+                    if (debtAdjustmentId != null) {
+                        EditPayment(
+                            debtAdjustmentId = debtAdjustmentId,
+                            applicationContext = applicationContext,
+                            navController = navController,
+                            debtAdjustmentService = debtAdjustmentService,
+                            paymentService = paymentService
                         )
                     }
                 }

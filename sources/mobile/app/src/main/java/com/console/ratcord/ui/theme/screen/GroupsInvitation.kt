@@ -1,35 +1,28 @@
 import android.content.Context
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.console.ratcord.Screen
-import com.console.ratcord.api.GroupService
 import com.console.ratcord.api.LocalStorage
 import com.console.ratcord.api.UserInGroupService
 import com.console.ratcord.api.Utils
-import com.console.ratcord.domain.entity.group.Group
-import com.console.ratcord.domain.entity.group.GroupMinimalWithId
 import com.console.ratcord.domain.entity.userInGroup.UserInGroupInvitation
 import kotlinx.coroutines.launch
+
 @Composable
-fun GroupsInvitation(userInGroupService: UserInGroupService, applicationContext: Context, navController: NavController) {
+fun GroupsInvitation(
+    userInGroupService: UserInGroupService,
+    applicationContext: Context,
+    navController: NavController
+) {
     val coroutineScope = rememberCoroutineScope()
     var userInvitationsToGroup by remember { mutableStateOf<List<UserInGroupInvitation>?>(null) }
     var isLoading by remember { mutableStateOf(false) }
@@ -37,7 +30,11 @@ fun GroupsInvitation(userInGroupService: UserInGroupService, applicationContext:
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(key1 = userInvitationsToGroup) {
-        val token: String? = Utils.getItem(context = applicationContext, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
+        val token: String? = Utils.getItem(
+            context = applicationContext,
+            fileKey = LocalStorage.PREFERENCES_FILE_KEY,
+            key = LocalStorage.TOKEN_KEY
+        )
         if (token != null) {
             userId = Utils.getUserIdFromJwt(token)
             isLoading = true
@@ -52,7 +49,8 @@ fun GroupsInvitation(userInGroupService: UserInGroupService, applicationContext:
                             errorMessage = when (exception) {
                                 is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
                                 is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                is Utils.Companion.UnexpectedResponseException -> exception.message
+                                    ?: "An unexpected error occurred."
                                 else -> "An unknown error occurred."
                             }
                         }
@@ -66,18 +64,26 @@ fun GroupsInvitation(userInGroupService: UserInGroupService, applicationContext:
     }
 
     Column(
-        modifier = Modifier.padding(16.dp)
+        modifier = Modifier
+            .padding(16.dp)
+            .background(Color(0xFFF0F2F5))
     ) {
         errorMessage?.let { message ->
             AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
         }
         if (isLoading) {
-            Text(text = "Loading...")
+            CircularProgressIndicator(color = Color(0xFF4CAF50))
         } else {
-            IconButton(onClick = { navController.popBackStack() }) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier
+                    .background(Color(0xFF282C34))
+                    .padding(8.dp)
+            ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go back",
+                    tint = Color.White
                 )
             }
             userInvitationsToGroup?.let { invitations ->
@@ -104,7 +110,8 @@ fun GroupsInvitation(userInGroupService: UserInGroupService, applicationContext:
                                                     errorMessage = when (exception) {
                                                         is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
                                                         is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                                        is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                                        is Utils.Companion.UnexpectedResponseException -> exception.message
+                                                            ?: "An unexpected error occurred."
                                                         else -> "An unknown error occurred."
                                                     }
                                                 }
@@ -115,7 +122,8 @@ fun GroupsInvitation(userInGroupService: UserInGroupService, applicationContext:
                                             errorMessage = when (exception) {
                                                 is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
                                                 is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                                is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                                is Utils.Companion.UnexpectedResponseException -> exception.message
+                                                    ?: "An unexpected error occurred."
                                                 else -> "An unknown error occurred."
                                             }
                                         }
@@ -141,7 +149,8 @@ fun GroupsInvitation(userInGroupService: UserInGroupService, applicationContext:
                                                     errorMessage = when (exception) {
                                                         is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
                                                         is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                                        is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                                        is Utils.Companion.UnexpectedResponseException -> exception.message
+                                                            ?: "An unexpected error occurred."
                                                         else -> "An unknown error occurred."
                                                     }
                                                 }
@@ -152,14 +161,15 @@ fun GroupsInvitation(userInGroupService: UserInGroupService, applicationContext:
                                             errorMessage = when (exception) {
                                                 is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
                                                 is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                                is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                                is Utils.Companion.UnexpectedResponseException -> exception.message
+                                                    ?: "An unexpected error occurred."
                                                 else -> "An unknown error occurred."
                                             }
                                         }
                                     }
                                 }
                             }
-                        },
+                        }
                     )
                 }
             }

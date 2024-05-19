@@ -105,8 +105,7 @@ namespace DotNetAPI.Services
             }
             catch (DbUpdateException ex)
             {
-                Console.WriteLine(ex.ToString()); // Log the exception details
-                throw new HttpException(StatusCodes.Status409Conflict, "Error creating payment. Possible constraint violation.");
+                throw new HttpException(StatusCodes.Status409Conflict, "Error creating payment. Possible constraint violation."+ex);
             }
         }
 

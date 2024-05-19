@@ -51,6 +51,19 @@ class DebtAdjustmentService {
         }
     }
 
+    suspend fun getDebtAdjustmentById(context: Context, debtAdjustmentId: Int): Utils.Companion.Result<DebtAdjustment> {
+        return try {
+            val response: HttpResponse = client.get("http://10.0.2.2:5000/debtadjustment/$debtAdjustmentId") {
+                headers {
+                    append("Authorization", "Bearer ${Utils.getItem(context, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)}")
+                }
+            }
+            handleResponseWithBody(response)
+        } catch (e: Exception) {
+            Utils.Companion.Result.Error(Utils.Companion.NetworkException("Network error occurred: ${e.localizedMessage}"))
+        }
+    }
+
     private suspend inline fun <reified T> handleResponseWithBody(response: HttpResponse): Utils.Companion.Result<T> {
         return when (response.status) {
             HttpStatusCode.Unauthorized -> {
