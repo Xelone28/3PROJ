@@ -204,7 +204,7 @@ namespace DotNetAPI.Migrations
                     b.Property<float>("Amount")
                         .HasColumnType("real");
 
-                    b.Property<int>("DebtAdjustmentId")
+                    b.Property<int?>("DebtAdjustmentId")
                         .HasColumnType("integer");
 
                     b.Property<int>("GroupId")
@@ -214,6 +214,9 @@ namespace DotNetAPI.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("type")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -440,8 +443,7 @@ namespace DotNetAPI.Migrations
                     b.HasOne("DotNetAPI.Models.Debt.DebtAdjustment", "DebtAdjustment")
                         .WithMany()
                         .HasForeignKey("DebtAdjustmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("DotNetAPI.Models.Group.Group", "Group")
                         .WithMany()

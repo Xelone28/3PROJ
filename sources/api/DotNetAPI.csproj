@@ -36,10 +36,12 @@
     <None Remove="Services\" />
     <None Remove="Models\DTO\" />
     <None Remove="Models\UserInvolvedExpense\" />
+    <None Remove="Models\PaymentType\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controllers\" />
     <Folder Include="Models\UserInvolvedExpense\" />
+    <Folder Include="Models\PaymentType\" />
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

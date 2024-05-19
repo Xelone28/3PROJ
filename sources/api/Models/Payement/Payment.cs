@@ -1,4 +1,5 @@
-﻿using DotNetAPI.Models.Debt;
+using DotNetAPI.Models.Debt;
+using DotNetAPI.Models.User;
 
 namespace DotNetAPI.Models.Payment
 {
@@ -11,7 +12,8 @@ namespace DotNetAPI.Models.Payment
         public Group.Group Group { get; set; }
         public float Amount { get; set; }
         public DateTime PaymentDate { get; set; }
-        public int DebtAdjustmentId { get; set; }
-        public DebtAdjustment DebtAdjustment { get; set; }
+        public int? DebtAdjustmentId { get; set; }
+        public DebtAdjustment? DebtAdjustment { get; set; }
+        public int type { get; set; }
     }
 }

@@ -82,13 +82,13 @@ public class ExpenseController : ControllerBase
             string expensePath = s3Paths["Expense"];
             string cdnUrl = s3Paths["CDNURL"];
 
-        string s3ImagePath = $"{expensePath}{id}";
-        var attachmentFromExpense = await _utils.ListFiles(s3ImagePath);
-        var imageUrl = "";
-        if (attachmentFromExpense.Count > 0)
-        {
-            imageUrl = attachmentFromExpense[0];
-        }
+            string s3ImagePath = $"{expensePath}{id}";
+            var attachmentFromExpense = await _utils.ListFiles(s3ImagePath);
+            var imageUrl = "";
+            if (attachmentFromExpense.Count > 0)
+            {
+                imageUrl = attachmentFromExpense[0];
+            }
 
             var userDTO = new UserDTO
             {
@@ -220,14 +220,14 @@ public class ExpenseController : ControllerBase
         string fileName = "expense" + Path.GetExtension(expenseModel.Image.FileName);
         var s3Paths = _configuration.GetSection("S3Paths");
         string expensePath = s3Paths["Expense"];
-        string s3ImagePath = expensePath + expense.Id + "/" + fileName;
+        string s3ImagePath = expensePath + newExpense.Id + "/" + fileName;
 
-            using (var memoryStream = new MemoryStream())
-            {
-                await expenseModel.Image.CopyToAsync(memoryStream);
-                memoryStream.Position = 0;
-                await _utils.UploadFileAsync(memoryStream, s3ImagePath, expenseModel.Image.ContentType);
-            }
+        using (var memoryStream = new MemoryStream())
+        {
+            await expenseModel.Image.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+            await _utils.UploadFileAsync(memoryStream, s3ImagePath, expenseModel.Image.ContentType);
+        }
 
             return NoContent();
         }
