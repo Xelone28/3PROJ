@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../assets/css/Groupepage.css';
+import '../assets/css/App.css';
 
 function CreateExpense() {
   const { groupId } = useParams();
   const user = JSON.parse(localStorage.getItem('user'));
   const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1];
   const navigate = useNavigate();
+
   const [categoryName, setCategoryName] = useState('');
   const [users, setUsers] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -22,9 +24,10 @@ function CreateExpense() {
     place: '',
     description: ''
   });
-  const [message, setMessage] = useState(null); // State variable for banner message
-  const [bannerClass, setBannerClass] = useState(''); // State variable for banner class
-  const [showBanner, setShowBanner] = useState(false); // State variable for showing banner
+
+  const [message, setMessage] = useState(null);
+  const [bannerClass, setBannerClass] = useState('');
+  const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
     if (showBanner) {
@@ -36,30 +39,38 @@ function CreateExpense() {
   }, [showBanner]);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/useringroup/users/${groupId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+    const fetchData = async () => {
+      try {
+        const userResponse = await fetch(`http://localhost:5000/useringroup/users/${groupId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (userResponse.ok) {
+          const usersData = await userResponse.json();
+          setUsers(usersData);
+        } else {
+          showErrorBanner('Failed to fetch users');
+        }
+
+        const categoryResponse = await fetch(`http://localhost:5000/category/group/${groupId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (categoryResponse.ok) {
+          const categoriesData = await categoryResponse.json();
+          setCategories(categoriesData);
+        } else {
+          showErrorBanner('Failed to fetch categories');
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        showErrorBanner('Error fetching data');
       }
-    })
-      .then(response => response.ok ? response.json() : Promise.reject('Failed to fetch users'))
-      .then(data => setUsers(data))
-      .catch(err => {
-        console.error('Error fetching users:', err);
-        showErrorBanner('Failed to fetch users');
-      });
-  
-    fetch(`http://localhost:5000/category/group/${groupId}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(response => response.ok ? response.json() : Promise.reject('Failed to fetch categories'))
-      .then(data => setCategories(data))
-      .catch(err => {
-        console.error('Error fetching categories:', err);
-        showErrorBanner('Failed to fetch categories');
-      });
+    };
+    fetchData();
   }, [groupId, token]);
-  
+
   const showErrorBanner = (message) => {
     setMessage(message);
     setBannerClass('error-banner');
@@ -101,17 +112,16 @@ function CreateExpense() {
     }));
   };
 
-  const handleSubmit = event => {
+  const handleSubmit = async event => {
     event.preventDefault();
-  
-    const expenseData = { 
-      ...expense, 
+
+    const expenseData = {
+      ...expense,
       date: Math.floor(new Date(expense.date).getTime() / 1000),
-      place: expense.place,
       UserIdsInvolved: expense.UserIdsInvolved.map(id => Number(id)),
       weights: expense.UserIdsInvolved.map(id => weights[id] || 0)
     };
-  
+
     if (!Array.isArray(expenseData.UserIdsInvolved) || expenseData.UserIdsInvolved.length === 0) {
       showErrorBanner('Please select at least one user involved in the expense.');
       return;
@@ -120,9 +130,7 @@ function CreateExpense() {
       showErrorBanner('Please provide a place for the expense.');
       return;
     }
-  
-    console.log('Expense data:', expenseData);
-  
+
     const formData = new FormData();
     formData.append('userId', expenseData.userId);
     expenseData.UserIdsInvolved.forEach((userId, index) => {
@@ -138,55 +146,41 @@ function CreateExpense() {
     if (selectedFile) {
       formData.append('image', selectedFile);
     }
-  
-    for (let pair of formData.entries()) {
-      console.log(pair[0] + ', ' + pair[1]); 
-    }
-  
-    fetch('http://localhost:5000/expense', {
-      method: 'POST',
-      headers: { 
-        'Authorization': `Bearer ${token}` 
-      },
-      body: formData,
-    })
-    .then(response => {
+
+    try {
+      const response = await fetch('http://localhost:5000/expense', {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}` 
+        },
+        body: formData,
+      });
+
       if (!response.ok) {
-        return response.text().then(text => {
-          console.error('Response:', text);
-          showErrorBanner('Network response was not ok');
-          throw new Error('Network response was not ok');
-        });
+        const errorText = await response.text();
+        console.error('Response:', errorText);
+        showErrorBanner('Network response was not ok');
+        throw new Error('Network response was not ok');
       }
-      return response.text(); // Instead of assuming JSON, we get the text response
-    })
-    .then(text => {
-      // Handle the case where the response might be empty or not JSON
+
+      const text = await response.text();
       if (text) {
         try {
-          const data = JSON.parse(text);
+          JSON.parse(text);
           showSuccessBanner('Expense created successfully!');
-          setTimeout(() => {
-            navigate(`/group/${groupId}`);
-          }, 2000);
-        } catch (err) {
-          console.error('Failed to parse JSON:', err);
+        } catch {
           showSuccessBanner('Expense created successfully!');
-          setTimeout(() => {
-            navigate(`/group/${groupId}`);
-          }, 2000);
         }
       } else {
         showSuccessBanner('Expense created successfully!');
-        setTimeout(() => {
-          navigate(`/group/${groupId}`);
-        }, 2000);
       }
-    })
-    .catch(error => {
+      setTimeout(() => {
+        navigate(`/group/${groupId}`);
+      }, 2000);
+    } catch (error) {
       console.error('There has been a problem with your fetch operation:', error);
       showErrorBanner('There has been a problem with your fetch operation');
-    });
+    }
   };
 
   const handleCategoryNameChange = event => {
@@ -203,32 +197,30 @@ function CreateExpense() {
     setCategoryName('');
   };
 
-  const handleCategoryCreation = categoryName => {
+  const handleCategoryCreation = async categoryName => {
     const category = {
       groupId: groupId,
       name: categoryName
     };
 
-    fetch('http://localhost:5000/category', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(category),
-    })
-    .then(response => {
+    try {
+      const response = await fetch('http://localhost:5000/category', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(category),
+      });
+
       if (!response.ok) {
-        return response.json().then(data => {
-          console.error('Server response:', data);
-          showErrorBanner('An error occurred while creating the category.');
-        }).catch(() => {
-          throw new Error('Received an empty response from the server');
-        });
+        const errorData = await response.json();
+        console.error('Server response:', errorData);
+        showErrorBanner('An error occurred while creating the category.');
+        return;
       }
-      return response.json();
-    })
-    .then(data => {
+
+      const data = await response.json();
       if (data.id) {
         showSuccessBanner('Category created successfully!');
         window.location.reload();
@@ -237,15 +229,14 @@ function CreateExpense() {
         console.error('Server response:', data);
         showErrorBanner('An error occurred while creating the category.');
       }
-    })
-    .catch(error => {
+    } catch (error) {
       console.error('Error:', error);
       showErrorBanner('An error occurred while creating the category.');
-    });
+    }
   };
 
   return (
-    <div>
+    <div className="form-container">
       <h2>Create Expense</h2>
       {message && (
         <div className={`banner ${bannerClass} ${showBanner ? 'show-banner' : ''}`}>
@@ -253,14 +244,24 @@ function CreateExpense() {
         </div>
       )}
       <form onSubmit={handleCategoryFormSubmit}>
-        <input type="text" value={categoryName} onChange={handleCategoryNameChange} placeholder="Category Name" required />
-        <input type="submit" value="Create Category" />
+        <input style={{ maxWidth: '40vh' }}
+          type="text"
+          value={categoryName}
+          onChange={handleCategoryNameChange}
+          placeholder="Category Name"
+          required
+        />
+        <input className="main-button" type="submit" value="Create Category" />
       </form>
       <form onSubmit={handleSubmit}>
         {users.map(user => (
           <div key={user.userId}>
             <label>
-              <input type="checkbox" value={user.userId} onChange={handleCheckboxChange} />
+              <input
+                type="checkbox"
+                value={user.userId}
+                onChange={handleCheckboxChange}
+              />
               {user.username}
             </label>
             {expense.UserIdsInvolved.includes(user.userId) && (
@@ -280,12 +281,34 @@ function CreateExpense() {
             <option key={category.id} value={category.id}>{category.name}</option>
           ))}
         </select>
-        <input type="number" name="amount" placeholder="Amount" onChange={handleInputChange} required />
-        <input type="date" name="date" onChange={handleInputChange} required />
-        <input type="text" name="place" placeholder="Place" onChange={handleInputChange} required />
-        <textarea name="description" placeholder="Description" onChange={handleInputChange} required />
+        <input
+          type="number"
+          name="amount"
+          placeholder="Amount"
+          onChange={handleInputChange}
+          required
+        />
+        <input
+          type="date"
+          name="date"
+          onChange={handleInputChange}
+          required
+        />
+        <input style={{ maxWidth: '40vh' }}
+          type="text"
+          name="place"
+          placeholder="Place"
+          onChange={handleInputChange}
+          required
+        />
+        <textarea
+          name="description"
+          placeholder="Description"
+          onChange={handleInputChange}
+          required
+        />
         <input type="file" onChange={handleFileChange} />
-        <button type="submit">Create Expense</button>
+        <button className="main-button" type="submit">Create Expense</button>
       </form>
     </div>
   );

@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import '../assets/css/Signup.css';
 import { useNavigate } from 'react-router-dom';
+import '../assets/css/App.css';
 
 const Signup = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [image, setImage] = useState(null); // New state variable for the image
-  const [message, setMessage] = useState(null); // State variable for banner message
-  const [bannerClass, setBannerClass] = useState(''); // State variable for banner class
-  const [showBanner, setShowBanner] = useState(false); // State variable for showing banner
+  const [image, setImage] = useState(null);
+  const [message, setMessage] = useState(null);
+  const [bannerClass, setBannerClass] = useState('');
+  const [showBanner, setShowBanner] = useState(false);
 
   const navigate = useNavigate();
 
@@ -24,58 +25,45 @@ const Signup = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (password !== confirmPassword) {
-      setMessage("Passwords don't match");
-      setBannerClass('error-banner');
-      setShowBanner(true);
+      showMessage("Passwords don't match", 'error-banner');
     } else if (!image) {
-      setMessage('Please upload a profile image');
-      setBannerClass('error-banner');
-      setShowBanner(true);
+      showMessage('Please upload a profile image', 'error-banner');
     } else {
-      // Get form data
-      const email = event.target.elements.email.value;
-      const username = event.target.elements.username.value;
-      const rib = event.target.elements.rib.value;
-      const paypalUsername = event.target.elements.paypal.value;
-
-      // Create FormData object
       const formData = new FormData();
-      formData.append('Username', username);
-      formData.append('Email', email);
+      formData.append('Username', event.target.elements.username.value);
+      formData.append('Email', event.target.elements.email.value);
       formData.append('Password', password);
-      formData.append('Rib', rib);
-      formData.append('PaypalUsername', paypalUsername);
-      formData.append('Image', image); // Add image
+      formData.append('Rib', event.target.elements.rib.value);
+      formData.append('PaypalUsername', event.target.elements.paypal.value);
+      formData.append('Image', image);
 
-      // Send POST request
       fetch('http://localhost:5000/api/users', {
         method: 'POST',
         body: formData,
       })
         .then((response) => response.json())
         .then((data) => {
-          // Handle response data
           if (data.id) {
-            setMessage('User created successfully!');
-            setBannerClass('success-banner');
-            setShowBanner(true);
+            showMessage('User created successfully!', 'success-banner');
             setTimeout(() => {
               navigate('/login');
             }, 2000);
           } else {
             console.error('Server response:', data);
-            setMessage('An error occurred while creating the user.');
-            setBannerClass('error-banner');
-            setShowBanner(true);
+            showMessage('An error occurred while creating the user.', 'error-banner');
           }
         })
         .catch((error) => {
           console.error('Error:', error);
-          setMessage('An error occurred while creating the user.');
-          setBannerClass('error-banner');
-          setShowBanner(true);
+          showMessage('An error occurred while creating the user.', 'error-banner');
         });
     }
+  };
+
+  const showMessage = (message, className) => {
+    setMessage(message);
+    setBannerClass(className);
+    setShowBanner(true);
   };
 
   const handleImageChange = (event) => {
@@ -83,7 +71,7 @@ const Signup = () => {
   };
 
   return (
-    <div>
+    <div className="form-container">
       <h2>Signup</h2>
       {message && (
         <div className={`banner ${bannerClass} ${showBanner ? 'show-banner' : ''}`}>
@@ -94,35 +82,35 @@ const Signup = () => {
         <div className="form-row grid-container">
           <label>
             Email:
-            <input type="email" name="email" />
+            <input type="text" name="email" required />
           </label>
           <label>
             Username:
-            <input type="text" name="username" />
+            <input type="text" name="username" required />
           </label>
           <label>
-            RIB:
-            <input type="text" name="rib" />
+            RIB Number:
+            <input type="text" name="rib" required />
           </label>
           <label>
             Paypal Username:
-            <input type="text" name="paypal" />
+            <input type="text" name="paypal" required />
           </label>
           <label>
             Password:
-            <input type="password" name="password" onChange={(e) => setPassword(e.target.value)} />
+            <input type="password" name="password" onChange={(e) => setPassword(e.target.value)} required />
           </label>
           <label>
             Confirm Password:
-            <input type="password" name="confirmPassword" onChange={(e) => setConfirmPassword(e.target.value)} />
+            <input type="password" name="confirmPassword" onChange={(e) => setConfirmPassword(e.target.value)} required />
           </label>
           <label>
             Image:
-            <input type="file" name="image" onChange={handleImageChange} />
+            <input type="file" name="image" onChange={handleImageChange} required />
           </label>
         </div>
         <div className="form-row">
-          <input type="submit" value="Submit" />
+          <input type="submit" className="main-button" value="Submit" />
         </div>
       </form>
     </div>

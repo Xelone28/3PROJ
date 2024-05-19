@@ -1,0 +1,78 @@
+/* App.css */
+
+/* General styling */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Profile container */
+  .profile-container {
+    max-width: 600px;
+    margin: 50px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  /* Profile image */
+  .profile-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 20px;
+  }
+  
+  /* Profile info */
+  .profile-info {
+    margin-bottom: 30px;
+  }
+  
+  .profile-info p {
+    margin: 5px 0;
+  }
+  
+  /* Form styling */
+  .profile-form input[type="text"],
+  .profile-form input[type="password"],
+  .profile-form input[type="file"] {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .profile-form button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .profile-form button:hover {
+    background-color: #45a049;
+  }
+  
+  /* Delete button styling */
+  .delete-button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+  
+  .delete-button:hover {
+    background-color: #e53935;
+  }
+  

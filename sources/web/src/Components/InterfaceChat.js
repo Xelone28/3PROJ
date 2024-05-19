@@ -1,22 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import Chat from './Chat';
 import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import '../assets/css/App.css';
 
 const InterfaceChat = () => {
+  const navigate = useNavigate();
   const [currentUsername, setCurrentUsername] = useState('');
   const [currentUserId, setCurrentUserId] = useState(null);
   const [users, setUsers] = useState([]);
   const { groupId } = useParams();
 
-  // Get the user and token from localStorage and cookies
   const user = JSON.parse(localStorage.getItem('user'));
   const tokenRow = document.cookie.split('; ').find(row => row.startsWith('token='));
   const token = tokenRow ? tokenRow.split('=')[1] : null;
 
   useEffect(() => {
-    // Fetch the current user's username using the userId and token
     if (user && token) {
-      fetch(`http://localhost:5000/api/users/${user.id}`, {
+      fetch(`http://localhost:5000/api/users/${currentUserId}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`
@@ -37,7 +38,6 @@ const InterfaceChat = () => {
         });
     }
 
-    // Fetch the list of users in the group
     if (groupId && token) {
       fetch(`http://localhost:5000/useringroup/${user.id}/groupusers`, {
         method: 'GET',
@@ -52,7 +52,6 @@ const InterfaceChat = () => {
           return response.json();
         })
         .then(data => {
-          // console.log('Group users data:', data); // Log the returned data here
           if (Array.isArray(data)) {
             setUsers(data);
           } else {
@@ -63,13 +62,14 @@ const InterfaceChat = () => {
           console.error('Error fetching group users:', error);
         });
     }
-  }, [user, token, groupId]);
+  }, [user, token, groupId, currentUserId]);
 
   return (
     <div>
+            <button className="main-button" onClick={() => navigate(`/group/${groupId}`)}>Back</button>
       <h2>Group Chat</h2>
       <ul>
-        {users.map((user) => (
+        {users.map(user => (
           <li key={user.id}>{user.username}</li>
         ))}
       </ul>

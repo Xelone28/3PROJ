@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Bar } from 'react-chartjs-2';
+import jsPDF from 'jspdf';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGear } from '@fortawesome/free-solid-svg-icons';
+import '../assets/css/App.css';
 import '../assets/css/Groupepage.css';
 
-function GroupPage() {
+const APP_NAME = 'Your App Name'; // Define your app name here
+
+const GroupPage = () => {
   const { Id } = useParams();
   const navigate = useNavigate();
   const [group, setGroup] = useState(null);
@@ -11,22 +17,22 @@ function GroupPage() {
   const [debts, setDebts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [groupName, setGroupName] = useState('');
-  const [groupDesc, setGroupDesc] = useState('');
-  const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1];
   const [inviteUserId, setInviteUserId] = useState('');
   const [isInviteUserAdmin, setIsInviteUserAdmin] = useState(false);
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [message, setMessage] = useState(null); // State variable for banner message
-  const [bannerClass, setBannerClass] = useState(''); // State variable for banner class
-  const [showBanner, setShowBanner] = useState(false); // State variable for showing banner
+  const [message, setMessage] = useState(null);
+  const [bannerClass, setBannerClass] = useState('');
+  const [showBanner, setShowBanner] = useState(false);
+  const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1];
+  const user = JSON.parse(localStorage.getItem('user'));
+  const userId = user.id;
 
   useEffect(() => {
     if (showBanner) {
       const timer = setTimeout(() => {
         setShowBanner(false);
-      }, 5000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [showBanner]);
@@ -55,7 +61,6 @@ function GroupPage() {
       if (response.ok) {
         const data = await response.json();
         setExpenses(data);
-        console.log('expenses:', data);
       } else {
         showErrorBanner(`Failed to fetch expenses: ${response.status}`);
       }
@@ -74,11 +79,8 @@ function GroupPage() {
         });
         const data = await response.json();
         setGroup(data);
-        setGroupName(data.name);
-        setGroupDesc(data.description);
       } catch (error) {
         showErrorBanner('Failed to fetch group');
-        console.error('Failed to fetch group:', error);
       }
     };
     fetchGroup();
@@ -157,77 +159,6 @@ function GroupPage() {
     return balances;
   };
 
-  const handleNameChange = (e) => {
-    setGroupName(e.target.value);
-  };
-
-  const handleDescChange = (e) => {
-    setGroupDesc(e.target.value);
-  };
-
-  const handleDelete = async () => {
-    try {
-      const response = await fetch(`http://localhost:5000/group/${Id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      showSuccessBanner('Group deleted successfully!');
-      setTimeout(() => {
-        navigate('/groups');
-      }, 5000);
-    } catch (error) {
-      showErrorBanner('Failed to delete group');
-      console.error('Failed to delete group:', error);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch(`http://localhost:5000/group/${Id}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          groupName,
-          groupDesc,
-        }),
-      });
-
-      if (response.ok) {
-        const text = await response.text();
-        if (text) {
-          const data = JSON.parse(text);
-          setGroup(data);
-          showSuccessBanner('Group updated successfully!');
-        }
-      } else {
-        showErrorBanner('Failed to update group');
-        console.error('Failed to update group:', response.status);
-      }
-
-      setTimeout(() => {
-        navigate('/groups');
-      }, 5000);
-    } catch (error) {
-      showErrorBanner('Failed to update group');
-      console.error('Failed to update group:', error);
-    }
-  };
-
-  if (!group) {
-    return <div>Loading...</div>;
-  }
-
   const fetchUserData = async (userId) => {
     const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
       method: 'GET',
@@ -265,10 +196,9 @@ function GroupPage() {
       showSuccessBanner('User invited successfully!');
       setTimeout(() => {
         window.location.reload();
-      }, 5000);
+      }, 2000);
     } else {
       showErrorBanner('Failed to invite user');
-      console.error('Failed to invite user:', await response.json());
     }
   };
 
@@ -284,11 +214,46 @@ function GroupPage() {
       showSuccessBanner('Expense deleted successfully!');
       setTimeout(() => {
         window.location.reload();
-      }, 5000);
+      }, 2000);
     } else {
       showErrorBanner(`Failed to delete expense: ${response.status}`);
     }
   };
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+
+    // Add app name
+    doc.setFontSize(18);
+    doc.text(APP_NAME, 10, 10);
+
+    doc.setFontSize(14);
+    doc.text(`Group: ${group ? group.groupName : ''}`, 10, 20);
+    doc.text(`Description: ${group ? group.groupDesc : ''}`, 10, 30);
+    doc.text(`Total Expense: ${totalExpense}`, 10, 40);
+
+    let yPosition = 50; // Starting y position for the expenses
+    const lineSpacing = 10; // Spacing between each line of text
+
+    expenses.forEach((expense, index) => {
+        const category = categories.find(category => category.id === expense.categoryId);
+        doc.text(`Expense ${index + 1}`, 10, yPosition);
+        yPosition += lineSpacing;
+        doc.text(`Amount: ${expense.amount}`, 20, yPosition);
+        yPosition += lineSpacing;
+        doc.text(`Place: ${expense.place}`, 20, yPosition);
+        yPosition += lineSpacing;
+        doc.text(`Date: ${new Date(expense.date * 1000).toLocaleDateString()}`, 20, yPosition);
+        yPosition += lineSpacing;
+        doc.text(`Category: ${category ? category.name : 'Unknown'}`, 20, yPosition);
+        yPosition += lineSpacing;
+        doc.text(`Created by: ${expense.user.username}`, 20, yPosition);
+        yPosition += lineSpacing;
+        yPosition += lineSpacing; // Extra space between expenses
+    });
+
+    doc.save('expenses.pdf');
+};
 
   const balances = calculateBalances();
   const balanceData = {
@@ -328,31 +293,34 @@ function GroupPage() {
     }
   };
 
-  // Calculate total expense
   const totalExpense = expenses.reduce((total, expense) => total + expense.amount, 0);
 
+  // Filter debts where userInDebtId is the same as the logged-in user ID
+  const userDebts = debts.filter(debt => debt.userInDebtId === userId);
+
+  // Create a mapping from user IDs to usernames
+  const userIdToUsername = {};
+  users.forEach(user => {
+    userIdToUsername[user.userId] = user.username;
+  });
+
   return (
-    <div>
+    <div className="group-page-container">
       {message && (
         <div className={`banner ${bannerClass} ${showBanner ? 'show-banner' : ''}`}>
           {message}
         </div>
       )}
-      <h1>{group.groupName}</h1>
-      <p>{group.groupDesc}</p>
+      <h1>{group ? group.groupName : 'Loading...'}</h1>
+      <p>{group ? group.groupDesc : 'Loading...'}</p>
 
-      <div className='chart-container'>
+      <div className="chart-container">
         <div style={{ height: '300px', width: '50%' }}>
           <Bar data={balanceData} options={options} />
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <input type="text" value={groupName} onChange={handleNameChange} placeholder="New group name" />
-        <input type="text" value={groupDesc} onChange={handleDescChange} placeholder="New group description" />
-        <button type="submit">Update Group</button>
-      </form>
-      <button onClick={handleDelete}>Delete Group</button>
+      <button className="main-button" onClick={() => navigate(`/reimbursements/${Id}`)}>Reimbursements</button>
 
       <h3>Users in this group</h3>
       <ul>
@@ -373,42 +341,53 @@ function GroupPage() {
           Set as admin:
           <input type="checkbox" checked={isInviteUserAdmin} onChange={e => setIsInviteUserAdmin(e.target.checked)} />
         </label>
-        <input type="submit" value="Invite" />
+        <input className="main-button" type="submit" value="Invite" />
       </form>
 
       {showModal && selectedUser && (
         <div className="modal">
           <h2>{selectedUser.username}</h2>
-          {selectedUser.image && <img src={selectedUser.image} style={{ width: "300px" }} alt="User" />}
+          {selectedUser.image && <img src={selectedUser.image} style={{ width: '300px' }} alt="User" />}
           <p>Email: {selectedUser.email}</p>
           <p>RIB: {selectedUser.rib}</p>
           <p>Paypal Username: {selectedUser.paypalUsername}</p>
-          <button onClick={() => setShowModal(false)}>Close</button>
+          <button className="main-button" onClick={() => setShowModal(false)}>Close</button>
         </div>
       )}
 
-      <button onClick={() => navigate(`/createexpense/${group.id}`)}>Create Expense</button>
-
+      <button className="main-button" onClick={() => navigate(`/createexpense/${group.id}`)}>Create Expense</button>
       {expenses.map(expense => {
         const category = categories.find(category => category.id === expense.categoryId);
         return (
-          <div key={expense.id} className='expense'>
+          <div key={expense.id} className="expense">
             <p>Amount: {expense.amount}</p>
             <p>Place: {expense.place}</p>
             <p>Date: {new Date(expense.date * 1000).toLocaleDateString()}</p>
             <p>Category: {category ? category.name : 'Unknown'}</p>
             <p>Created by: {expense.user.username}</p>
-            <button onClick={() => navigate(`/Expensepage/${expense.id}`)}>View</button>
-            <button onClick={() => handleDeleteExpense(expense.id)}>Delete</button>
-            <button onClick={() => navigate(`/editexpense/${expense.id}`)}>Edit</button>
+            <button className="main-button" onClick={() => navigate(`/Expensepage/${expense.id}`)}>View</button>
+            <button className="main-button" onClick={() => handleDeleteExpense(expense.id)}>Delete</button>
+            <button className="main-button" onClick={() => navigate(`/editexpense/${expense.id}`)}>Edit</button>
           </div>
         );
       })}
 
       <h3>Total Expense: {totalExpense}</h3>
+      <button className="main-button" onClick={generatePDF}>Generate PDF</button>
+      <button className="main-button" onClick={() => navigate(`/Message/${Id}`)}>Group Chat</button>
 
-      <button onClick={() => navigate(`/message/${group.id}`)}>Group chat</button>
-
+      <h3>Your Debts</h3>
+      <ul>
+        {userDebts.map(debt => (
+          <li key={debt.id}>
+            You owe {debt.adjustmentAmount} to {userIdToUsername[debt.userInCreditId]} on {new Date(debt.adjustmentDate).toLocaleDateString()}
+            <button className="main-button" onClick={() => navigate(`/reimburse/${debt.id}/${debt.adjustmentAmount}/${Id}`)}>Reimburse</button>
+          </li>
+        ))}
+      </ul>
+      <button className="gear-button" onClick={() => navigate(`/editgroup/${Id}`)}>
+        <FontAwesomeIcon icon={faGear} />
+      </button>
     </div>
   );
 }

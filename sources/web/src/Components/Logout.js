@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../assets/css/App.css';
 
 function Logout({ onLogout }) {
   const navigate = useNavigate();
