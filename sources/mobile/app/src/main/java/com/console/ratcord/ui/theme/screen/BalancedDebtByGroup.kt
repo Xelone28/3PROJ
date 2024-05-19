@@ -20,6 +20,8 @@ import com.console.ratcord.api.LocalStorage
 import com.console.ratcord.api.Utils
 import com.console.ratcord.Screen
 import com.console.ratcord.api.DebtAdjustmentService
+import com.console.ratcord.api.UserService
+import com.console.ratcord.domain.entity.user.UserMinimalWithImage
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -28,6 +30,7 @@ import kotlin.math.abs
 @Composable
 fun BalancedDebtByGroup(
     debtAdjustmentService: DebtAdjustmentService,
+    userService: UserService,
     applicationContext: Context,
     navController: NavController,
     groupId: Int?
@@ -39,6 +42,7 @@ fun BalancedDebtByGroup(
     )
     val coroutineScope = rememberCoroutineScope()
     var userDebts by remember { mutableStateOf<Map<Int, Float>>(emptyMap()) }
+    var userNames by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -52,13 +56,22 @@ fun BalancedDebtByGroup(
                             is Utils.Companion.Result.Success -> {
                                 val debts = debtsInGroup.data
                                 val debtMap = mutableMapOf<Int, Float>()
+                                val fetchedUserNames = mutableMapOf<Int, String>()
 
                                 debts.forEach { debt ->
                                     debtMap[debt.userInCreditId] = (debtMap[debt.userInCreditId] ?: 0f) + debt.adjustmentAmount
                                     debtMap[debt.userInDebtId] = (debtMap[debt.userInDebtId] ?: 0f) - debt.adjustmentAmount
                                 }
 
+                                for (userId in debtMap.keys) {
+                                    val user = userService.getUserById(applicationContext, userId)
+                                    if (user != null) {
+                                        fetchedUserNames[userId] = user.username
+                                    }
+                                }
+
                                 userDebts = debtMap
+                                userNames = fetchedUserNames
                             }
                             is Utils.Companion.Result.Error -> {
                                 val exception = debtsInGroup.exception
@@ -103,13 +116,15 @@ fun BalancedDebtByGroup(
                 LazyColumn {
                     items(debts.entries.toList()) { debt ->
                         if (groupId != null) {
+                            val userName = userNames[debt.key] ?: "User ${debt.key}"
                             UserDebtItem(
+                                userName = userName,
                                 userId = debt.key,
                                 groupId = groupId,
                                 amount = debt.value,
                                 maxAmount = maxAmount,
                                 onClick = { userId, groupId ->
-                                    navController.navigate( "${Screen.BalancedDebtByGroupDetail}/$groupId/$userId");
+                                    navController.navigate( "${Screen.BalancedDebtByGroupDetail}/$groupId/$userId")
                                 }
                             )
                         }
@@ -121,7 +136,7 @@ fun BalancedDebtByGroup(
 }
 
 @Composable
-fun UserDebtItem(userId: Int, groupId: Int, amount: Float, maxAmount: Float, onClick: (Int, Int) -> Unit) {
+fun UserDebtItem(userName: String, userId: Int, groupId: Int, amount: Float, maxAmount: Float, onClick: (Int, Int) -> Unit) {
     val isPositive = amount > 0
     val amountColor = if (isPositive) Color.Green else Color.Red
 
@@ -130,20 +145,18 @@ fun UserDebtItem(userId: Int, groupId: Int, amount: Float, maxAmount: Float, onC
             .padding(8.dp)
             .fillMaxWidth()
     ) {
-
-            DebtBar(
-                amount = amount,
-                userId = userId,
-                amountColor = amountColor,
-                maxAmount = maxAmount,
-                onClick = { onClick(userId, groupId) }
-            )
-
+        DebtBar(
+            amount = amount,
+            userName = userName,
+            amountColor = amountColor,
+            maxAmount = maxAmount,
+            onClick = { onClick(userId, groupId) }
+        )
     }
 }
 
 @Composable
-fun DebtBar(amount: Float, userId: Int, amountColor: Color, maxAmount: Float, onClick: () -> Unit) {
+fun DebtBar(amount: Float, userName: String, amountColor: Color, maxAmount: Float, onClick: () -> Unit) {
     val displayAmount = if (amount > 0) "+$amount" else "$amount"
     val barWidthPercentage = (abs(amount) / maxAmount) / 2
 
@@ -153,11 +166,10 @@ fun DebtBar(amount: Float, userId: Int, amountColor: Color, maxAmount: Float, on
             .fillMaxWidth()
             .height(40.dp)
             .padding(vertical = 4.dp),
-
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "User $userId",
+            text = userName,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.weight(1f)
         )
