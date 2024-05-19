@@ -1,43 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Chat from './Chat';
-import PrivateMessageHandler from './PrivateMessageHandler';
 import { useParams } from 'react-router-dom';
 
-
 const InterfaceChat = () => {
-  const [selectedUser, setSelectedUser] = useState(null);
-  const username = 'User1'; // Replace with the logged-in user's username
-  const users = ['User2', 'User3', 'User4']; // remplacer la liste, et la remplacer par user que tu connais --> http://localhost:5000/useringroup/$userId/groupusers
+  const [currentUsername, setCurrentUsername] = useState('');
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [users, setUsers] = useState([]);
   const { groupId } = useParams();
-  const storedUser = "TO_CHANGE_FOR_REAL_USERNAME" // HELP ME
+
+  // Get the user and token from localStorage and cookies
+  const user = JSON.parse(localStorage.getItem('user'));
+  const tokenRow = document.cookie.split('; ').find(row => row.startsWith('token='));
+  const token = tokenRow ? tokenRow.split('=')[1] : null;
+
+  useEffect(() => {
+    // Fetch the current user's username using the userId and token
+    if (user && token) {
+      fetch(`http://localhost:5000/api/users/${user.id}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          setCurrentUsername(data.username);
+          setCurrentUserId(user.id);
+        })
+        .catch(error => {
+          console.error('Error fetching the current user:', error);
+        });
+    }
+
+    // Fetch the list of users in the group
+    if (groupId && token) {
+      fetch(`http://localhost:5000/useringroup/${user.id}/groupusers`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          // console.log('Group users data:', data); // Log the returned data here
+          if (Array.isArray(data)) {
+            setUsers(data);
+          } else {
+            console.error('Unexpected data format:', data);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching group users:', error);
+        });
+    }
+  }, [user, token, groupId]);
 
   return (
     <div>
-      {selectedUser ? (
-        //<PrivateMessageHandler sender={username} recipient={selectedUser} />
-
-        <PrivateMessageHandler sender={username} recipient={"PrivateChat13"} />
-      ) : (
-        <div>
-          <h2>Select a user to chat with</h2>
-          <ul>
-            {users.map((user) => (
-              <li key={user} onClick={() => 
-                {
-                  //récupère l'Id du user selectionner
-                  //il faut que tu formes la chaine PrivateChat12
-                  //Pour créer ca, il faut que tu append au string PrivateChat les deux id des users en ascendant
-                  // une fois que ta fini ca, tu le paser a la place de user juste en dessous
-                  setSelectedUser(user)
-                }
-                }> //
-                {user}
-              </li>
-            ))}
-          </ul>
-          <Chat username={storedUser} roomName={"GroupMesages"+groupId} />
-        </div>
-      )}
+      <h2>Group Chat</h2>
+      <ul>
+        {users.map((user) => (
+          <li key={user.id}>{user.username}</li>
+        ))}
+      </ul>
+      <Chat username={currentUsername} roomName={`GroupMessages${groupId}`} />
     </div>
   );
 };

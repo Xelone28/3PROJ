@@ -33,8 +33,9 @@ function Header({ user }) {
         {user ? (
           <>
             <Link to="/Groups">View Groups</Link><br></br>
-            <Link to="/profile">Profile</Link><br></br>
+            <Link to="/Privatemessaging">Messages</Link><br></br>
             <Link to="/invitations">Invitations</Link><br></br>
+            <Link to="/profile">Profile</Link><br></br>
             <Link to="/logout">Logout</Link><br></br>
           </>
         ) : (
