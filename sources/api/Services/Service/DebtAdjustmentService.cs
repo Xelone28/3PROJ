@@ -94,6 +94,30 @@ namespace DotNetAPI.Services
             }
         }
 
+        public async Task<IEnumerable<DebtAdjustmentDTO>> GetDebtAdjustmentsByUserIdAndGroupId(int userId, int groupId)
+        {
+            try
+            {
+                return await _context.DebtAdjustments
+                    .Where(da => da.UserInCreditId == userId || da.UserInDebtId == userId)
+                    .Where(da => da.GroupId == groupId)
+                    .Select(da => new DebtAdjustmentDTO
+                    {
+                        Id = da.Id,
+                        GroupId = da.GroupId,
+                        UserInCreditId = da.UserInCreditId,
+                        UserInDebtId = da.UserInDebtId,
+                        AdjustmentAmount = da.AdjustmentAmount,
+                        AdjustmentDate = da.AdjustmentDate
+                    })
+                    .ToListAsync();
+            }
+            catch (Exception)
+            {
+                throw new HttpException(StatusCodes.Status500InternalServerError, "Error getting debt adjustments by user id.");
+            }
+        }
+
         public async Task<IEnumerable<DebtAdjustmentDTO>> GetDebtAdjustmentsByGroupId(int groupId)
         {
             try

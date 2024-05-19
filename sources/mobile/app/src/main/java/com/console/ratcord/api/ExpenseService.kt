@@ -67,7 +67,10 @@ class ExpenseService {
                         append("place", expense.place)
                         append("description", expense.description)
                         expense.userIdsInvolved.forEach { userId ->
-                            append("userIdInvolved[]", userId.toString())
+                            append("userIdsInvolved[]", userId.toString())
+                        }
+                        expense.weights.forEach { weight ->
+                            append("weights[]", weight)
                         }
                         if (imageUri != null) {
                             appendFile("image", imageUri, context)

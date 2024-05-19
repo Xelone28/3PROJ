@@ -68,6 +68,19 @@ namespace DotNetAPI.Services.Service
                         };
                         _context.Debt.Add(debt);
                     }
+                    if (user.Id == expense.User.Id)
+                    {
+                        Debt debt = new Debt
+                        {
+                            GroupId = expense.GroupId,
+                            ExpenseId = expense.Id,
+                            Amount = (float)Math.Round(userAmount, 2),
+                            IsPaid = true,
+                            UserInCredit = expense.User,
+                            UserInDebt = user
+                        };
+                        _context.Debt.Add(debt);
+                    }
                 }
 
                 await _context.SaveChangesAsync();

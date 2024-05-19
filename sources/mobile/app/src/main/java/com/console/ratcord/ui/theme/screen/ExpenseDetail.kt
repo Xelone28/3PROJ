@@ -117,37 +117,6 @@ fun ExpenseDetails(expenseService: ExpenseService, debtService: DebtService, app
                 )
             }
 
-            val timestamp = expenseDetails?.date?.toLong()
-            val formattedDate = if (timestamp != null) {
-                val date = Instant.ofEpochSecond(timestamp)
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate()
-                val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-                date.format(formatter)
-            } else {
-                "No date"
-            }
-
-            Text("Amount: ${expenseDetails!!.amount}", style = MaterialTheme.typography.bodyLarge)
-            Text("Description: ${expenseDetails!!.description}", style = MaterialTheme.typography.bodyLarge)
-            Text("Place: ${expenseDetails!!.place}", style = MaterialTheme.typography.bodyLarge)
-            Text("Date: $formattedDate", style = MaterialTheme.typography.bodyLarge)
-            Text("Category: ${expenseDetails!!.category.name}", style = MaterialTheme.typography.bodyLarge)
-            Text("Paid by: ${expenseDetails!!.user.username}", style = MaterialTheme.typography.bodyLarge)
-
-            debts?.forEach { debt ->
-                Text("${debt.userInDebt.username} : ${debt.amount}", style = MaterialTheme.typography.bodyLarge)
-            }
-
-            val imageUrl = expenseDetails!!.image
-            if (imageUrl is String) {
-                Image(
-                    painter = rememberAsyncImagePainter(imageUrl),
-                    contentDescription = "Expense Image",
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
             IconButton(onClick = {
                 coroutineScope.launch {
                     when (val deleteResult = expenseService.deleteExpense(applicationContext, expenseDetails!!.id)) {
@@ -179,6 +148,37 @@ fun ExpenseDetails(expenseService: ExpenseService, debtService: DebtService, app
                     imageVector = Icons.Filled.Edit,
                     contentDescription = "Edit expense",
                 )
+            }
+
+            val imageUrl = expenseDetails!!.image
+            if (imageUrl is String) {
+                Image(
+                    painter = rememberAsyncImagePainter(imageUrl),
+                    contentDescription = "Expense Image",
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            val timestamp = expenseDetails?.date?.toLong()
+            val formattedDate = if (timestamp != null) {
+                val date = Instant.ofEpochSecond(timestamp)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+                val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+                date.format(formatter)
+            } else {
+                "No date"
+            }
+
+            Text("Amount: ${expenseDetails!!.amount}", style = MaterialTheme.typography.bodyLarge)
+            Text("Description: ${expenseDetails!!.description}", style = MaterialTheme.typography.bodyLarge)
+            Text("Place: ${expenseDetails!!.place}", style = MaterialTheme.typography.bodyLarge)
+            Text("Date: $formattedDate", style = MaterialTheme.typography.bodyLarge)
+            Text("Category: ${expenseDetails!!.category.name}", style = MaterialTheme.typography.bodyLarge)
+            Text("Paid by: ${expenseDetails!!.user.username}", style = MaterialTheme.typography.bodyLarge)
+
+            debts?.forEach { debt ->
+                Text("${debt.userInDebt.username} : ${debt.amount}", style = MaterialTheme.typography.bodyLarge)
             }
         }
     }

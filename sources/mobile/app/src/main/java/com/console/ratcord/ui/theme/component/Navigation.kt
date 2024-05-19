@@ -5,12 +5,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -34,6 +32,7 @@ import androidx.navigation.navArgument
 import com.console.ratcord.ExpenseTab
 import com.console.ratcord.Screen
 import com.console.ratcord.api.CategoryService
+import com.console.ratcord.api.DebtAdjustmentService
 import com.console.ratcord.api.DebtService
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.GroupService
@@ -85,6 +84,7 @@ class Navigation() {
         val expenseService = ExpenseService()
         val categoryService = CategoryService()
         val debtService = DebtService()
+        val debtAdjustmentService = DebtAdjustmentService()
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -178,6 +178,37 @@ class Navigation() {
                             applicationContext = applicationContext,
                             navController = navController,
                             groupService = groupService
+                        )
+                    }
+                }
+                composable(
+                    "${Screen.BalancedDebtByGroup}/{groupId}",
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+                ) { navBackStackEntry ->
+                    val groupId = navBackStackEntry.arguments?.getInt("groupId")
+                    if (groupId != null) {
+                        BalancedDebtByGroup(
+                            groupId = groupId,
+                            applicationContext = applicationContext,
+                            navController = navController,
+                            debtAdjustmentService = debtAdjustmentService
+                        )
+                    }
+                }
+                composable(
+                    "${Screen.BalancedDebtByGroupDetail}/{groupId}/{userId}",
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType }, navArgument("userId") { type = NavType.IntType })
+                ) { navBackStackEntry ->
+                    val groupId = navBackStackEntry.arguments?.getInt("groupId")
+                    val userId = navBackStackEntry.arguments?.getInt("userId")
+
+                    if (groupId != null && userId != null) {
+                        BalancedDebtByGroupDetail(
+                            groupId = groupId,
+                            userId = userId,
+                            applicationContext = applicationContext,
+                            navController = navController,
+                            debtAdjustmentService = debtAdjustmentService
                         )
                     }
                 }

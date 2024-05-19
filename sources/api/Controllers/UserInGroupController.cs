@@ -155,8 +155,8 @@ public class UserInGroupController : ControllerBase
                 return BadRequest("The user does not exist.");
             }
 
-            var invitation = await _userInGroupService.CreateMembership(userInGroupDto, user);
-            return CreatedAtAction(nameof(GetMemberShipsByUserId), new { userId = userInGroupDto.UserId }, invitation);
+            await _userInGroupService.CreateMembership(userInGroupDto, user);
+            return NoContent();
         }
         catch (HttpException httpEx)
         {
