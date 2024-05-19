@@ -18,6 +18,7 @@ import com.console.ratcord.api.LocalStorage
 import com.console.ratcord.api.Utils
 import com.console.ratcord.Screen
 import com.console.ratcord.api.DebtAdjustmentService
+import com.console.ratcord.api.UserService
 import com.console.ratcord.domain.entity.debtAdjustment.DebtAdjustment
 import kotlinx.coroutines.launch
 
@@ -26,6 +27,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun BalancedDebtByGroupDetail(
     debtAdjustmentService: DebtAdjustmentService,
+    userService: UserService,
     applicationContext: Context,
     navController: NavController,
     userId: Int,
@@ -38,6 +40,7 @@ fun BalancedDebtByGroupDetail(
     )
     val coroutineScope = rememberCoroutineScope()
     var userDebts by remember { mutableStateOf<List<DebtAdjustment>>(emptyList()) }
+    var userNames by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -48,7 +51,22 @@ fun BalancedDebtByGroupDetail(
                 try {
                     when (val debtsResult = debtAdjustmentService.getDebtAdjustmentByGroupIdAndUserId(context = applicationContext, userId = userId, groupId = groupId)) {
                         is Utils.Companion.Result.Success -> {
-                            userDebts = debtsResult.data
+                            val debts = debtsResult.data
+                            val fetchedUserNames = mutableMapOf<Int, String>()
+
+                            debts.forEach { debt ->
+                                val userInCredit = userService.getUserById(applicationContext, debt.userInCreditId)
+                                val userInDebt = userService.getUserById(applicationContext, debt.userInDebtId)
+                                if (userInCredit != null) {
+                                    fetchedUserNames[debt.userInCreditId] = userInCredit.username
+                                }
+                                if (userInDebt != null) {
+                                    fetchedUserNames[debt.userInDebtId] = userInDebt.username
+                                }
+                            }
+
+                            userDebts = debts
+                            userNames = fetchedUserNames
                         }
                         is Utils.Companion.Result.Error -> {
                             val exception = debtsResult.exception
@@ -91,9 +109,18 @@ fun BalancedDebtByGroupDetail(
                 )
             }
 
-            LazyColumn {
-                items(userDebts) { debt ->
-                    UserDebtDetail(debt)
+            if (userDebts.isEmpty()) {
+                Text(
+                    text = "No debts found for this user.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(16.dp)
+                )
+            } else {
+                LazyColumn {
+                    items(userDebts) { debt ->
+                        UserDebtDetail(debt, userNames)
+                    }
                 }
             }
         }
@@ -101,9 +128,11 @@ fun BalancedDebtByGroupDetail(
 }
 
 @Composable
-fun UserDebtDetail(debt: DebtAdjustment) {
+fun UserDebtDetail(debt: DebtAdjustment, userNames: Map<Int, String>) {
     val isPositive = debt.adjustmentAmount > 0
     val amountColor = if (isPositive) Color.Green else Color.Red
+    val userInCreditName = userNames[debt.userInCreditId] ?: "User ${debt.userInCreditId}"
+    val userInDebtName = userNames[debt.userInDebtId] ?: "User ${debt.userInDebtId}"
 
     Column(
         modifier = Modifier
@@ -117,12 +146,12 @@ fun UserDebtDetail(debt: DebtAdjustment) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "User in Credit: ${debt.userInCreditId}",
+                text = "User in Credit: $userInCreditName",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f)
             )
             Text(
-                text = "User in Debt: ${debt.userInDebtId}",
+                text = "User in Debt: $userInDebtName",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f)
             )

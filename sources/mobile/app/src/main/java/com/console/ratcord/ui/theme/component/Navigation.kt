@@ -191,7 +191,8 @@ class Navigation() {
                             groupId = groupId,
                             applicationContext = applicationContext,
                             navController = navController,
-                            debtAdjustmentService = debtAdjustmentService
+                            debtAdjustmentService = debtAdjustmentService,
+                            userService = userService
                         )
                     }
                 }
@@ -208,7 +209,8 @@ class Navigation() {
                             userId = userId,
                             applicationContext = applicationContext,
                             navController = navController,
-                            debtAdjustmentService = debtAdjustmentService
+                            debtAdjustmentService = debtAdjustmentService,
+                            userService = userService
                         )
                     }
                 }
