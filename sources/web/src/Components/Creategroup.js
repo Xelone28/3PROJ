@@ -1,17 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../assets/css/Creategroup.css';
 
 function Creategroup() {
   const [groupName, setGroupName] = useState('');
   const [groupDesc, setGroupDesc] = useState('');
+  const [message, setMessage] = useState(null); // State variable for banner message
+  const [bannerClass, setBannerClass] = useState(''); // State variable for banner class
+  const [showBanner, setShowBanner] = useState(false); // State variable for showing banner
   const navigate = useNavigate();
   const token = document.cookie
     .split('; ')
     .find(row => row.startsWith('token='))
     .split('=')[1];
 
+  useEffect(() => {
+    if (showBanner) {
+      const timer = setTimeout(() => {
+        setShowBanner(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showBanner]);
+
+  const showErrorBanner = (message) => {
+    setMessage(message);
+    setBannerClass('error-banner');
+    setShowBanner(true);
+  };
+
+  const showSuccessBanner = (message) => {
+    setMessage(message);
+    setBannerClass('success-banner');
+    setShowBanner(true);
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (!groupName.trim()) {
+      showErrorBanner('Group name is required');
+      return;
+    }
 
     const response = await fetch('http://localhost:5000/group', {
       method: 'POST',
@@ -23,26 +53,34 @@ function Creategroup() {
         groupName: groupName, 
         groupDesc: groupDesc,
       }),
-    }); 
+    });
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      showErrorBanner(`HTTP error! status: ${response.status}`);
     } else {
-      alert('Group created successfully!');
-      navigate('/groups');
+      showSuccessBanner('Group created successfully!');
+      setTimeout(() => {
+        navigate('/groups');
+      }, 5000);
     }
   };
 
   return (
     <div>
       <h2>Create Group</h2>
+      {message && (
+        <div className={`banner ${bannerClass} ${showBanner ? 'show-banner' : ''}`}>
+          {message}
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <label>
           Group name:
-          <input type="text" name="title" value={groupName} onChange={e => setGroupName(e.target.value)} />
+          <input type="text" name="title" value={groupName} onChange={e => setGroupName(e.target.value)} required />
         </label>
         <label>
           Description:
-          <input type="text" name="description"value={groupDesc} onChange={e => setGroupDesc(e.target.value)} />
+          <input type="text" name="description" value={groupDesc} onChange={e => setGroupDesc(e.target.value)} />
         </label>
         <input type="submit" value="Submit" />
       </form>
