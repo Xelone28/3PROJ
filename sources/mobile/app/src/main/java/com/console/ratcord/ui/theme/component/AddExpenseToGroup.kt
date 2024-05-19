@@ -6,16 +6,10 @@ import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
@@ -34,8 +29,8 @@ import com.console.ratcord.api.UserInGroupService
 import com.console.ratcord.api.Utils
 import com.console.ratcord.domain.entity.category.Category
 import com.console.ratcord.domain.entity.expense.ExpenseMinimalWithImage
-import com.console.ratcord.domain.entity.user.User
 import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AddExpenseToGroup(
@@ -104,12 +99,14 @@ fun AddExpenseToGroup(
 
         var userId by remember { mutableStateOf<Int?>(null) }
         var categoryId by remember { mutableStateOf<Int?>(null) }
-        var amount by remember { mutableStateOf<String>("") }
+        var amount by remember { mutableStateOf("") }
         var date by remember { mutableStateOf<String?>(null) }
         var dateLabel by remember { mutableStateOf("Date") }
         var place by remember { mutableStateOf("") }
         var description by remember { mutableStateOf("") }
         var usersInvolved by remember { mutableStateOf<List<Int>?>(emptyList()) }
+        var weights by remember { mutableStateOf<List<Float>>(emptyList()) }
+        var paidByWeight by remember { mutableStateOf<Float?>(null) }
 
         Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
             errorMessage?.let { message ->
@@ -128,7 +125,10 @@ fun AddExpenseToGroup(
                 label = "Paid by",
                 entities = usersInGroup!!,
                 displayTextExtractor = { user -> user.username },
-                onEntitySelected = { user -> userId = user.userId }
+                onEntitySelected = { user ->
+                    userId = user.userId
+                    paidByWeight = 1f // Show weight input for the paid by user when selected
+                }
             )
 
             // Category
@@ -147,10 +147,46 @@ fun AddExpenseToGroup(
                 entities = usersInGroup!!,
                 displayTextExtractor = { user -> user.username },
                 onEntitiesSelected = { selectedUsers ->
-                    usersInvolved = emptyList()
-                    selectedUsers.forEach { user -> usersInvolved = (usersInvolved ?: emptyList()) + user.userId }
+                    usersInvolved = selectedUsers.map { it.userId }
+                    weights = List(selectedUsers.size) { 1f }
                 }
             )
+
+            // Calculate total weight
+            val totalWeight = (paidByWeight ?: 0f) + weights.sum()
+
+            // Dynamic weights input fields with calculated amount
+            usersInvolved?.forEachIndexed { index, userId ->
+                val userWeight = weights.getOrNull(index) ?: 1f
+                val userShare = if (totalWeight > 0) (amount.toFloatOrNull() ?: 0f) * userWeight / totalWeight else 0f
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = if (userWeight % 1 == 0f) userWeight.toInt().toString() else userWeight.toString(),
+                        onValueChange = { newValue ->
+                            weights = weights.toMutableList().also { it[index] = newValue.toFloatOrNull() ?: 1f }
+                        },
+                        label = { Text("Weight for user ID $userId") },
+                        modifier = Modifier.weight(1f).padding(top = 8.dp)
+                    )
+                    Text(text = "(${String.format("%.2f", userShare)})", modifier = Modifier.padding(start = 8.dp, top = 16.dp))
+                }
+            }
+
+            // Weight input for "Paid by" user with calculated amount
+            if (userId != null) {
+                val paidByShare = if (totalWeight > 0) (amount.toFloatOrNull() ?: 0f) * (paidByWeight ?: 0f) / totalWeight else 0f
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = if (paidByWeight?.rem(1) == 0f) paidByWeight?.toInt().toString() else paidByWeight.toString(),
+                        onValueChange = { newValue ->
+                            paidByWeight = newValue.toFloatOrNull() ?: 1f
+                        },
+                        label = { Text("Weight for user who paid") },
+                        modifier = Modifier.weight(1f).padding(top = 8.dp)
+                    )
+                    Text(text = "(${String.format("%.2f", paidByShare)})", modifier = Modifier.padding(start = 8.dp, top = 16.dp))
+                }
+            }
 
             OutlinedTextField(
                 value = amount,
@@ -184,14 +220,6 @@ fun AddExpenseToGroup(
                 Text("Pick Image")
             }
 
-            // Display the selected image
-            // imageUri?.let {
-            //    bitmap?.let { bmp ->
-            //        Image(bitmap = bmp.asImageBitmap(), contentDescription = "Selected Image",
-            //            modifier = Modifier.padding(top = 8.dp).fillMaxWidth(), contentScale = ContentScale.Fit)
-            //    }
-            // }
-
             Button(
                 onClick = {
                     if (userId != null && categoryId != null && date != null && usersInvolved != null && description.isNotEmpty() && place.isNotEmpty()) {
@@ -213,7 +241,8 @@ fun AddExpenseToGroup(
                                     description = description,
                                     place = place,
                                     userIdsInvolved = usersInvolved!!,
-                                    imagePath = imageUri?.path
+                                    imagePath = imageUri?.path,
+                                    weights = weights
                                 )
 
                                 val createExpenseResult = expenseService.createExpense(

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -107,6 +108,14 @@ fun GroupDetails(groupService: GroupService, userInGroupService: UserInGroupServ
                         contentDescription = "Edit group"
                     )
                 }
+
+                IconButton(onClick = { navController.navigate("${Screen.BalancedDebtByGroup}/${groupId}") }) {
+                    Icon(
+                        imageVector = Icons.Filled.ShoppingCart,
+                        contentDescription = "Debt Adjutement"
+                    )
+                }
+
                 Text(
                     "Name: ${groupDetails!!.groupName}",
                     style = MaterialTheme.typography.bodyLarge

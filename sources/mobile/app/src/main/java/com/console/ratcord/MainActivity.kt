@@ -22,6 +22,8 @@ sealed class Screen(val route: String) {
     object GroupsInvitation : Screen("GroupsInvitation")
     object AddCategoryToGroup : Screen("AddCategoryToGroup/{groupId}")
     object CategoriesFromGroup : Screen("CategoriesFromGroup/{groupId}")
+    object BalancedDebtByGroup : Screen("BalancedDebtByGroup/{groupId}")
+    object BalancedDebtByGroupDetail : Screen("BalancedDebtByGroupDetail/{groupId}/{userId}")
     object Chat : Screen("Chat/{roomName}/{groupId}")
     object PrivateChat : Screen("PrivateChat")
 }

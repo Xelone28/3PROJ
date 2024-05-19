@@ -19,6 +19,5 @@ data class Debt(
     val userInCredit: UserExtraMinimal,
     val userInDebt: UserExtraMinimal,
     val amount: Float,
-    val isPaid: Boolean,
-    val isCanceled: Boolean
+    val isPaid: Boolean
     )

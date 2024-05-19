@@ -75,6 +75,24 @@ namespace DotNetAPI.Controllers
             }
         }
 
+        [HttpGet("user/{userId}/group/{groupId}")]
+        public async Task<ActionResult<IEnumerable<DebtAdjustmentDTO>>> GetDebtAdjustmentsByUserIdAndGroupId(int userId, int groupId)
+        {
+            try
+            {
+                var debtAdjustments = await _debtAdjustmentService.GetDebtAdjustmentsByUserIdAndGroupId(userId, groupId);
+                return Ok(debtAdjustments);
+            }
+            catch (HttpException ex)
+            {
+                return StatusCode(ex.StatusCode, ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            }
+        }
+
         [HttpGet("group/{groupId}")]
         public async Task<ActionResult<IEnumerable<DebtAdjustmentDTO>>> GetDebtAdjustmentsByGroupId(int groupId)
         {

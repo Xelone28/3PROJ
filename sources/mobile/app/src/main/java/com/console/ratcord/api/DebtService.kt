@@ -50,7 +50,7 @@ class DebtService {
                 Utils.Companion.Result.Success(data)
             }
             else -> {
-                val errorMessage = response.bodyAsText() // Read the error message from the response body
+                val errorMessage = response.bodyAsText()
                 Utils.Companion.Result.Error(Utils.Companion.UnexpectedResponseException("Received unexpected status: ${response.status}. Message: $errorMessage"))
             }
         }
