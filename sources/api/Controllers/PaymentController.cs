@@ -110,7 +110,20 @@ namespace DotNetAPI.Controllers
                         Id = payment.Id,
                         Image = cdnUrl + imageUrl,
                         PaymentDate = payment.PaymentDate,
-                        UserId = payment.UserId
+                        User = new UserDTO {
+                            Email = payment.User.Email,
+                            PaypalUsername = payment.User.PaypalUsername,
+                            Rib = payment.User.Rib,
+                            Username = payment.User.Username,
+                            Id = payment.User.Id
+                        },
+                        UserInCredit = new UserDTO {
+                            Email = payment.UserInCredit.Email,
+                            PaypalUsername = payment.UserInCredit.PaypalUsername,
+                            Rib = payment.UserInCredit.Rib,
+                            Username = payment.UserInCredit.Username,
+                            Id = payment.UserInCredit.Id
+                        },
                     };
                     paymentDtos.Add(paymentWithStatusDTO);
                 }

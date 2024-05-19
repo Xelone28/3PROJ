@@ -8,6 +8,8 @@ namespace DotNetAPI.Models.Payment
         public int Id { get; set; }
         public int UserId { get; set; }
         public User.User User { get; set; }
+        public int UserInCreditId { get; set; }
+        public User.User UserInCredit { get; set; }
         public int GroupId { get; set; }
         public Group.Group Group { get; set; }
         public float Amount { get; set; }

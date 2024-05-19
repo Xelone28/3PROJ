@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotNetAPI.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20240519170331_makeMigration")]
+    [Migration("20240519174040_makeMigration")]
     partial class makeMigration
     {
         /// <inheritdoc />
@@ -219,6 +219,9 @@ namespace DotNetAPI.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("UserInCreditId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("type")
                         .HasColumnType("integer");
 
@@ -229,6 +232,8 @@ namespace DotNetAPI.Migrations
                     b.HasIndex("GroupId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserInCreditId");
 
                     b.ToTable("Payment");
                 });
@@ -460,11 +465,19 @@ namespace DotNetAPI.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("DotNetAPI.Models.User.User", "UserInCredit")
+                        .WithMany()
+                        .HasForeignKey("UserInCreditId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("DebtAdjustment");
 
                     b.Navigation("Group");
 
                     b.Navigation("User");
+
+                    b.Navigation("UserInCredit");
                 });
 
             modelBuilder.Entity("DotNetAPI.Models.UserInGroup.UserInGroup", b =>

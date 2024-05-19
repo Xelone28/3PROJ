@@ -182,6 +182,7 @@ namespace DotNetAPI.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<int>(type: "integer", nullable: false),
+                    UserInCreditId = table.Column<int>(type: "integer", nullable: false),
                     GroupId = table.Column<int>(type: "integer", nullable: false),
                     Amount = table.Column<float>(type: "real", nullable: false),
                     PaymentDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -206,6 +207,12 @@ namespace DotNetAPI.Migrations
                     table.ForeignKey(
                         name: "FK_Payment_User_UserId",
                         column: x => x.UserId,
+                        principalTable: "User",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Payment_User_UserInCreditId",
+                        column: x => x.UserInCreditId,
                         principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -376,6 +383,11 @@ namespace DotNetAPI.Migrations
                 name: "IX_Payment_UserId",
                 table: "Payment",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payment_UserInCreditId",
+                table: "Payment",
+                column: "UserInCreditId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_Email",
