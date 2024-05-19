@@ -96,18 +96,31 @@ fun BalancedDebtByGroup(
         }
     }
 
-    Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF0F2F5))
+            .padding(PaddingValues(16.dp))
+    ) {
         if (isLoading) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = Color(0xFF4CAF50))
         } else {
             errorMessage?.let { message ->
-                AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyLarge
+                )
             }
 
-            IconButton(onClick = { navController.popBackStack() }) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.background(Color(0xFF282C34))
+            ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go back",
+                    tint = Color.White
                 )
             }
 
@@ -124,7 +137,7 @@ fun BalancedDebtByGroup(
                                 amount = debt.value,
                                 maxAmount = maxAmount,
                                 onClick = { userId, groupId ->
-                                    navController.navigate( "${Screen.BalancedDebtByGroupDetail}/$groupId/$userId")
+                                    navController.navigate("${Screen.BalancedDebtByGroupDetail}/$groupId/$userId")
                                 }
                             )
                         }

@@ -2,6 +2,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -96,25 +97,28 @@ fun GroupDetails(groupService: GroupService, userInGroupService: UserInGroupServ
         } else {
             if (groupId != null && groupDetails != null && usersInGroup != null) {
                 Utils.getNavigation().TopNavigationBar(navController, groupId, groupDetails!!.groupName)
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Go back"
-                    )
-                }
-                IconButton(onClick = { navController.navigate("${Screen.EditGroup}/${groupId}") }) {
-                    Icon(
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = "Edit group"
-                    )
+                Row {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Go back"
+                        )
+                    }
+                    IconButton(onClick = { navController.navigate("${Screen.EditGroup}/${groupId}") }) {
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = "Edit group"
+                        )
+                    }
+
+                    IconButton(onClick = { navController.navigate("${Screen.BalancedDebtByGroup}/${groupId}") }) {
+                        Icon(
+                            imageVector = Icons.Filled.ShoppingCart,
+                            contentDescription = "Debt Adjutement"
+                        )
+                    }
                 }
 
-                IconButton(onClick = { navController.navigate("${Screen.BalancedDebtByGroup}/${groupId}") }) {
-                    Icon(
-                        imageVector = Icons.Filled.ShoppingCart,
-                        contentDescription = "Debt Adjutement"
-                    )
-                }
 
                 Text(
                     "Name: ${groupDetails!!.groupName}",

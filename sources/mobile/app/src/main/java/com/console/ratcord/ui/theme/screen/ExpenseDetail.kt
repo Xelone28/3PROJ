@@ -3,52 +3,51 @@ import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.console.ratcord.ExpenseTab
 import com.console.ratcord.Screen
-import com.console.ratcord.api.CategoryService
+import com.console.ratcord.api.DebtService
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.LocalStorage
 import com.console.ratcord.api.Utils
-import com.console.ratcord.domain.entity.category.Category
+import com.console.ratcord.domain.entity.debt.Debt
 import com.console.ratcord.domain.entity.expense.Expense
 import kotlinx.coroutines.launch
-
-import androidx.compose.foundation.layout.fillMaxWidth
-import coil.compose.rememberAsyncImagePainter
-import com.console.ratcord.api.DebtService
-import com.console.ratcord.domain.entity.debt.Debt
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-
+import kotlin.math.abs
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun ExpenseDetails(expenseService: ExpenseService, debtService: DebtService, applicationContext: Context, navController: NavController, expenseId: Int?) {
-    val token: String? = Utils.getItem(context = applicationContext, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
+fun ExpenseDetails(
+    expenseService: ExpenseService,
+    debtService: DebtService,
+    applicationContext: Context,
+    navController: NavController,
+    expenseId: Int?
+) {
+    val token: String? = Utils.getItem(
+        context = applicationContext,
+        fileKey = LocalStorage.PREFERENCES_FILE_KEY,
+        key = LocalStorage.TOKEN_KEY
+    )
     val coroutineScope = rememberCoroutineScope()
     var expenseDetails by remember { mutableStateOf<Expense?>(null) }
     var debts by remember { mutableStateOf<List<Debt>?>(emptyList()) }
@@ -70,7 +69,8 @@ fun ExpenseDetails(expenseService: ExpenseService, debtService: DebtService, app
                                 errorMessage = when (exception) {
                                     is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
                                     is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                    is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                    is Utils.Companion.UnexpectedResponseException -> exception.message
+                                        ?: "An unexpected error occurred."
                                     else -> "An unknown error occurred."
                                 }
                             }
@@ -85,7 +85,8 @@ fun ExpenseDetails(expenseService: ExpenseService, debtService: DebtService, app
                                 errorMessage = when (exception) {
                                     is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
                                     is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                    is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                    is Utils.Companion.UnexpectedResponseException -> exception.message
+                                        ?: "An unexpected error occurred."
                                     else -> "An unknown error occurred."
                                 }
                             }
@@ -102,51 +103,71 @@ fun ExpenseDetails(expenseService: ExpenseService, debtService: DebtService, app
         }
     }
 
-    Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+    Column(
+        modifier = Modifier
+            .padding(PaddingValues(16.dp))
+            .background(Color(0xFFF0F2F5))
+            .fillMaxWidth()
+    ) {
         if (isLoading) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = Color(0xFF4CAF50))
         } else if (expenseDetails != null) {
             errorMessage?.let { message ->
-                AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyLarge
+                )
             }
 
-            IconButton(onClick = { navController.popBackStack() }) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.background(Color(0xFF282C34))
+            ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go back",
+                    tint = Color.White
                 )
             }
 
-            IconButton(onClick = {
-                coroutineScope.launch {
-                    when (val deleteResult = expenseService.deleteExpense(applicationContext, expenseDetails!!.id)) {
-                        is Utils.Companion.Result.Success -> {
-                            navController.navigate("${ExpenseTab.Expenses}/${expenseDetails!!.groupId}")
-                        }
-                        is Utils.Companion.Result.Error -> {
-                            val exception = deleteResult.exception
-                            errorMessage = when (exception) {
-                                is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
-                                is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
-                                else -> "An unknown error occurred."
+            IconButton(
+                onClick = {
+                    coroutineScope.launch {
+                        when (val deleteResult = expenseService.deleteExpense(applicationContext, expenseDetails!!.id)) {
+                            is Utils.Companion.Result.Success -> {
+                                navController.navigate("${ExpenseTab.Expenses}/${expenseDetails!!.groupId}")
+                            }
+                            is Utils.Companion.Result.Error -> {
+                                val exception = deleteResult.exception
+                                errorMessage = when (exception) {
+                                    is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                    is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                    is Utils.Companion.UnexpectedResponseException -> exception.message
+                                        ?: "An unexpected error occurred."
+                                    else -> "An unknown error occurred."
+                                }
                             }
                         }
                     }
-                }
-            }) {
+                },
+                modifier = Modifier.background(Color(0xFF282C34))
+            ) {
                 Icon(
                     imageVector = Icons.Filled.Delete,
                     contentDescription = "Delete Expense",
+                    tint = Color.White
                 )
             }
 
-            IconButton(onClick = {
-                navController.navigate("${ExpenseTab.EditExpense}/${expenseDetails!!.id}")
-            }) {
+            IconButton(
+                onClick = { navController.navigate("${ExpenseTab.EditExpense}/${expenseDetails!!.id}") },
+                modifier = Modifier.background(Color(0xFF282C34))
+            ) {
                 Icon(
                     imageVector = Icons.Filled.Edit,
                     contentDescription = "Edit expense",
+                    tint = Color.White
                 )
             }
 

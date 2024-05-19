@@ -1,10 +1,13 @@
 package com.console.ratcord
 
+import MyAppTheme
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import com.console.ratcord.api.Utils
 
 sealed class Screen(val route: String) {
@@ -24,6 +27,7 @@ sealed class Screen(val route: String) {
     object CategoriesFromGroup : Screen("CategoriesFromGroup/{groupId}")
     object BalancedDebtByGroup : Screen("BalancedDebtByGroup/{groupId}")
     object BalancedDebtByGroupDetail : Screen("BalancedDebtByGroupDetail/{groupId}/{userId}")
+    object SendPaymentPage : Screen("SendPaymentPage")
     object Chat : Screen("Chat/{roomName}/{groupId}")
     object PrivateChat : Screen("PrivateChat")
 }
@@ -40,7 +44,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Utils.getNavigation().BottomNavigationBar(applicationContext)
+            MyAppTheme {
+                Surface(color = MaterialTheme.colorScheme.background) {
+                    Utils.getNavigation().BottomNavigationBar(applicationContext)
+                }
+            }
         }
     }
 }

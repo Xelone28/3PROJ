@@ -1,40 +1,37 @@
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.console.ratcord.ExpenseTab
 import com.console.ratcord.Screen
 import com.console.ratcord.api.CategoryService
-import com.console.ratcord.api.GroupService
 import com.console.ratcord.api.LocalStorage
-import com.console.ratcord.api.UserInGroupService
 import com.console.ratcord.api.Utils
 import com.console.ratcord.domain.entity.category.Category
-import com.console.ratcord.domain.entity.group.Group
-import com.console.ratcord.domain.entity.group.GroupMinimalWithId
 import kotlinx.coroutines.launch
+
 @Composable
-fun CategoriesFromGroup(categoryService: CategoryService, applicationContext: Context, navController: NavController, groupId: Int) {
-    val token: String? = Utils.getItem(context = applicationContext, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
+fun CategoriesFromGroup(
+    categoryService: CategoryService,
+    applicationContext: Context,
+    navController: NavController,
+    groupId: Int
+) {
+    val token: String? = Utils.getItem(
+        context = applicationContext,
+        fileKey = LocalStorage.PREFERENCES_FILE_KEY,
+        key = LocalStorage.TOKEN_KEY
+    )
     val coroutineScope = rememberCoroutineScope()
     var categories by remember { mutableStateOf<List<Category>?>(null) }
     var isLoading by remember { mutableStateOf(false) }
@@ -56,7 +53,8 @@ fun CategoriesFromGroup(categoryService: CategoryService, applicationContext: Co
                                 errorMessage = when (exception) {
                                     is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
                                     is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                    is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                    is Utils.Companion.UnexpectedResponseException -> exception.message
+                                        ?: "An unexpected error occurred."
                                     else -> "An unknown error occurred."
                                 }
                             }
@@ -74,25 +72,40 @@ fun CategoriesFromGroup(categoryService: CategoryService, applicationContext: Co
     }
 
     Column(
-        modifier = Modifier.padding(16.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF0F2F5))
+            .padding(16.dp)
     ) {
         if (isLoading) {
-            Text(text = "Loading...")
+            CircularProgressIndicator(color = Color(0xFF4CAF50))
         } else {
             errorMessage?.let { message ->
-                AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyLarge
+                )
             }
-            IconButton(onClick = { navController.popBackStack() }) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.background(Color(0xFF282C34))
+            ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go back",
+                    tint = Color.White
                 )
             }
 
-            IconButton(onClick = { navController.navigate("${Screen.AddCategoryToGroup}/$groupId") } ) {
+            IconButton(
+                onClick = { navController.navigate("${Screen.AddCategoryToGroup}/$groupId") },
+                modifier = Modifier.background(Color(0xFF282C34))
+            ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
-                    contentDescription = "Add category"
+                    contentDescription = "Add category",
+                    tint = Color.White
                 )
             }
             categories?.let { categoryList ->

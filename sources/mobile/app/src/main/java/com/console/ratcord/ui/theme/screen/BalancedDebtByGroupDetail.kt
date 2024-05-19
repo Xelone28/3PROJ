@@ -2,6 +2,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,7 +21,10 @@ import com.console.ratcord.Screen
 import com.console.ratcord.api.DebtAdjustmentService
 import com.console.ratcord.api.UserService
 import com.console.ratcord.domain.entity.debtAdjustment.DebtAdjustment
+import com.console.ratcord.domain.entity.user.UserMinimalWithImage
 import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -43,6 +47,16 @@ fun BalancedDebtByGroupDetail(
     var userNames by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    var loggedInUserSerialized: UserMinimalWithImage? = null
+    val loggedInUser: String? = Utils.getItem(
+        context = applicationContext,
+        fileKey = LocalStorage.PREFERENCES_FILE_KEY,
+        key = LocalStorage.USER
+    )
+    if (loggedInUser != null) {
+        loggedInUserSerialized = Json.decodeFromString<UserMinimalWithImage>(loggedInUser)
+    }
 
     LaunchedEffect(key1 = token) {
         if (token != null) {
@@ -90,9 +104,14 @@ fun BalancedDebtByGroupDetail(
         }
     }
 
-    Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF0F2F5))
+            .padding(PaddingValues(16.dp))
+    ) {
         if (isLoading) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = Color(0xFF4CAF50))
         } else {
             errorMessage?.let { message ->
                 Text(
@@ -102,10 +121,14 @@ fun BalancedDebtByGroupDetail(
                 )
             }
 
-            IconButton(onClick = { navController.popBackStack() }) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.background(Color(0xFF282C34))
+            ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go back",
+                    tint = Color.White
                 )
             }
 
@@ -119,7 +142,14 @@ fun BalancedDebtByGroupDetail(
             } else {
                 LazyColumn {
                     items(userDebts) { debt ->
-                        UserDebtDetail(debt, userNames)
+                        UserDebtDetail(debt, userNames, loggedInUserSerialized?.id)
+                        if (loggedInUserSerialized?.id == debt.userInDebtId) {
+                            Button(
+                                onClick = { navController.navigate("${Screen.SendPaymentPage}/${debt.id}") },
+                            ) {
+                                Text(text = "Pay Debt", color = Color.White)
+                            }
+                        }
                     }
                 }
             }
@@ -128,11 +158,13 @@ fun BalancedDebtByGroupDetail(
 }
 
 @Composable
-fun UserDebtDetail(debt: DebtAdjustment, userNames: Map<Int, String>) {
-    val isPositive = debt.adjustmentAmount > 0
+fun UserDebtDetail(debt: DebtAdjustment, userNames: Map<Int, String>, currentUserId: Int?) {
+    val isPositive = debt.userInCreditId == currentUserId
     val amountColor = if (isPositive) Color.Green else Color.Red
     val userInCreditName = userNames[debt.userInCreditId] ?: "User ${debt.userInCreditId}"
     val userInDebtName = userNames[debt.userInDebtId] ?: "User ${debt.userInDebtId}"
+
+    val amount = if (isPositive) debt.adjustmentAmount else -debt.adjustmentAmount
 
     Column(
         modifier = Modifier
@@ -146,17 +178,12 @@ fun UserDebtDetail(debt: DebtAdjustment, userNames: Map<Int, String>) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "User in Credit: $userInCreditName",
+                text = if (isPositive) "Owes to: $userInDebtName" else "Owed by: $userInCreditName",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f)
             )
             Text(
-                text = "User in Debt: $userInDebtName",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = if (isPositive) "+${debt.adjustmentAmount}" else "${debt.adjustmentAmount}",
+                text = if (isPositive) "+$amount" else "$amount",
                 style = MaterialTheme.typography.bodyLarge,
                 color = amountColor
             )

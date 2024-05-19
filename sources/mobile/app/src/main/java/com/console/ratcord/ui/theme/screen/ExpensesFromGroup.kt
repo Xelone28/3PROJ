@@ -1,35 +1,31 @@
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.console.ratcord.ExpenseTab
 import com.console.ratcord.Screen
 import com.console.ratcord.api.ExpenseService
-import com.console.ratcord.api.GroupService
-import com.console.ratcord.api.UserInGroupService
 import com.console.ratcord.api.Utils
-import com.console.ratcord.domain.entity.expense.Expense
 import com.console.ratcord.domain.entity.expense.ExpenseMinimal
 import kotlinx.coroutines.launch
 
 @Composable
-fun ExpensesFromGroup(expenseFromGroup: ExpenseService, applicationContext: Context, navController: NavController, groupId: Int?) {
+fun ExpensesFromGroup(
+    expenseFromGroup: ExpenseService,
+    applicationContext: Context,
+    navController: NavController,
+    groupId: Int?
+) {
     val coroutineScope = rememberCoroutineScope()
     var expenses by remember { mutableStateOf<List<ExpenseMinimal>?>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
@@ -48,7 +44,8 @@ fun ExpensesFromGroup(expenseFromGroup: ExpenseService, applicationContext: Cont
                         errorMessage = when (exception) {
                             is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
                             is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                            is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                            is Utils.Companion.UnexpectedResponseException -> exception.message
+                                ?: "An unexpected error occurred."
                             else -> "An unknown error occurred."
                         }
                     }
@@ -60,17 +57,29 @@ fun ExpensesFromGroup(expenseFromGroup: ExpenseService, applicationContext: Cont
         errorMessage = "Failed to retrieve group"
     }
 
-    Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+    Column(
+        modifier = Modifier
+            .padding(PaddingValues(16.dp))
+            .background(Color(0xFFF0F2F5))
+    ) {
         errorMessage?.let { message ->
-            AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
         if (isLoading) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = Color(0xFF4CAF50))
         } else {
-            IconButton(onClick = { navController.popBackStack() }) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.background(Color(0xFF282C34))
+            ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go back",
+                    tint = Color.White
                 )
             }
             expenses?.let { expenseList ->
@@ -83,10 +92,14 @@ fun ExpensesFromGroup(expenseFromGroup: ExpenseService, applicationContext: Cont
                     )
                 }
             }
-            IconButton(onClick = { navController.navigate("${ExpenseTab.AddExpenseToGroup}/${groupId}") }) {
+            IconButton(
+                onClick = { navController.navigate("${ExpenseTab.AddExpenseToGroup}/${groupId}") },
+                modifier = Modifier.background(Color(0xFF282C34))
+            ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
                     contentDescription = "Add expense",
+                    tint = Color.White
                 )
             }
         }
