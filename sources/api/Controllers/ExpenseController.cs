@@ -369,6 +369,7 @@ public class ExpenseController : ControllerBase
             var s3Paths = _configuration.GetSection("S3Paths");
             string expensePath = s3Paths["Expense"];
 
+            await _debtBalancingService.BalanceDebts(expense.GroupId);
             await _debtService.DeleteDebtsByExpenseId(id);
             await _expenseService.DeleteExpense(id);
             await _userInvolvedExpense.DeleteFromExpenseId(id);
@@ -377,6 +378,7 @@ public class ExpenseController : ControllerBase
             {
                 await _utils.DeleteFile(file);
             }
+            
             return NoContent();
         }
         catch (HttpException ex)
