@@ -161,8 +161,12 @@ class UserInGroupService() {
                 val data = json.decodeFromString<T>(body)
                 Utils.Companion.Result.Success(data)
             }
+            HttpStatusCode.NotFound -> {
+                val errorMessage = response.bodyAsText()
+                Utils.Companion.Result.Error(Utils.Companion.UnexpectedResponseException(errorMessage))
+            }
             else -> {
-                val errorMessage = response.bodyAsText() // Read the error message from the response body
+                val errorMessage = response.bodyAsText()
                 Utils.Companion.Result.Error(Utils.Companion.UnexpectedResponseException("Received unexpected status: ${response.status}. Message: $errorMessage"))
             }
         }

@@ -5,6 +5,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.console.ratcord.api.UserService
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.navigation.NavController
 import com.console.ratcord.Screen
@@ -54,15 +58,10 @@ fun EditUserForm(userService: UserService, applicationContext: Context, navContr
             }
         }
 
-        Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Header(navController = navController)
             errorMessage?.let { message ->
                 AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
-            }
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back",
-                )
             }
             OutlinedTextField(
                 value = username,
@@ -94,6 +93,8 @@ fun EditUserForm(userService: UserService, applicationContext: Context, navContr
                 label = { Text("PayPal Username") },
                 modifier = Modifier.padding(top = 8.dp)
             )
+            Spacer(modifier = Modifier.height(12.dp))
+
             Button(onClick = { imagePickerLauncher.launch("image/*") }) {
                 Text("Pick Image")
             }

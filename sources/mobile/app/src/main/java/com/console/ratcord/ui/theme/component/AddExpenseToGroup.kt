@@ -6,21 +6,19 @@ import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.NavController
 import com.console.ratcord.ExpenseTab
 import com.console.ratcord.api.CategoryService
@@ -108,172 +106,194 @@ fun AddExpenseToGroup(
         var weights by remember { mutableStateOf<List<Float>>(emptyList()) }
         var paidByWeight by remember { mutableStateOf<Float?>(null) }
 
-        Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Header(navController = navController)
             errorMessage?.let { message ->
                 AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
             }
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Go back",
-                )
-            }
 
-            // Original expense user
-            SearchableDropDown(
-                context = applicationContext,
-                label = "Paid by",
-                entities = usersInGroup!!,
-                displayTextExtractor = { user -> user.username },
-                onEntitySelected = { user ->
-                    userId = user.userId
-                    paidByWeight = 1f // Show weight input for the paid by user when selected
-                }
-            )
-
-            // Category
-            SearchableDropDown(
-                context = applicationContext,
-                label = "Category",
-                entities = categoriesFromGroup!!,
-                displayTextExtractor = { category -> category.name },
-                onEntitySelected = { category -> categoryId = category.id }
-            )
-
-            // User Involved
-            SearchableDropDownMultipleOptions(
-                context = applicationContext,
-                label = "User Involved",
-                entities = usersInGroup!!,
-                displayTextExtractor = { user -> user.username },
-                onEntitiesSelected = { selectedUsers ->
-                    usersInvolved = selectedUsers.map { it.userId }
-                    weights = List(selectedUsers.size) { 1f }
-                }
-            )
-
-            // Calculate total weight
-            val totalWeight = (paidByWeight ?: 0f) + weights.sum()
-
-            // Dynamic weights input fields with calculated amount
-            usersInvolved?.forEachIndexed { index, userId ->
-                val userWeight = weights.getOrNull(index) ?: 1f
-                val userShare = if (totalWeight > 0) (amount.toFloatOrNull() ?: 0f) * userWeight / totalWeight else 0f
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
-                        value = if (userWeight % 1 == 0f) userWeight.toInt().toString() else userWeight.toString(),
-                        onValueChange = { newValue ->
-                            weights = weights.toMutableList().also { it[index] = newValue.toFloatOrNull() ?: 1f }
-                        },
-                        label = { Text("Weight for user ID $userId") },
-                        modifier = Modifier.weight(1f).padding(top = 8.dp)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp, horizontal = 12.dp),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Column(modifier = Modifier
+                    .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    SearchableDropDown(
+                        context = applicationContext,
+                        label = "Paid by",
+                        entities = usersInGroup!!,
+                        displayTextExtractor = { user -> user.username },
+                        onEntitySelected = { user ->
+                            userId = user.userId
+                            paidByWeight = 1f // Show weight input for the paid by user when selected
+                        }
                     )
-                    Text(text = "(${String.format("%.2f", userShare)})", modifier = Modifier.padding(start = 8.dp, top = 16.dp))
-                }
-            }
 
-            // Weight input for "Paid by" user with calculated amount
-            if (userId != null) {
-                val paidByShare = if (totalWeight > 0) (amount.toFloatOrNull() ?: 0f) * (paidByWeight ?: 0f) / totalWeight else 0f
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
-                        value = if (paidByWeight?.rem(1) == 0f) paidByWeight?.toInt().toString() else paidByWeight.toString(),
-                        onValueChange = { newValue ->
-                            paidByWeight = newValue.toFloatOrNull() ?: 1f
-                        },
-                        label = { Text("Weight for user who paid") },
-                        modifier = Modifier.weight(1f).padding(top = 8.dp)
+                    SearchableDropDown(
+                        context = applicationContext,
+                        label = "Category",
+                        entities = categoriesFromGroup!!,
+                        displayTextExtractor = { category -> category.name },
+                        onEntitySelected = { category -> categoryId = category.id }
                     )
-                    Text(text = "(${String.format("%.2f", paidByShare)})", modifier = Modifier.padding(start = 8.dp, top = 16.dp))
-                }
-            }
 
-            OutlinedTextField(
-                value = amount,
-                onValueChange = { newValue -> amount = newValue },
-                label = { Text("Amount") },
-                modifier = Modifier.padding(top = 8.dp)
-            )
-            OutlinedTextField(
-                value = place,
-                onValueChange = { place = it },
-                label = { Text("Place") },
-                modifier = Modifier.padding(top = 8.dp)
-            )
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Description") },
-                modifier = Modifier.padding(top = 8.dp)
-            )
+                    SearchableDropDownMultipleOptions(
+                        context = applicationContext,
+                        label = "User Involved",
+                        entities = usersInGroup!!,
+                        displayTextExtractor = { user -> user.username },
+                        onEntitiesSelected = { selectedUsers ->
+                            usersInvolved = selectedUsers.map { it.userId }
+                            weights = List(selectedUsers.size) { 1f }
+                        }
+                    )
 
-            DatePicker(
-                label = dateLabel,
-                value = "",
-                onValueChange = { value ->
-                    dateLabel = value
-                    date = value
-                }
-            )
+                    val totalWeight = (paidByWeight ?: 0f) + weights.sum()
 
-            Button(onClick = { imagePickerLauncher.launch("image/*") }) {
-                Text("Pick Image")
-            }
+                    usersInvolved?.forEachIndexed { index, userId ->
+                        val userWeight = weights.getOrNull(index) ?: 1f
+                        val userShare = if (totalWeight > 0) (amount.toFloatOrNull() ?: 0f) * userWeight / totalWeight else 0f
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedTextField(
+                                value = if (userWeight % 1 == 0f) userWeight.toInt().toString() else userWeight.toString(),
+                                onValueChange = { newValue ->
+                                    weights = weights.toMutableList().also { it[index] = newValue.toFloatOrNull() ?: 1f }
+                                },
+                                label = { Text("Weight for user ID $userId") },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(top = 8.dp)
+                            )
+                            Text(
+                                text = "(${String.format("%.2f", userShare)})",
+                                modifier = Modifier.padding(start = 8.dp, top = 16.dp)
+                            )
+                        }
+                    }
 
-            Button(
-                onClick = {
-                    if (userId != null && categoryId != null && date != null && usersInvolved != null && description.isNotEmpty() && place.isNotEmpty()) {
-                        coroutineScope.launch {
-                            val newAmount: Float? = try {
-                                amount.toFloat()
-                            } catch (e: Exception) {
-                                errorMessage = "Please enter a valid amount."
-                                null
-                            }
-                            if (newAmount != null) {
-                                val expenseTimestamp = SimpleDateFormat("yyyy-MM-dd").parse(date).time / 1000
-                                val newExpense = ExpenseMinimalWithImage(
-                                    groupId = groupId,
-                                    userId = userId!!,
-                                    amount = newAmount,
-                                    categoryId = categoryId!!,
-                                    date = expenseTimestamp,
-                                    description = description,
-                                    place = place,
-                                    userIdsInvolved = usersInvolved!!,
-                                    imagePath = imageUri?.path,
-                                    weights = weights
-                                )
+                    if (userId != null) {
+                        val paidByShare = if (totalWeight > 0) (amount.toFloatOrNull() ?: 0f) * (paidByWeight ?: 0f) / totalWeight else 0f
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedTextField(
+                                value = if (paidByWeight?.rem(1) == 0f) paidByWeight?.toInt().toString() else paidByWeight.toString(),
+                                onValueChange = { newValue ->
+                                    paidByWeight = newValue.toFloatOrNull() ?: 1f
+                                },
+                                label = { Text("Weight for user who paid") },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(top = 8.dp)
+                            )
+                            Text(
+                                text = "(${String.format("%.2f", paidByShare)})",
+                                modifier = Modifier.padding(start = 8.dp, top = 16.dp)
+                            )
+                        }
+                    }
 
-                                val createExpenseResult = expenseService.createExpense(
-                                    context = applicationContext,
-                                    expense = newExpense,
-                                    imageUri = imageUri
-                                )
+                    OutlinedTextField(
+                        value = amount,
+                        onValueChange = { newValue -> amount = newValue },
+                        label = { Text("Amount") },
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    OutlinedTextField(
+                        value = place,
+                        onValueChange = { place = it },
+                        label = { Text("Place") },
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = { Text("Description") },
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
 
-                                when (createExpenseResult) {
-                                    is Utils.Companion.Result.Success -> {
-                                        navController.navigate("${ExpenseTab.Expenses}/${groupId}")
+                    DatePicker(
+                        label = dateLabel,
+                        value = "",
+                        onValueChange = { value ->
+                            dateLabel = value
+                            date = value
+                        }
+                    )
+
+                    Button(
+                        onClick = { imagePickerLauncher.launch("image/*") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Text("Pick Image")
+                    }
+
+                    Button(
+                        onClick = {
+                            if (userId != null && categoryId != null && date != null && usersInvolved != null && description.isNotEmpty() && place.isNotEmpty()) {
+                                coroutineScope.launch {
+                                    val newAmount: Float? = try {
+                                        amount.toFloat()
+                                    } catch (e: Exception) {
+                                        errorMessage = "Please enter a valid amount."
+                                        null
                                     }
-                                    is Utils.Companion.Result.Error -> {
-                                        val exception = createExpenseResult.exception
-                                        errorMessage = when (exception) {
-                                            is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
-                                            is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                            is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
-                                            else -> "An unknown error occurred."
+                                    if (newAmount != null) {
+                                        val expenseTimestamp = SimpleDateFormat("yyyy-MM-dd").parse(date).time / 1000
+                                        val newExpense = ExpenseMinimalWithImage(
+                                            groupId = groupId,
+                                            userId = userId!!,
+                                            amount = newAmount,
+                                            categoryId = categoryId!!,
+                                            date = expenseTimestamp,
+                                            description = description,
+                                            place = place,
+                                            userIdsInvolved = usersInvolved!!,
+                                            imagePath = imageUri?.path,
+                                            weights = weights
+                                        )
+
+                                        val createExpenseResult = expenseService.createExpense(
+                                            context = applicationContext,
+                                            expense = newExpense,
+                                            imageUri = imageUri
+                                        )
+
+                                        when (createExpenseResult) {
+                                            is Utils.Companion.Result.Success -> {
+                                                navController.navigate("${ExpenseTab.Expenses}/${groupId}")
+                                            }
+                                            is Utils.Companion.Result.Error -> {
+                                                val exception = createExpenseResult.exception
+                                                errorMessage = when (exception) {
+                                                    is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                                    is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                                    is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                                    else -> "An unknown error occurred."
+                                                }
+                                            }
                                         }
                                     }
                                 }
+                            } else {
+                                errorMessage = "Please fill in all fields."
                             }
-                        }
-                    } else {
-                        errorMessage = "Please fill in all fields."
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Text("Add expense")
                     }
-                },
-                modifier = Modifier.padding(top = 16.dp)
-            ) {
-                Text("Register")
+                }
             }
         }
     }

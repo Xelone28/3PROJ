@@ -1,17 +1,20 @@
 import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.console.ratcord.R
 import com.console.ratcord.Screen
 import com.console.ratcord.api.LocalStorage
 import com.console.ratcord.api.UserInGroupService
@@ -50,6 +53,7 @@ fun Groups(
                             errorMessage = when (exception) {
                                 is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
                                 is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                is Utils.Companion.NotFound -> "You have no group"
                                 is Utils.Companion.UnexpectedResponseException -> exception.message
                                     ?: "An unexpected error occurred."
                                 else -> "An unknown error occurred."
@@ -68,58 +72,48 @@ fun Groups(
 
     Column(
         modifier = Modifier
-            .padding(16.dp)
-            .background(Color(0xFFF0F2F5))
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Header(navController)
         errorMessage?.let { message ->
-            Text(
-                text = message,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyLarge
-            )
+            AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
         }
         if (isLoading) {
             CircularProgressIndicator(color = Color(0xFF4CAF50))
         } else {
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier
-                    .background(Color(0xFF282C34))
-                    .padding(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back",
-                    tint = Color.White
-                )
-            }
-            Button(
-                onClick = { navController.navigate(Screen.RegisterGroup.route) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
-                Text(text = "Create group", color = Color.White)
-            }
-            Button(
-                onClick = { navController.navigate(Screen.GroupsInvitation.route) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
-                Text(text = "Invitations", color = Color.White)
+            Row {
+                Button(
+                    onClick = { navController.navigate(Screen.RegisterGroup.route) },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                    modifier = Modifier
+                        .padding(vertical = 8.dp, horizontal = 8.dp)
+                ) {
+                    Text(text = "Create group", color = Color.White)
+                }
+                Button(
+                    onClick = { navController.navigate(Screen.GroupsInvitation.route) },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                    modifier = Modifier
+                        .padding(vertical = 8.dp, horizontal = 8.dp)
+                ) {
+                    Text(text = "Invitations", color = Color.White)
+                }
             }
             groups?.let { groupList ->
-                groupList.forEach { group ->
-                    GroupCard(
-                        name = group.groupName,
-                        description = group.groupDesc ?: "",
-                        onClick = {
-                            navController.navigate("${Screen.GroupDetails}/${group.id}")
-                        },
-                    )
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(groupList) { group ->
+                        GroupCard(
+                            name = group.groupName,
+                            description = group.groupDesc ?: "",
+                            onClick = {
+                                navController.navigate("${Screen.GroupDetails}/${group.id}")
+                            },
+                            imageUrl = R.drawable.background
+                        )
+                    }
                 }
             }
         }

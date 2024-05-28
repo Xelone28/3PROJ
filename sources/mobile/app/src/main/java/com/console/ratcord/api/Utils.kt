@@ -82,6 +82,7 @@ class Utils {
 
         class AuthorizationException(message: String) : Exception(message)
         class NetworkException(message: String) : Exception(message)
+        class NotFound(message: String) : Exception(message)
         class UnexpectedResponseException(message: String) : Exception(message)
         class ConflictException(message: String) : Exception(message)
 

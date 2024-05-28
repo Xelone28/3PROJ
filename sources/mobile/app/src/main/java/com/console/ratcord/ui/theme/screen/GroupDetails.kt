@@ -1,8 +1,11 @@
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -38,6 +41,7 @@ import com.console.ratcord.domain.entity.group.GroupMinimalWithId
 import com.console.ratcord.domain.entity.user.UserMinimalWithUserId
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun GroupDetails(groupService: GroupService, userInGroupService: UserInGroupService, applicationContext: Context, navController: NavController, groupId: Int?) {
@@ -87,48 +91,21 @@ fun GroupDetails(groupService: GroupService, userInGroupService: UserInGroupServ
     } else {
         errorMessage = "Failed to retrieve group"
     }
+    if (isLoading) {
+        CircularProgressIndicator()
+    } else {
+        if (groupId != null && groupDetails != null && usersInGroup != null) {
+            Column(modifier = Modifier
+                .fillMaxWidth()
+            ) {
+                Header(navController, "Ratcord - ${groupDetails!!.groupName}")
 
-    Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
-        errorMessage?.let { message ->
-            AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
-        }
-        if (isLoading) {
-            CircularProgressIndicator()
-        } else {
-            if (groupId != null && groupDetails != null && usersInGroup != null) {
-                Utils.getNavigation().TopNavigationBar(navController, groupId, groupDetails!!.groupName)
-                Row {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Go back"
-                        )
-                    }
-                    IconButton(onClick = { navController.navigate("${Screen.EditGroup}/${groupId}") }) {
-                        Icon(
-                            imageVector = Icons.Filled.Edit,
-                            contentDescription = "Edit group"
-                        )
-                    }
-
-                    IconButton(onClick = { navController.navigate("${Screen.BalancedDebtByGroup}/${groupId}") }) {
-                        Icon(
-                            imageVector = Icons.Filled.ShoppingCart,
-                            contentDescription = "Debt Adjutement"
-                        )
-                    }
+                errorMessage?.let { message ->
+                    AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
                 }
 
-
-                Text(
-                    "Name: ${groupDetails!!.groupName}",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    "Description: ${groupDetails!!.groupDesc}",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
+            Utils.getNavigation().TopNavigationBar(navController, groupId, groupDetails!!.groupName, applicationContext)
         }
     }
+}
 }

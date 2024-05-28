@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
@@ -92,7 +93,8 @@ fun EditPayment(
             }
         }
 
-        Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Header(navController = navController)
             errorMessage?.let { message ->
                 Text(
                     text = message,
@@ -101,18 +103,13 @@ fun EditPayment(
                 )
             }
 
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back",
-                )
-            }
-
             OutlinedTextField(
                 value = debtAdjustment!!.adjustmentAmount.toString(),
                 onValueChange = {},
                 label = { Text("Amount") },
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier
+                    .padding(vertical = 16.dp, horizontal = 32.dp)
+                    .fillMaxWidth(),
                 enabled = false
             )
 
@@ -125,58 +122,60 @@ fun EditPayment(
                 onEntitySelected = { paymentType = it }
             )
 
-            Button(onClick = { imagePickerLauncher.launch("image/*") }) {
-                Text("Pick Image")
-            }
-
-            imageUri?.let {
-                bitmap?.let { bmp ->
-                    Image(
-                        bitmap = bmp.asImageBitmap(),
-                        contentDescription = "Selected Image",
-                        modifier = Modifier
-                            .padding(top = 8.dp)
-                            .fillMaxWidth()
-                    )
+            Row (){
+                Button(modifier = Modifier.padding(horizontal = 16.dp), onClick = { imagePickerLauncher.launch("image/*") }) {
+                    Text("Pick Image")
                 }
-            }
 
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        val newPayment = PaymentDTO(
-                            id = null,
-                            userId = debtAdjustment!!.userInDebtId,
-                            userInCreditId = debtAdjustment!!.userInCreditId,
-                            groupId = debtAdjustment!!.groupId,
-                            amount = debtAdjustment!!.adjustmentAmount,
-                            debtAdjustmentId = debtAdjustmentId,
-                            paymentDate = null,
-                            type = paymentType?.value,
-                            imagePath = imageUri.toString()
+                imageUri?.let {
+                    bitmap?.let { bmp ->
+                        Image(
+                            bitmap = bmp.asImageBitmap(),
+                            contentDescription = "Selected Image",
+                            modifier = Modifier
+                                .padding(top = 8.dp)
+                                .fillMaxWidth()
                         )
+                    }
+                }
 
-                        when (val result = paymentService.createPayment(applicationContext, newPayment, imageUri)) {
-                            is Utils.Companion.Result.Success -> {
-                                navController.navigate("${Screen.BalancedDebtByGroup}/${debtAdjustment!!.groupId}")
-                            }
-                            is Utils.Companion.Result.Error -> {
-                                val exception = result.exception
-                                errorMessage = when (exception) {
-                                    is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
-                                    is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                    is Utils.Companion.UnexpectedResponseException -> exception.message
-                                        ?: "An unexpected error occurred."
-                                    else -> "An unknown error occurred."
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            val newPayment = PaymentDTO(
+                                id = null,
+                                userId = debtAdjustment!!.userInDebtId,
+                                userInCreditId = debtAdjustment!!.userInCreditId,
+                                groupId = debtAdjustment!!.groupId,
+                                amount = debtAdjustment!!.adjustmentAmount,
+                                debtAdjustmentId = debtAdjustmentId,
+                                paymentDate = null,
+                                type = paymentType?.value,
+                                imagePath = imageUri.toString()
+                            )
+
+                            when (val result = paymentService.createPayment(applicationContext, newPayment, imageUri)) {
+                                is Utils.Companion.Result.Success -> {
+                                    navController.navigate("${Screen.BalancedDebtByGroup}/${debtAdjustment!!.groupId}")
+                                }
+                                is Utils.Companion.Result.Error -> {
+                                    val exception = result.exception
+                                    errorMessage = when (exception) {
+                                        is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                        is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                        is Utils.Companion.UnexpectedResponseException -> exception.message
+                                            ?: "An unexpected error occurred."
+                                        else -> "An unknown error occurred."
+                                    }
                                 }
                             }
                         }
-                    }
-                },
-                modifier = Modifier.padding(top = 16.dp)
-            ) {
-                Text("Send Payment")
+                    },
+                ) {
+                    Text("Send Payment")
+                }
             }
+
         }
     }
 }

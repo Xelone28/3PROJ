@@ -48,7 +48,8 @@ fun <T> SearchableDropDownMultipleOptions(
                 onValueChange = {},
                 label = { Text(text = label) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier.menuAnchor()
+                modifier = Modifier.menuAnchor().fillMaxWidth()
+                    .padding(horizontal = 32.dp, vertical = 8.dp)
             )
 
             if (expanded) {

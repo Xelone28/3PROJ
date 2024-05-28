@@ -1,29 +1,21 @@
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.console.ratcord.Screen
@@ -62,54 +54,81 @@ fun ProfileDetail(userService: UserService, applicationContext: Context, navCont
         }
     }
 
-    Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Header(navController)
         if (isLoading) {
             CircularProgressIndicator()
         } else if (userDetails != null) {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back",
-                )
-            }
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    val imageUrl = userDetails!!.image
+                    if (imageUrl is String) {
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, Color.Black, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = rememberAsyncImagePainter(imageUrl),
+                                contentDescription = "Profile picture",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .size(128.dp)
+                                    .clip(CircleShape)
+                                    .border(1.dp, Color.Black, CircleShape),
+                                alignment = Alignment.Center
+                            )
+                        }
+                    }
+                    Row {
+                        Text(text = "Bonjour ",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                            fontSize = 24.sp
+                        ))
+                        Text(text = "${userDetails!!.username},",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp)
+                        )
+                    }
 
-            Text("Username: ${userDetails!!.username}", style = MaterialTheme.typography.bodyLarge)
-            Text("Email: ${userDetails!!.email}", style = MaterialTheme.typography.bodyLarge)
-            userDetails!!.paypalUsername?.let {
-                Text("PayPal Username: $it", style = MaterialTheme.typography.bodyLarge)
-            }
-            userDetails!!.rib?.let {
-                Text("RIB: $it", style = MaterialTheme.typography.bodyLarge)
-            }
-            val imageUrl = userDetails!!.image
-            if (imageUrl is String) {
-                Image(
-                    painter = rememberAsyncImagePainter(imageUrl),
-                    contentDescription = "Expense Image",
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+                    Text("${userDetails!!.email}", style = MaterialTheme.typography.bodyLarge)
 
-            if (token?.let { Utils.getUserIdFromJwt(it) } == userId) {
-                IconButton(onClick = {
-                    navController.navigate("${Screen.EnsureConnexion}/${userDetails!!.id}")
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = "Edit User",
-                    )
-                }
-                Button(onClick = {
-                    Utils.storeItem(context = applicationContext, value = null, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
-                    Utils.storeItem(context = applicationContext, value = null, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.USER)
-                    navController.navigate(Screen.Groups.route)
-                })
-                {
-                    Text(text = "Logout")
+                    Spacer(modifier = Modifier.height(128.dp))
+                    userDetails!!.paypalUsername?.let {
+                        Text("PayPal Username: $it", style = MaterialTheme.typography.bodyLarge)
+                    }
+                    userDetails!!.rib?.let {
+                        Text("RIB: $it", style = MaterialTheme.typography.bodyLarge)
+                    }
+                    if (token?.let { Utils.getUserIdFromJwt(it) } == userId) {
+                        IconButton(onClick = {
+                            navController.navigate("${Screen.EnsureConnexion}/${userDetails!!.id}")
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Edit,
+                                contentDescription = "Edit User",
+                            )
+                        }
+                        Button(onClick = {
+                            Utils.storeItem(context = applicationContext, value = null, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.TOKEN_KEY)
+                            Utils.storeItem(context = applicationContext, value = null, fileKey = LocalStorage.PREFERENCES_FILE_KEY, key = LocalStorage.USER)
+                            navController.navigate(Screen.Groups.route)
+                        })
+                        {
+                            Text(text = "Logout")
+                        }
+                    }
                 }
             }
         }
     }
 }
-
-

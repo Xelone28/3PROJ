@@ -2,11 +2,16 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.socket.client.Socket
 import io.socket.emitter.Emitter
 import kotlinx.coroutines.CoroutineScope
@@ -97,7 +102,9 @@ class PrivateMessageHandler(
             fetchConversation(sender, recipient)
         }
 
-        Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
+        Column(modifier = Modifier
+            .padding(16.dp)
+            .fillMaxSize()) {
             TextField(
                 value = message,
                 onValueChange = { message = it },
@@ -115,8 +122,41 @@ class PrivateMessageHandler(
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(messages) { msg ->
-                    Text("${msg.sender} [${msg.createdAt}]: ${msg.content} ")
+                    PrivateMessageCard(msg)
                 }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun PrivateMessageCard(msg: Message) {
+    Card(
+        modifier = Modifier
+            .padding(vertical = 4.dp)
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Text(
+                text = msg.createdAt,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Row {
+                Text(
+                    text = "${msg.sender}: " ,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                Text(
+                    text = msg.content,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }
