@@ -2,6 +2,7 @@ import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -9,10 +10,13 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.console.ratcord.ExpenseTab
+import com.console.ratcord.R
 import com.console.ratcord.Screen
 import com.console.ratcord.api.CategoryService
 import com.console.ratcord.api.LocalStorage
@@ -44,10 +48,12 @@ fun CategoriesFromGroup(
             coroutineScope.launch {
                 try {
                     if (userId is Int) {
-                        when (val result = categoryService.getCategoryByGroupId(applicationContext, groupId)) {
+                        when (val result =
+                            categoryService.getCategoryByGroupId(applicationContext, groupId)) {
                             is Utils.Companion.Result.Success -> {
                                 categories = result.data
                             }
+
                             is Utils.Companion.Result.Error -> {
                                 val exception = result.exception
                                 errorMessage = when (exception) {
@@ -55,6 +61,7 @@ fun CategoriesFromGroup(
                                     is Utils.Companion.NetworkException -> "Network error. Please check your connection."
                                     is Utils.Companion.UnexpectedResponseException -> exception.message
                                         ?: "An unexpected error occurred."
+
                                     else -> "An unknown error occurred."
                                 }
                             }
@@ -81,32 +88,7 @@ fun CategoriesFromGroup(
             CircularProgressIndicator(color = Color(0xFF4CAF50))
         } else {
             errorMessage?.let { message ->
-                Text(
-                    text = message,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.background(Color(0xFF282C34))
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back",
-                    tint = Color.White
-                )
-            }
-
-            IconButton(
-                onClick = { navController.navigate("${Screen.AddCategoryToGroup}/$groupId") },
-                modifier = Modifier.background(Color(0xFF282C34))
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = "Add category",
-                    tint = Color.White
-                )
+                AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
             }
             categories?.let { categoryList ->
                 categoryList.forEach { category ->
@@ -114,17 +96,21 @@ fun CategoriesFromGroup(
                         name = category.name,
                         deleteCategory = {
                             coroutineScope.launch {
-                                when (val result = categoryService.deleteCategory(applicationContext, categoryId = category.id)) {
+                                when (val result = categoryService.deleteCategory(
+                                    applicationContext,
+                                    categoryId = category.id
+                                )) {
                                     is Utils.Companion.Result.Success -> {
-                                        navController.navigate("${Screen.CategoriesFromGroup}/$groupId")
+                                        navController.navigate("${Screen.GroupDetails}/$groupId")
                                     }
+
                                     is Utils.Companion.Result.Error -> {
                                         val exception = result.exception
                                         val error = when (exception) {
                                             is Utils.Companion.ConflictException -> "Cannot delete the category because it is referenced by an expense."
-                                            else -> exception.localizedMessage ?: "An unknown error occurred."
+                                            else -> exception.localizedMessage
+                                                ?: "An unknown error occurred."
                                         }
-                                        // Display the error message to the user
                                         errorMessage = error
                                     }
                                 }
@@ -133,6 +119,21 @@ fun CategoriesFromGroup(
                     )
                 }
             }
+            IconButton(
+                onClick = { navController.navigate("${Screen.AddCategoryToGroup}/$groupId") },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .background(color = colorResource(id = R.color.green))
+                    .clip(RoundedCornerShape(50))
+                    .size(56.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Add category",
+                    tint = Color.White
+                )
+            }
         }
     }
 }
+

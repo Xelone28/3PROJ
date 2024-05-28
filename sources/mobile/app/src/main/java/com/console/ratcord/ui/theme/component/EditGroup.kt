@@ -1,6 +1,9 @@
 import android.content.Context
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -20,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.navigation.NavController
 import com.console.ratcord.Screen
 import com.console.ratcord.api.GroupService
@@ -35,83 +39,89 @@ fun EditGroup(groupService: GroupService, applicationContext: Context, navContro
 
         val coroutineScope = rememberCoroutineScope()
 
-        Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
-            errorMessage?.let { message ->
-                AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
-            }
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back",
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                errorMessage?.let { message ->
+                    AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
+                }
+                OutlinedTextField(
+                    value = groupName,
+                    onValueChange = { groupName = it },
+                    label = { Text("Name") },
+                    modifier = Modifier.padding(top = 8.dp)
                 )
-            }
+                OutlinedTextField(
+                    value = groupDescription,
+                    onValueChange = { groupDescription = it },
+                    label = { Text("Description") },
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            val groupMinimal = GroupMinimal(
+                                groupName = groupName,
+                                groupDesc = groupDescription,
+                            )
+                            when (val result = groupService.updateGroup(
+                                context = applicationContext,
+                                groupId = groupId,
+                                groupMinimal = groupMinimal
+                            )) {
+                                is Utils.Companion.Result.Success -> {
+                                    navController.navigate(Screen.Groups.route)
+                                }
 
-            IconButton(onClick = {
-                coroutineScope.launch {
-                    when (val result = groupService.deleteGroup(context = applicationContext, groupId = groupId)) {
-                        is Utils.Companion.Result.Success -> {
-                            navController.navigate(Screen.Groups.route)
-                        }
-                        is Utils.Companion.Result.Error -> {
-                            val exception = result.exception
-                            errorMessage = when (exception) {
-                                is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
-                                is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
-                                else -> "An unknown error occurred."
+                                is Utils.Companion.Result.Error -> {
+                                    val exception = result.exception
+                                    errorMessage = when (exception) {
+                                        is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                        is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                        is Utils.Companion.UnexpectedResponseException -> exception.message
+                                            ?: "An unexpected error occurred."
+
+                                        else -> "An unknown error occurred."
+                                    }
+                                }
                             }
                         }
-                    }
+                    },
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    Text("Update")
                 }
-            }) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = "Delete Group",
-                )
-            }
-
-            OutlinedTextField(
-                value = groupName,
-                onValueChange = { groupName = it },
-                label = { Text("Name") },
-                modifier = Modifier.padding(top = 8.dp)
-            )
-            OutlinedTextField(
-                value = groupDescription,
-                onValueChange = { groupDescription = it },
-                label = { Text("Description") },
-                modifier = Modifier.padding(top = 8.dp)
-            )
-            Button(
-                onClick = {
+                IconButton(onClick = {
                     coroutineScope.launch {
-                        val groupMinimal = GroupMinimal(
-                            groupName = groupName,
-                            groupDesc = groupDescription,
-                        )
-                        when (val result = groupService.updateGroup(
+                        when (val result = groupService.deleteGroup(
                             context = applicationContext,
-                            groupId = groupId,
-                            groupMinimal = groupMinimal
+                            groupId = groupId
                         )) {
                             is Utils.Companion.Result.Success -> {
                                 navController.navigate(Screen.Groups.route)
                             }
+
                             is Utils.Companion.Result.Error -> {
                                 val exception = result.exception
                                 errorMessage = when (exception) {
                                     is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
                                     is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                    is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
+                                    is Utils.Companion.UnexpectedResponseException -> exception.message
+                                        ?: "An unexpected error occurred."
+
                                     else -> "An unknown error occurred."
                                 }
                             }
                         }
                     }
-                },
-                modifier = Modifier.padding(top = 16.dp)
-            ) {
-                Text("Update")
+                }) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = "Delete Group",
+                    )
+                }
             }
         }
     }

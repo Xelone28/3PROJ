@@ -6,8 +6,13 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -27,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.navigation.NavController
 import com.console.ratcord.ExpenseTab
 import com.console.ratcord.api.CategoryService
@@ -130,115 +136,120 @@ fun EditExpenseFromGroup(userInGroupService: UserInGroupService, categoryService
             }
         }
 
-        Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+
+        ) {
+            Header(navController = navController)
             errorMessage?.let { message ->
                 AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
             }
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back",
-                )
-            }
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column (
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    //Categories
+                    SearchableDropDown(
+                        context = applicationContext,
+                        label = "Category",
+                        entities = categoriesFromGroup!!,
+                        displayTextExtractor = { category -> category.name },
+                        onEntitySelected = { category -> categoryId = category.id }
+                    )
 
-            // Category
-            SearchableDropDown(
-                context = applicationContext,
-                label = "Category",
-                entities = categoriesFromGroup!!,
-                displayTextExtractor = { category -> category.name },
-                onEntitySelected = { category -> categoryId = category.id }
-            )
-
-            // User Involved
-            SearchableDropDownMultipleOptions(
-                context = applicationContext,
-                label = "User Involved",
-                entities = usersInGroup!!,
-                displayTextExtractor = { user -> user.username },
-                onEntitiesSelected = { selectedUsers ->
-                    usersInvolved = emptyList()
-                    selectedUsers.forEach { user ->
-                        usersInvolved = (usersInvolved ?: emptyList()) + user.userId
-                    }
-                }
-            )
-
-            OutlinedTextField(
-                value = place,
-                onValueChange = { place = it },
-                label = { Text("Place") },
-                modifier = Modifier.padding(top = 8.dp)
-            )
-
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Description") },
-                modifier = Modifier.padding(top = 8.dp)
-            )
-
-            DatePicker(
-                label = dateLabel,
-                value = "",
-                onValueChange = { value: String ->
-                    dateLabel = value
-                    date = value
-                }
-            )
-
-            // Image picker button
-            Button(onClick = { imagePickerLauncher.launch("image/*") }) {
-                Text("Pick Image")
-            }
-
-            // Display the selected image
-            //imageUri?.let {
-            //    bitmap?.let { bmp ->
-            //        Image(bitmap = bmp.asImageBitmap(), contentDescription = "Selected Image",
-            //            modifier = Modifier.padding(top = 8.dp).fillMaxWidth(), contentScale = ContentScale.Fit)
-            //    }
-            //}
-
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        var expenseTimestamp: Date? = date?.let {
-                            SimpleDateFormat("yyyy-MM-dd").parse(it)
-                        }
-
-                        val newExpense = ExpenseMinimalUpdate(
-                            categoryId = categoryId,
-                            date = expenseTimestamp?.time?.div(1000),
-                            description = description,
-                            place = place,
-                            userIdsInvolved = usersInvolved
-                        )
-
-                        when (val updateResult = expenseService.updateExpense(
-                            context = applicationContext,
-                            expense = newExpense,
-                            expenseId = expense!!.id,
-                            imageUri = imageUri
-                        )) {
-                            is Utils.Companion.Result.Success -> {
-                                navController.navigate("${ExpenseTab.Expenses}/${expense!!.groupId}")
+                    // User Involved
+                    SearchableDropDownMultipleOptions(
+                        context = applicationContext,
+                        label = "User Involved",
+                        entities = usersInGroup!!,
+                        displayTextExtractor = { user -> user.username },
+                        onEntitiesSelected = { selectedUsers ->
+                            usersInvolved = emptyList()
+                            selectedUsers.forEach { user ->
+                                usersInvolved = (usersInvolved ?: emptyList()) + user.userId
                             }
-                            is Utils.Companion.Result.Error -> {
-                                val exception = updateResult.exception
-                                errorMessage = when (exception) {
-                                    is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
-                                    is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                    is Utils.Companion.UnexpectedResponseException -> exception.message ?: "An unexpected error occurred."
-                                    else -> "An unknown error occurred."
+                        }
+                    )
+
+                    OutlinedTextField(
+                        value = place,
+                        onValueChange = { place = it },
+                        label = { Text("Place") },
+                        modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = { Text("Description") },
+                        modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+                    )
+
+                    DatePicker(
+                        label = dateLabel,
+                        value = "",
+                        onValueChange = { value: String ->
+                            dateLabel = value
+                            date = value
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(onClick = { imagePickerLauncher.launch("image/*") }) {
+                        Text("Pick Image")
+                    }
+
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                var expenseTimestamp: Date? = date?.let {
+                                    SimpleDateFormat("yyyy-MM-dd").parse(it)
+                                }
+
+                                val newExpense = ExpenseMinimalUpdate(
+                                    categoryId = categoryId,
+                                    date = expenseTimestamp?.time?.div(1000),
+                                    description = description,
+                                    place = place,
+                                    userIdsInvolved = usersInvolved
+                                )
+
+                                when (val updateResult = expenseService.updateExpense(
+                                    context = applicationContext,
+                                    expense = newExpense,
+                                    expenseId = expense!!.id,
+                                    imageUri = imageUri
+                                )) {
+                                    is Utils.Companion.Result.Success -> {
+                                        navController.navigate("${ExpenseTab.Expenses}/${expense!!.groupId}")
+                                    }
+
+                                    is Utils.Companion.Result.Error -> {
+                                        val exception = updateResult.exception
+                                        errorMessage = when (exception) {
+                                            is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                            is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                            is Utils.Companion.UnexpectedResponseException -> exception.message
+                                                ?: "An unexpected error occurred."
+
+                                            else -> "An unknown error occurred."
+                                        }
+                                    }
                                 }
                             }
-                        }
+                        },
+                        modifier = Modifier.padding(top = 16.dp)
+                    ) {
+                        Text("Edit Expense")
                     }
-                },
-                modifier = Modifier.padding(top = 16.dp)
-            ) {
-                Text("Edit Expense")
+                }
             }
         }
     }

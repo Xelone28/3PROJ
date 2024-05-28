@@ -4,22 +4,25 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.console.ratcord.ExpenseTab
+import com.console.ratcord.R
 import com.console.ratcord.Screen
 import com.console.ratcord.api.DebtService
 import com.console.ratcord.api.ExpenseService
@@ -31,7 +34,6 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlin.math.abs
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -105,101 +107,115 @@ fun ExpenseDetails(
 
     Column(
         modifier = Modifier
-            .padding(PaddingValues(16.dp))
-            .background(Color(0xFFF0F2F5))
             .fillMaxWidth()
     ) {
+        Header(navController)
         if (isLoading) {
             CircularProgressIndicator(color = Color(0xFF4CAF50))
         } else if (expenseDetails != null) {
             errorMessage?.let { message ->
-                Text(
-                    text = message,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
             }
-
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.background(Color(0xFF282C34))
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(4.dp)
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back",
-                    tint = Color.White
-                )
-            }
-
-            IconButton(
-                onClick = {
-                    coroutineScope.launch {
-                        when (val deleteResult = expenseService.deleteExpense(applicationContext, expenseDetails!!.id)) {
-                            is Utils.Companion.Result.Success -> {
-                                navController.navigate("${ExpenseTab.Expenses}/${expenseDetails!!.groupId}")
-                            }
-                            is Utils.Companion.Result.Error -> {
-                                val exception = deleteResult.exception
-                                errorMessage = when (exception) {
-                                    is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
-                                    is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                    is Utils.Companion.UnexpectedResponseException -> exception.message
-                                        ?: "An unexpected error occurred."
-                                    else -> "An unknown error occurred."
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = expenseDetails!!.description,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f).padding(end = 8.dp)
+                        )
+                        IconButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    when (val deleteResult = expenseService.deleteExpense(applicationContext, expenseDetails!!.id)) {
+                                        is Utils.Companion.Result.Success -> {
+                                            navController.navigate("${ExpenseTab.Expenses}/${expenseDetails!!.groupId}")
+                                        }
+                                        is Utils.Companion.Result.Error -> {
+                                            val exception = deleteResult.exception
+                                            errorMessage = when (exception) {
+                                                is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
+                                                is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                                is Utils.Companion.UnexpectedResponseException -> exception.message
+                                                    ?: "An unexpected error occurred."
+                                                else -> "An unknown error occurred."
+                                            }
+                                        }
+                                    }
                                 }
-                            }
+                            },
+                            modifier = Modifier
+                                .background(color = colorResource(id = R.color.green))
+                                .clip(RoundedCornerShape(50))
+                                .size(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Delete,
+                                contentDescription = "Delete Expense",
+                                tint = Color.White
+                            )
+                        }
+                        IconButton(
+                            onClick = { navController.navigate("${ExpenseTab.EditExpense}/${expenseDetails!!.id}") },
+                            modifier = Modifier
+                                .background(color = colorResource(id = R.color.green))
+                                .clip(RoundedCornerShape(50))
+                                .size(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Edit,
+                                contentDescription = "Edit expense",
+                                tint = Color.White
+                            )
                         }
                     }
-                },
-                modifier = Modifier.background(Color(0xFF282C34))
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = "Delete Expense",
-                    tint = Color.White
-                )
-            }
 
-            IconButton(
-                onClick = { navController.navigate("${ExpenseTab.EditExpense}/${expenseDetails!!.id}") },
-                modifier = Modifier.background(Color(0xFF282C34))
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    contentDescription = "Edit expense",
-                    tint = Color.White
-                )
-            }
+                    val imageUrl = expenseDetails!!.image
+                    if (imageUrl is String) {
+                        Image(
+                            painter = rememberAsyncImagePainter(imageUrl),
+                            contentDescription = "Expense Image",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
 
-            val imageUrl = expenseDetails!!.image
-            if (imageUrl is String) {
-                Image(
-                    painter = rememberAsyncImagePainter(imageUrl),
-                    contentDescription = "Expense Image",
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+                    val timestamp = expenseDetails?.date?.toLong()
+                    val formattedDate = if (timestamp != null) {
+                        val date = Instant.ofEpochSecond(timestamp)
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate()
+                        val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+                        date.format(formatter)
+                    } else {
+                        "No date"
+                    }
 
-            val timestamp = expenseDetails?.date?.toLong()
-            val formattedDate = if (timestamp != null) {
-                val date = Instant.ofEpochSecond(timestamp)
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate()
-                val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-                date.format(formatter)
-            } else {
-                "No date"
-            }
+                    Text("Amount: ${expenseDetails!!.amount}", style = MaterialTheme.typography.bodyLarge)
+                    Text("Description: ${expenseDetails!!.description}", style = MaterialTheme.typography.bodyLarge)
+                    Text("Place: ${expenseDetails!!.place}", style = MaterialTheme.typography.bodyLarge)
+                    Text("Date: $formattedDate", style = MaterialTheme.typography.bodyLarge)
+                    Text("Category: ${expenseDetails!!.category.name}", style = MaterialTheme.typography.bodyLarge)
+                    Text("Paid by: ${expenseDetails!!.user.username}", style = MaterialTheme.typography.bodyLarge)
 
-            Text("Amount: ${expenseDetails!!.amount}", style = MaterialTheme.typography.bodyLarge)
-            Text("Description: ${expenseDetails!!.description}", style = MaterialTheme.typography.bodyLarge)
-            Text("Place: ${expenseDetails!!.place}", style = MaterialTheme.typography.bodyLarge)
-            Text("Date: $formattedDate", style = MaterialTheme.typography.bodyLarge)
-            Text("Category: ${expenseDetails!!.category.name}", style = MaterialTheme.typography.bodyLarge)
-            Text("Paid by: ${expenseDetails!!.user.username}", style = MaterialTheme.typography.bodyLarge)
-
-            debts?.forEach { debt ->
-                Text("${debt.userInDebt.username} : ${debt.amount}", style = MaterialTheme.typography.bodyLarge)
+                    debts?.forEach { debt ->
+                        Text("${debt.userInDebt.username} : ${debt.amount}", style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
             }
         }
     }

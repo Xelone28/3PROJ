@@ -107,9 +107,8 @@ fun BalancedDebtByGroupDetail(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF0F2F5))
-            .padding(PaddingValues(16.dp))
     ) {
+        Header(navController = navController)
         if (isLoading) {
             CircularProgressIndicator(color = Color(0xFF4CAF50))
         } else {
@@ -118,17 +117,6 @@ fun BalancedDebtByGroupDetail(
                     text = message,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyLarge
-                )
-            }
-
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.background(Color(0xFF282C34))
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back",
-                    tint = Color.White
                 )
             }
 

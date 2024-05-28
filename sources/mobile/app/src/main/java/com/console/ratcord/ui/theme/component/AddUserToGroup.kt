@@ -1,7 +1,10 @@
 import android.content.Context
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -37,47 +40,56 @@ fun AddUserToGroup(context: Context, userInGroupService: UserInGroupService, use
     var isGroupAdmin by remember { mutableStateOf<Boolean>(false) }
 
     val coroutineScope = rememberCoroutineScope()
-
-    Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Header(navController = navController)
         errorMessage?.let { message ->
             AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
         }
-        IconButton(onClick = { navController.popBackStack() }) {
-            Icon(
-                imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Go back",
-            )
-        }
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.padding(top = 8.dp)
-        )
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-            Checkbox(
-                checked = isGroupAdmin,
-                onCheckedChange = { isGroupAdmin = it },
-                enabled = true
-            )
-            Text("Group Admin")
-        }
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    val user = userService.getUserByEmail(context, email = email)
-                    if (user is UserMinimalWithId) {
-                        val userInGroup = UserInGroupMinimal(groupId = groupId, isGroupAdmin = isGroupAdmin, isActive = false, userId = user.id)
-                        userInGroupService.addUserInGroup(context, userInGroup)
-                        navController.navigate(Screen.Profile.route)
-                    } else {
-                        errorMessage = "The user does not exist."
-                    }
-                }
-            },
-            modifier = Modifier.padding(top = 16.dp)
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            Text("Add")
+            Column {
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email") },
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Checkbox(
+                        checked = isGroupAdmin,
+                        onCheckedChange = { isGroupAdmin = it },
+                        enabled = true
+                    )
+                    Text("Group Admin")
+                }
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            val user = userService.getUserByEmail(context, email = email)
+                            if (user is UserMinimalWithId) {
+                                val userInGroup = UserInGroupMinimal(
+                                    groupId = groupId,
+                                    isGroupAdmin = isGroupAdmin,
+                                    isActive = false,
+                                    userId = user.id
+                                )
+                                userInGroupService.addUserInGroup(context, userInGroup)
+                                navController.navigate("${Screen.GroupDetails}/${groupId}")
+                            } else {
+                                errorMessage = "The user does not exist."
+                            }
+                        }
+                    },
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    Text("Add")
+                }
+            }
         }
     }
 }

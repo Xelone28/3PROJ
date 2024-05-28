@@ -1,18 +1,26 @@
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.console.ratcord.ExpenseTab
+import com.console.ratcord.R
 import com.console.ratcord.Screen
 import com.console.ratcord.api.ExpenseService
 import com.console.ratcord.api.Utils
@@ -72,16 +80,6 @@ fun ExpensesFromGroup(
         if (isLoading) {
             CircularProgressIndicator(color = Color(0xFF4CAF50))
         } else {
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.background(Color(0xFF282C34))
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back",
-                    tint = Color.White
-                )
-            }
             expenses?.let { expenseList ->
                 expenseList.forEach { expense ->
                     ExpenseCard(
@@ -92,9 +90,15 @@ fun ExpensesFromGroup(
                     )
                 }
             }
+        }
+        Box(contentAlignment = Alignment.BottomEnd) {
             IconButton(
-                onClick = { navController.navigate("${ExpenseTab.AddExpenseToGroup}/${groupId}") },
-                modifier = Modifier.background(Color(0xFF282C34))
+                onClick = { navController.navigate("${ExpenseTab.AddExpenseToGroup}/$groupId") },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .background(color = colorResource(id = R.color.green))
+                    .clip(RoundedCornerShape(50))
+                    .size(56.dp)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Add,

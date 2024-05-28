@@ -1,8 +1,10 @@
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -14,6 +16,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -71,6 +77,16 @@ data class BottomNavigationItem(
 }
 
 class Navigation() {
+
+    val userService = UserService()
+    val groupService = GroupService()
+    val userInGroupService = UserInGroupService()
+    val expenseService = ExpenseService()
+    val categoryService = CategoryService()
+    val debtService = DebtService()
+    val debtAdjustmentService = DebtAdjustmentService()
+    val paymentService = PaymentService()
+
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun BottomNavigationBar(applicationContext: Context) {
@@ -78,16 +94,6 @@ class Navigation() {
             mutableStateOf(0)
         }
         val navController = rememberNavController()
-
-        val userService = UserService()
-        val groupService = GroupService()
-        val userInGroupService = UserInGroupService()
-        val expenseService = ExpenseService()
-        val categoryService = CategoryService()
-        val debtService = DebtService()
-        val debtAdjustmentService = DebtAdjustmentService()
-        val paymentService = PaymentService()
-
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
@@ -239,7 +245,6 @@ class Navigation() {
                     )
                     val loggedInUserSerialized: UserMinimalWithImage? =
                         loggedInUser?.let { Json.decodeFromString<UserMinimalWithImage>(it) }
-
                     if (loggedInUserSerialized != null) {
                         PrivateChat(
                             userLoggedIn = loggedInUserSerialized,
@@ -436,21 +441,109 @@ class Navigation() {
         }
     }
 
+
+    @RequiresApi(Build.VERSION_CODES.O)
     @Composable
-    fun TopNavigationBar(navController: NavController, groupId: Int, groupName: String) {
-        Row {
-            Button(onClick = { navController.navigate("${ExpenseTab.UsersFromGroup}/${groupId}") }) {
-                Text(text = "Users")
+    fun TopNavigationBar(navController: NavController, groupId: Int, groupName: String, applicationContext: Context) {
+        var selectedTabIndex by remember { mutableStateOf(0) }
+        val tabTitles = listOf("Users", "Expenses", "Categories", "Group chat", "Balance", "Edit")
+
+        Column {
+            ScrollableTabRow(
+                selectedTabIndex = selectedTabIndex,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                tabTitles.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTabIndex == index,
+                        onClick = { selectedTabIndex = index },
+                        text = { Text(text = title) }
+                    )
+                }
             }
-            Button(onClick = { navController.navigate("${ExpenseTab.Expenses}/${groupId}") }) {
-                Text(text = "Expenses")
-            }
-            Button(onClick = { navController.navigate("${Screen.CategoriesFromGroup}/${groupId}") }) {
-                Text(text = "Categories")
-            }
-            Button(onClick = { navController.navigate("${Screen.Chat}/${groupName}/${groupId}") }) {
-                Text(text = "Group chat")
+
+            when (selectedTabIndex) {
+                0 -> UsersContent(groupId = groupId, applicationContext=applicationContext, navController = navController)
+                1 -> ExpensesContent(groupId = groupId, applicationContext = applicationContext, navController = navController)
+                2 -> CategoriesContent(groupId = groupId, navController = navController, applicationContext = applicationContext)
+                3 -> GroupChatContent(groupId = groupId, applicationContext = applicationContext)
+                4 -> DebtAdjustment(applicationContext = applicationContext, navController = navController, groupId = groupId)
+                5 -> EditGroup(groupId = groupId, applicationContext = applicationContext, navController = navController)
             }
         }
+    }
+
+    @Composable
+    fun UsersContent(groupId: Int, applicationContext: Context, navController: NavController) {
+        // Replace with your actual Users content
+        UsersFromGroup(
+            groupService = groupService,
+            userInGroupService = userInGroupService,
+            applicationContext = applicationContext,
+            navController = navController,
+            groupId = groupId
+        )
+    }
+
+    @Composable
+    fun ExpensesContent(groupId: Int, applicationContext: Context, navController: NavController) {
+        // Replace with your actual Expenses content
+        ExpensesFromGroup(
+            applicationContext = applicationContext,
+            groupId = groupId,
+            navController = navController,
+            expenseFromGroup = expenseService
+        )
+    }
+
+    @Composable
+    fun CategoriesContent(groupId: Int, applicationContext: Context, navController: NavController) {
+        CategoriesFromGroup(
+            navController = navController,
+            groupId = groupId,
+            applicationContext = applicationContext,
+            categoryService = categoryService
+        )    }
+
+    @Composable
+    fun GroupChatContent(groupId: Int, applicationContext: Context) {
+        val loggedInUser: String? = Utils.getItem(
+            context = applicationContext,
+            fileKey = LocalStorage.PREFERENCES_FILE_KEY,
+            key = LocalStorage.USER
+        )
+        val loggedInUserSerialized: UserMinimalWithImage? =
+            loggedInUser?.let { Json.decodeFromString<UserMinimalWithImage>(it) }
+
+        if (loggedInUserSerialized != null) {
+            println("Am i passing here ?")
+            ChatScreen(
+                username = loggedInUserSerialized.username,
+                roomName = "GroupMesages$groupId"
+            )
+        } else {
+            println(loggedInUserSerialized)
+        }
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    @Composable
+    fun DebtAdjustment(groupId: Int, applicationContext: Context, navController: NavController) {
+        BalancedDebtByGroup(
+            groupId = groupId,
+            applicationContext = applicationContext,
+            navController = navController,
+            debtAdjustmentService = debtAdjustmentService,
+            userService = userService
+        )
+    }
+
+    @Composable
+    fun EditGroup(groupId: Int, applicationContext: Context, navController: NavController) {
+        EditGroup(
+            groupId = groupId,
+            applicationContext = applicationContext,
+            navController = navController,
+            groupService = groupService
+        )
     }
 }

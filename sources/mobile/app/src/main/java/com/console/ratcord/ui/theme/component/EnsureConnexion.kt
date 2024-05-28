@@ -1,6 +1,8 @@
 import android.content.Context
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -19,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.console.ratcord.api.UserService
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.navigation.NavController
 import com.console.ratcord.api.LocalStorage
@@ -33,15 +36,10 @@ fun EnsureConnexion(userService: UserService, applicationContext: Context, navCo
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
 
-    Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Header(navController = navController)
         errorMessage?.let { message ->
             AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
-        }
-        IconButton(onClick = { navController.popBackStack() }) {
-            Icon(
-                imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Go back",
-            )
         }
         OutlinedTextField(
             value = password,

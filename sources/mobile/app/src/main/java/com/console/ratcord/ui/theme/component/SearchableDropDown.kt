@@ -36,8 +36,9 @@ fun <T> SearchableDropDown(
     var selectedEntity by remember { mutableStateOf<T?>(null) }
 
     Box(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)    ) {
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded }
@@ -47,7 +48,12 @@ fun <T> SearchableDropDown(
                 onValueChange = {},
                 label = { Text(text = label) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier.menuAnchor()
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+
+
             )
 
             if (expanded) {

@@ -3,8 +3,10 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import com.console.ratcord.api.UserService
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.navigation.NavController
 import com.console.ratcord.Screen
 import com.console.ratcord.domain.entity.user.UserMinimal
@@ -52,71 +56,71 @@ fun RegisterForm(applicationContext: Context, userService: UserService, navContr
         }
     }
 
-    Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+    Header(navController)
+    Column(modifier = Modifier.fillMaxSize()) {
         errorMessage?.let { message ->
             AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
         }
-        IconButton(onClick = { navController.popBackStack() }) {
-            Icon(
-                imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Go back",
-            )
-        }
-
-        OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text("Username") }
-        )
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.padding(top = 8.dp)
-        )
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            modifier = Modifier.padding(top = 8.dp)
-        )
-        OutlinedTextField(
-            value = rib,
-            onValueChange = { rib = it },
-            label = { Text("RIB") },
-            modifier = Modifier.padding(top = 8.dp)
-        )
-        OutlinedTextField(
-            value = paypalUsername,
-            onValueChange = { paypalUsername = it },
-            label = { Text("PayPal Username") },
-            modifier = Modifier.padding(top = 8.dp)
-        )
-        Button(onClick = { imagePickerLauncher.launch("image/*") }) {
-            Text("Pick Image")
-        }
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    val user = UserMinimal(
-                        username = username,
-                        email = email,
-                        password = password,
-                        rib = rib.takeIf { it.isNotBlank() },
-                        paypalUsername = paypalUsername.takeIf { it.isNotBlank() },
-                        imagePath = imageUri?.path
-
-                    )
-                    if (userService.createUser(context = applicationContext, user, imageUri)) {
-                        navController.navigate(Screen.Profile.route)
-                    } else {
-                        errorMessage = "Register failed. Please your inputs."
-                    }
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center) {
+            Column {
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    label = { Text("Username") }
+                )
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email") },
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    visualTransformation = PasswordVisualTransformation(),
+                    label = { Text("Password") },
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+                OutlinedTextField(
+                    value = rib,
+                    onValueChange = { rib = it },
+                    label = { Text("RIB") },
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+                OutlinedTextField(
+                    value = paypalUsername,
+                    onValueChange = { paypalUsername = it },
+                    label = { Text("PayPal Username") },
+                    modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+                )
+                Button(onClick = { imagePickerLauncher.launch("image/*") }) {
+                    Text("Profile image")
                 }
-            },
-            modifier = Modifier.padding(top = 16.dp)
-        ) {
-            Text("Register")
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            val user = UserMinimal(
+                                username = username,
+                                email = email,
+                                password = password,
+                                rib = rib.takeIf { it.isNotBlank() },
+                                paypalUsername = paypalUsername.takeIf { it.isNotBlank() },
+                                imagePath = imageUri?.path
+                            )
+                            if (userService.createUser(context = applicationContext, user, imageUri)) {
+                                navController.navigate(Screen.Profile.route)
+                            } else {
+                                errorMessage = "Register failed. Please your inputs."
+                            }
+                        }
+                    },
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Text("Register")
+                }
+            }
         }
     }
 }

@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.console.ratcord.ExpenseTab
+import com.console.ratcord.Screen
 import com.console.ratcord.api.LocalStorage
 import com.console.ratcord.api.UserInGroupService
 import com.console.ratcord.api.Utils
@@ -49,6 +51,7 @@ fun GroupsInvitation(
                             errorMessage = when (exception) {
                                 is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
                                 is Utils.Companion.NetworkException -> "Network error. Please check your connection."
+                                is Utils.Companion.NotFound -> "You have no invitation"
                                 is Utils.Companion.UnexpectedResponseException -> exception.message
                                     ?: "An unexpected error occurred."
                                 else -> "An unknown error occurred."
@@ -65,27 +68,14 @@ fun GroupsInvitation(
 
     Column(
         modifier = Modifier
-            .padding(16.dp)
-            .background(Color(0xFFF0F2F5))
     ) {
+        Header(navController = navController)
         errorMessage?.let { message ->
             AlertBaner(message = message, onAnimationEnd = { errorMessage = null })
         }
         if (isLoading) {
             CircularProgressIndicator(color = Color(0xFF4CAF50))
         } else {
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier
-                    .background(Color(0xFF282C34))
-                    .padding(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back",
-                    tint = Color.White
-                )
-            }
             userInvitationsToGroup?.let { invitations ->
                 invitations.forEach { invitation ->
                     GroupInvitationCard(
@@ -104,6 +94,7 @@ fun GroupsInvitation(
                                             when (val invitationsResult = userInGroupService.getInvitationsToGroup(applicationContext, it)) {
                                                 is Utils.Companion.Result.Success -> {
                                                     userInvitationsToGroup = invitationsResult.data
+                                                    navController.navigate(Screen.Groups.route)
                                                 }
                                                 is Utils.Companion.Result.Error -> {
                                                     val exception = invitationsResult.exception
@@ -140,21 +131,7 @@ fun GroupsInvitation(
                                         userId = it
                                     )) {
                                         is Utils.Companion.Result.Success -> {
-                                            when (val invitationsResult = userInGroupService.getInvitationsToGroup(applicationContext, it)) {
-                                                is Utils.Companion.Result.Success -> {
-                                                    userInvitationsToGroup = invitationsResult.data
-                                                }
-                                                is Utils.Companion.Result.Error -> {
-                                                    val exception = invitationsResult.exception
-                                                    errorMessage = when (exception) {
-                                                        is Utils.Companion.AuthorizationException -> "Unauthorized access. Please login again."
-                                                        is Utils.Companion.NetworkException -> "Network error. Please check your connection."
-                                                        is Utils.Companion.UnexpectedResponseException -> exception.message
-                                                            ?: "An unexpected error occurred."
-                                                        else -> "An unknown error occurred."
-                                                    }
-                                                }
-                                            }
+                                            navController.navigate(Screen.Groups.route)
                                         }
                                         is Utils.Companion.Result.Error -> {
                                             val exception = result.exception

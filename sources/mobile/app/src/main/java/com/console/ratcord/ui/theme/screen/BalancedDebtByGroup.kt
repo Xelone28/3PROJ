@@ -113,17 +113,6 @@ fun BalancedDebtByGroup(
                 )
             }
 
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.background(Color(0xFF282C34))
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back",
-                    tint = Color.White
-                )
-            }
-
             userDebts.let { debts ->
                 val maxAmount = debts.values.maxOfOrNull { abs(it) } ?: 1f
                 LazyColumn {
