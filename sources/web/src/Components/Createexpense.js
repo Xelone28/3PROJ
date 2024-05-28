@@ -41,7 +41,7 @@ function CreateExpense() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const userResponse = await fetch(`http://localhost:5000/useringroup/users/${groupId}`, {
+          const userResponse = await fetch(`http://176.189.185.253:5000/useringroup/users/${groupId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -54,7 +54,7 @@ function CreateExpense() {
           showErrorBanner('Failed to fetch users');
         }
 
-        const categoryResponse = await fetch(`http://localhost:5000/category/group/${groupId}`, {
+          const categoryResponse = await fetch(`http://176.189.185.253:5000/category/group/${groupId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (categoryResponse.ok) {
@@ -148,7 +148,7 @@ function CreateExpense() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/expense', {
+        const response = await fetch('http://176.189.185.253:5000/expense', {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}` 
@@ -204,7 +204,7 @@ function CreateExpense() {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/category', {
+        const response = await fetch('http://176.189.185.253:5000/category', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

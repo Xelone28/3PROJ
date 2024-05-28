@@ -13,7 +13,7 @@ function Groups() {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/useringroup/user/${userId}`, {
+          const response = await fetch(`http://176.189.185.253:5000/useringroup/user/${userId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },

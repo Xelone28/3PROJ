@@ -12,7 +12,7 @@ function Header({ user }) {
   useEffect(() => {
     const fetchUser = async () => {
       if (!user || !user.id) return;
-      const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
+        const response = await fetch(`http://176.189.185.253:5000/api/users/${user.id}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {

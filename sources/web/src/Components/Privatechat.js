@@ -15,7 +15,8 @@ const PrivateChat = () => {
     const fetchCurrentUser = async () => {
       if (user.id && token) {
         try {
-          const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
+            const response = await fetch(`http://
+          :5000/api/users/${user.id}`, {
             method: 'GET',
             headers: {
               Authorization: `Bearer ${token}`
@@ -36,7 +37,7 @@ const PrivateChat = () => {
     const fetchGroupUsers = async () => {
       if (token) {
         try {
-          const response = await fetch(`http://localhost:5000/useringroup/${user.id}/groupusers`, {
+            const response = await fetch(`http://176.189.185.253:5000/useringroup/${user.id}/groupusers`, {
             method: 'GET',
             headers: {
               Authorization: `Bearer ${token}`

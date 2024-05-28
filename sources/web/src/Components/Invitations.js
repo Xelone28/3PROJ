@@ -35,7 +35,7 @@ function Creategroup() {
 
   useEffect(() => {
     const fetchInvitations = async () => {
-      const response = await fetch(`http://localhost:5000/useringroup/invitation/${userId}`, {
+        const response = await fetch(`http://176.189.185.253:5000/useringroup/invitation/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -45,7 +45,7 @@ function Creategroup() {
         const data = await response.json();
         const invitationsWithGroupInfo = await Promise.all(
           data.map(async (invitation) => {
-            const groupResponse = await fetch(`http://localhost:5000/group/${invitation.group.id}`, {
+              const groupResponse = await fetch(`http://176.189.185.253:5000/group/${invitation.group.id}`, {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
@@ -71,7 +71,7 @@ function Creategroup() {
   }, [userId, token]);
 
   const acceptInvitation = async (groupId) => {
-    const response = await fetch(`http://localhost:5000/useringroup/${userId}/${groupId}`, {
+      const response = await fetch(`http://176.189.185.253:5000/useringroup/${userId}/${groupId}`, {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -89,7 +89,7 @@ function Creategroup() {
   };
 
   const refuseInvitation = async (groupId) => {
-    const response = await fetch(`http://localhost:5000/useringroup/${userId}/${groupId}`, {
+      const response = await fetch(`http://176.189.185.253:5000/useringroup/${userId}/${groupId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,

@@ -51,7 +51,8 @@ const GroupPage = () => {
 
   useEffect(() => {
     const fetchExpenses = async () => {
-      const response = await fetch(`http://localhost:5000/expense/group/${Id}`, {
+        const response = await fetch(`http://
+      :5000/expense/group/${Id}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -72,7 +73,7 @@ const GroupPage = () => {
   useEffect(() => {
     const fetchGroup = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/group/${Id}`, {
+          const response = await fetch(`http://176.189.185.253:5000/group/${Id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -88,7 +89,7 @@ const GroupPage = () => {
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const response = await fetch(`http://localhost:5000/category/group/${Id}`, {
+        const response = await fetch(`http://176.189.185.253:5000/category/group/${Id}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -108,7 +109,7 @@ const GroupPage = () => {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const response = await fetch(`http://localhost:5000/useringroup/users/${Id}`, {
+        const response = await fetch(`http://176.189.185.253:5000/useringroup/users/${Id}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -126,7 +127,7 @@ const GroupPage = () => {
 
   useEffect(() => {
     const fetchDebts = async () => {
-      const response = await fetch(`http://localhost:5000/DebtAdjustment/group/${Id}`, {
+        const response = await fetch(`http://176.189.185.253:5000/DebtAdjustment/group/${Id}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -160,7 +161,7 @@ const GroupPage = () => {
   };
 
   const fetchUserData = async (userId) => {
-    const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const response = await fetch(`http://176.189.185.253:5000/api/users/${userId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -179,7 +180,7 @@ const GroupPage = () => {
   const handleInviteSubmit = async (event) => {
     event.preventDefault();
 
-    const response = await fetch('http://localhost:5000/useringroup', {
+      const response = await fetch('http://176.189.185.253:5000/useringroup', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -203,7 +204,7 @@ const GroupPage = () => {
   };
 
   const handleDeleteExpense = async (expenseId) => {
-    const response = await fetch(`http://localhost:5000/expense/${expenseId}`, {
+      const response = await fetch(`http://176.189.185.253:5000/expense/${expenseId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,

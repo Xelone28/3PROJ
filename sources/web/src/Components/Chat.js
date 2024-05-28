@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 import '../assets/css/App.css';
 
 
-const socket = io('http://localhost:4000'); 
+const socket = io('http://176.189.185.253:4000'); 
 
 const Chat = ({ username, roomName = null, privateRecipient = null }) => {
   const [message, setMessage] = useState('');

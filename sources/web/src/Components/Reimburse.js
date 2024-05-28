@@ -18,7 +18,7 @@ function Reimburse() {
   useEffect(() => {
     const fetchDebtDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/DebtAdjustment/${DebtAdjustmentId}`, {
+          const response = await fetch(`http://176.189.185.253:5000/DebtAdjustment/${DebtAdjustmentId}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -39,7 +39,7 @@ function Reimburse() {
 
     const fetchUserInCredit = async (userInCreditId) => {
       try {
-        const response = await fetch(`http://localhost:5000/api/users/${userInCreditId}`, {
+          const response = await fetch(`http://176.189.185.253:5000/api/users/${userInCreditId}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -88,7 +88,7 @@ function Reimburse() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/payment`, {
+        const response = await fetch(`http://176.189.185.253:5000/api/payment`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

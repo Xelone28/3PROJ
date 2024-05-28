@@ -17,7 +17,7 @@ const InterfaceChat = () => {
 
   useEffect(() => {
     if (user && token) {
-      fetch(`http://localhost:5000/api/users/${currentUserId}`, {
+        fetch(`http://176.189.185.253:5000/api/users/${currentUserId}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`
@@ -39,7 +39,7 @@ const InterfaceChat = () => {
     }
 
     if (groupId && token) {
-      fetch(`http://localhost:5000/useringroup/${user.id}/groupusers`, {
+        fetch(`http://176.189.185.253:5000/useringroup/${user.id}/groupusers`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`

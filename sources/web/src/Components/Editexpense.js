@@ -39,7 +39,8 @@ function EditExpense({ match }) {
 
   useEffect(() => {
     const fetchExpense = async () => {
-      const response = await fetch(`http://localhost:5000/expense/${expenseId}`, {
+        const response = await fetch(`http://
+      :5000/expense/${expenseId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -57,7 +58,7 @@ function EditExpense({ match }) {
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const response = await fetch(`http://localhost:5000/category/group/${expenseData.groupId}`, {
+        const response = await fetch(`http://176.189.185.253:5000/category/group/${expenseData.groupId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -77,7 +78,7 @@ function EditExpense({ match }) {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const response = await fetch(`http://localhost:5000/useringroup/users/${expenseData.groupId}`, {
+        const response = await fetch(`http://176.189.185.253:5000/useringroup/users/${expenseData.groupId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -116,7 +117,7 @@ function EditExpense({ match }) {
       formData.append('image', selectedFile);
     }
 
-    const response = await fetch(`http://localhost:5000/expense/${expenseId}`, {
+      const response = await fetch(`http://176.189.185.253:5000/expense/${expenseId}`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,

@@ -37,7 +37,7 @@ const Signup = () => {
       formData.append('PaypalUsername', event.target.elements.paypal.value);
       formData.append('Image', image);
 
-      fetch('http://localhost:5000/api/users', {
+        fetch('http://176.189.185.253:5000/api/users', {
         method: 'POST',
         body: formData,
       })

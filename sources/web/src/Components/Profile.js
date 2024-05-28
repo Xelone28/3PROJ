@@ -22,7 +22,7 @@ function Profile() {
     const token = getToken();
     const storedUser = JSON.parse(localStorage.getItem('user'));
 
-    const response = await fetch(`http://localhost:5000/api/users/${storedUser.id}`, {
+      const response = await fetch(`http://176.189.185.253:5000/api/users/${storedUser.id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ function Profile() {
       const token = getToken();
       const storedUser = JSON.parse(localStorage.getItem('user'));
 
-      const response = await fetch(`http://localhost:5000/api/users/${storedUser.id}`, {
+        const response = await fetch(`http://176.189.185.253:5000/api/users/${storedUser.id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ function Profile() {
       formData.append('Image', image, image.name);
     }
 
-    const response = await fetch(`http://localhost:5000/api/users/${storedUser.id}`, {
+      const response = await fetch(`http://176.189.185.253:5000/api/users/${storedUser.id}`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -93,7 +93,7 @@ function Profile() {
       return;
     }
 
-    const updatedResponse = await fetch(`http://localhost:5000/api/users/${storedUser.id}`, {
+      const updatedResponse = await fetch(`http://176.189.185.253:5000/api/users/${storedUser.id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

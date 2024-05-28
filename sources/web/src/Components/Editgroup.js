@@ -38,7 +38,14 @@ function EditGroupPage() {
   useEffect(() => {
     const fetchGroup = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/group/${Id}`, {
+          const response = await fetch(`http://
+
+
+
+
+
+
+          :5000/group/${Id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -64,7 +71,7 @@ function EditGroupPage() {
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/group/${Id}`, {
+        const response = await fetch(`http://176.189.185.253:5000/group/${Id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -87,7 +94,7 @@ function EditGroupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5000/group/${Id}`, {
+        const response = await fetch(`http://176.189.185.253:5000/group/${Id}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

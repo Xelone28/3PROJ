@@ -44,7 +44,7 @@ function Creategroup() {
       return;
     }
 
-    const response = await fetch('http://localhost:5000/group', {
+      const response = await fetch('http://176.189.185.253:5000/group', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

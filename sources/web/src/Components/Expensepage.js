@@ -29,7 +29,9 @@ function ExpensePage() {
   const [data, setData] = useState(null);
 
   const fetchDebts = useCallback(async () => {
-    const response = await fetch(`http://localhost:5000/debt/expense/${expenseId}`, {
+      const response = await fetch(`http://
+
+      :5000/debt/expense/${expenseId}`, {
       headers: {
         'Authorization': 'Bearer ' + token,
       },
@@ -91,7 +93,7 @@ function ExpensePage() {
 
   useEffect(() => {
     const fetchExpense = async () => {
-      const response = await fetch(`http://localhost:5000/expense/${expenseId}`, {
+        const response = await fetch(`http://176.189.185.253:5000/expense/${expenseId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
